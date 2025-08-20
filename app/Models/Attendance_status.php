@@ -9,4 +9,7 @@ class Attendance_status extends Model
 {
     /** @use HasFactory<\Database\Factories\AttendanceStatusFactory> */
     use HasFactory;
+    protected $table = "attendance_statuses";
+    protected $primaryKey = "id";
+    protected $fillable = ["name","paid"];
 }

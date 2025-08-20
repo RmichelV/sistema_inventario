@@ -9,4 +9,22 @@ class Attendance_record extends Model
 {
     /** @use HasFactory<\Database\Factories\AttendanceRecordFactory> */
     use HasFactory;
+
+    protected $table = "attendance_records";
+    protected $primaryKey = "id";
+    protected $fillable = [
+        "user_id",
+        "attendance_status_id",
+        "check_in_at",
+        "check_out_at",
+        "late_minutes",
+        "worked_hours",
+    ];
+
+    public function User(){
+        return $this->belongsTo(User::class,"user_id","id");
+    }
+    public function AttendanceStatus(){
+        return $this->belongsTo(Attendance_status::class,"attendance_status_id","id");
+    }
 }
