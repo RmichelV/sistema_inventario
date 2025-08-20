@@ -18,6 +18,7 @@ return new class extends Migration
             $table->string('phone');
             $table->foreignId('role_id')->constrained('roles');
             $table->integer('base_salary');
+            $table->date('hire_date');
             $table->string('email')->unique();
             $table->timestamp('email_verified_at')->nullable();
             $table->string('password');

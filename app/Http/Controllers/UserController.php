@@ -4,6 +4,12 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 
+//modelos 
+use App\Models\User;
+use App\Models\Role;
+
+//librerias
+use Inertia\Inertia;
 class UserController extends Controller
 {
     /**
@@ -11,7 +17,9 @@ class UserController extends Controller
      */
     public function index()
     {
-        //
+        $users = User::with("Role")->get();
+        $roles = Role::all();
+        return Inertia::render("Users/Index", compact("users","roles"));
     }
 
     /**
