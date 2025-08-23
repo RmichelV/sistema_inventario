@@ -7,6 +7,12 @@ import { createApp, h } from 'vue';
 import { ZiggyVue } from 'ziggy-js';
 import { initializeTheme } from './composables/useAppearance';
 
+//importaciones propias 
+
+import 'boxicons/css/boxicons.min.css';
+
+//fin importaciones propias
+
 const appName = import.meta.env.VITE_APP_NAME || 'Laravel';
 
 createInertiaApp({

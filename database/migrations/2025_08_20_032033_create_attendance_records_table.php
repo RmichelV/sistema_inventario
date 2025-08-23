@@ -18,7 +18,6 @@ return new class extends Migration
             $table->dateTime('check_in_at')->nullable();
             $table->dateTime('check_out_at')->nullable();
             $table->integer('late_minutes')->nullable();
-            $table->decimal('worked_hours',5,2)->nullable();
             $table->timestamps();
         });
     }

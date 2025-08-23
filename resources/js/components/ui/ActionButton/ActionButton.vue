@@ -1,49 +1,54 @@
 <script setup lang="ts">
+
+//mis importaciones 
 import { Link } from '@inertiajs/vue3';
-import { computed } from 'vue';
+import { computed } from 'vue'
 
-// Definición de las props con tipado de TypeScript
+//constantes 
+//propiedades del boton
 const props = defineProps<{
-    href?: string; // Ahora es opcional
-    color: string;
-    nombre: string;
-    iconName?: string; // Es opcional, con un valor por defecto
-}>();
+    color:string
+    iconName?:string
+    href?:string
+    name?:string
+}>()
 
-// Objeto para mapear los colores a clases de Tailwind
-// Se pueden agregar más colores según lo necesites
-const colorClasses: { [key: string]: string } = {
-    'rgb(65, 27, 215)': 'bg-blue-600 hover:bg-blue-700', // Ejemplo para tu color original
+//definicion de claves  y valores  (aqui definimos los colores de los botones)
+const colorClasses: {[key:string]:string}={
+    'blue': 'bg-blue-600 hover:bg-blue-700', 
     'red': 'bg-red-600 hover:bg-red-700',
     'green': 'bg-green-600 hover:bg-green-700',
-};
+    'yellow': 'bg-yellow-600 hover:bg-yellow-700',
+}
 
-// Propiedad computada para obtener las clases de color
-const buttonColor = computed(() => {
-    return colorClasses[props.color] || 'bg-gray-600 hover:bg-gray-700';
-});
+//computed devolvera el valor segun el nombre de la clave que le pasemos
+const buttonColor = computed(()=>{
+    return colorClasses[props.color] || 'bg-gray-600 hover:bg-gray-700'
+})
 
-// Estilos del botón de forma modular y reutilizable
+//clases base 
 const baseClasses = 'px-4 py-2 font-medium text-white rounded-md transition-colors duration-200 ease-in-out shadow-md';
-const iconAndTextClasses = 'flex items-center justify-center gap-2';
 
-// Clases combinadas para el botón final
-const buttonClasses = computed(() => {
-    return `${baseClasses} ${buttonColor.value} ${iconAndTextClasses}`;
-});
+const iconAndTextClasses = 'flex items-center justify-center gap-2'
+
+const buttonClasses = computed(()=>{
+    return `${buttonColor.value} ${baseClasses} ${iconAndTextClasses}`
+})
+
 </script>
 
 <template>
     <template v-if="href">
         <Link :href="href" :class="buttonClasses">
-            <i :class="['bx', iconName]"></i>
-            <span>{{ nombre }}</span>
+            <i :class="['bx', iconName]">
+            </i>
+            <span> {{ name }}</span>
         </Link>
     </template>
     <template v-else>
         <button type="button" :class="buttonClasses">
             <i :class="['bx', iconName]"></i>
-            <span>{{ nombre }}</span>
+            <span>{{ name }}</span>
         </button>
     </template>
 </template>

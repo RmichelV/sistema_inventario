@@ -4,6 +4,21 @@ import { type BreadcrumbItem } from '@/types';
 import { Head } from '@inertiajs/vue3';
 import PlaceholderPattern from '../../components/PlaceholderPattern.vue';
 import { Table as UserTable} from '@/components/ui/Table';
+import { ActionButton } from '@/components/ui/ActionButton';
+
+import { Button } from '@/components/ui/button';
+import {
+    Dialog,
+    DialogClose,
+    DialogContent,
+    DialogDescription,
+    DialogFooter,
+    DialogHeader,
+    DialogTitle,
+    DialogTrigger,
+} from '@/components/ui/dialog';
+import { DialogTriggerProps } from 'reka-ui';
+
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
@@ -35,27 +50,52 @@ const props = defineProps({
                 </div>
             </div>
             <div class="relative min-h-[100vh] flex-1 rounded-xl border border-sidebar-border/70 md:min-h-min dark:border-sidebar-border">
-                 <UserTable
+            <!-- <UserTable
                     :Cadena='users ?? []'
-                    :Cabeceras="['ID', 'Nombre', 'Email']"
-                    :campos="['id', 'name', 'email']"
+                    :Cabeceras="['ID', 'Nombre', 'Rol','Acciones']"
+                    :campos="['id', 'name', 'role.name']"
                     :acciones="[
                         {
                             href: (item) => route('rusers.edit' , item.id),
                             color: 'blue',
-                            nombre: 'Editar',
-                            iconName: 'pencil',
+                            name: 'Editar',
+                            iconName: 'bx-pencil',
                         },
                         {
                             href: (item) => `/users/${item.id}`,
                             color: 'green',
-                            nombre: 'Ver',
-                            iconName: 'eye',
+                            name: 'Ver',
+                            iconName: 'bx-happy-heart-eyes',
                         }
                     ]"
-                    :agregar="{ href: route('rusers.create'), color: 'green', nombre: 'Agregar Empleado', iconName: 'plus' }"
+                    :agregar="{ href: route('rusers.create'), color: 'green', name: 'Agregar Empleado', iconName: 'plus' }"
                     :agregarAccion="true"
-               ></UserTable>
+               ></UserTable> 
+             -->
+            <UserTable
+                :cadena="users??[]"
+                :cabeceras="['id','nombre','Cargo','Salario','Acciones']"
+                :campos="['id','name','role.name','base_salary']"
+                :agregar="{ 
+                    href: route('rusers.create'), 
+                    color: 'green', 
+                    name: 'Agregar Empleado',
+                    iconName: 'bx-plus' }"
+                :acciones="[
+                    {
+                        href: (item) => route('rusers.edit' , item.id),
+                        color: 'blue',
+                        name: 'Editar',
+                        iconName: 'bx-pencil',
+                    },
+                    {
+                        href: (item) => `/users/${item.id}`,
+                        color: 'green',
+                        name: 'Ver',
+                        iconName: 'eye',
+                    }
+                ]"
+            />
             </div>
         </div>
     </AppLayout>

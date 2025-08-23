@@ -85,7 +85,7 @@
 }
 
 :root {
-    --background: hsl(0 0% 100%);
+    --background: hsl(0 0% 100%); /* fondo contenedor light*/
     --foreground: hsl(0 0% 3.9%);
     --card: hsl(0 0% 100%);
     --card-foreground: hsl(0 0% 3.9%);
@@ -122,7 +122,7 @@
 }
 
 .dark {
-    --background: hsl(0 0% 3.9%);
+    --background: hsl(248, 92%, 10%); /*fondo contenedor dark*/
     --foreground: hsl(0 0% 98%);
     --card: hsl(0 0% 3.9%);
     --card-foreground: hsl(0 0% 98%);
@@ -132,9 +132,9 @@
     --primary-foreground: hsl(0 0% 9%);
     --secondary: hsl(0 0% 14.9%);
     --secondary-foreground: hsl(0 0% 98%);
-    --muted: hsl(0 0% 16.08%);
+    --muted: hsl(0 0% 16.08%); /* color del nombre*/
     --muted-foreground: hsl(0 0% 63.9%);
-    --accent: hsl(0 0% 14.9%);
+    --accent: hsl(0 0% 14.9%); /* color de seleccion*/
     --accent-foreground: hsl(0 0% 98%);
     --destructive: hsl(0 84% 60%);
     --destructive-foreground: hsl(0 0% 98%);
@@ -146,15 +146,15 @@
     --chart-3: hsl(30 80% 55%);
     --chart-4: hsl(280 65% 60%);
     --chart-5: hsl(340 75% 55%);
-    --sidebar-background: hsl(0 0% 7%);
+    --sidebar-background: hsl(254, 84%, 19%); /* navbar */
     --sidebar-foreground: hsl(0 0% 95.9%);
     --sidebar-primary: hsl(360, 100%, 100%);
     --sidebar-primary-foreground: hsl(0 0% 100%);
-    --sidebar-accent: hsl(0 0% 15.9%);
+    --sidebar-accent: hsl(0 0% 15.9%); /* seleccion navbar*/
     --sidebar-accent-foreground: hsl(240 4.8% 95.9%);
     --sidebar-border: hsl(0 0% 15.9%);
     --sidebar-ring: hsl(217.2 91.2% 59.8%);
-    --sidebar: hsl(240 5.9% 10%);
+    --sidebar: hsl(0, 6%, 10%);
 }
 
 @layer base {

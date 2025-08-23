@@ -1,28 +1,29 @@
 <script setup lang="ts">
-import { ActionButton } from '../ActionButton';
 import { computed } from 'vue';
+import { ActionButton } from '@/components/ui/ActionButton';
 
-  const props = defineProps<{
-    cadena: any[]
-    cabeceras: string[]
-    campos: string[]
-    agregar: {
-      href: string;
-      color: string;
-      name: string;
-      iconName: string;
-    } | boolean;
-    acciones: {
-      href?: string | ((item: any) => string);
-      color: string;
-      name: string;
-      iconName: string;
-      onClick?: (item: any) => void;
-    }[];
-    
-  }>();
+// Define las propiedades del componente con tipado de TypeScript
+const props = defineProps<{
+  Cadena: any[]; // Cambiado a 'any[]' para mayor flexibilidad con datos complejos
+  Cabeceras: string[];
+  campos: string[];
+  acciones: {
+    href?: string | ((item: any) => string);
+    color: string;
+    name: string;
+    iconName: string;
+    onClick?: (item: any) => void;
+  }[];
+  agregar: {
+    href: string;
+    color: string;
+    name: string;
+    iconName: string;
+  } | boolean;
+}>();
 
- function getValor(obj: any, campo: string): any {
+// Función para obtener valores de objetos anidados (la misma lógica que tenías)
+function getValor(obj: any, campo: string): any {
     const partes = campo.split('.');
     let valor = obj;
     for (const parte of partes) {
@@ -34,16 +35,17 @@ import { computed } from 'vue';
     return valor || 'N/A';
 }
 
+// Lógica computada para el botón de agregar
 const agregarAccion = computed(() => {
   if (typeof props.agregar === 'object' && props.agregar.href && props.agregar.name) {
     return props.agregar;
   }
   return null;
 });
-
 </script>
 
 <template>
+  <!-- Contenedor del botón de agregar -->
   <div v-if="agregarAccion" class="flex justify-end p-4">
     <ActionButton
         :href="agregarAccion.href"
@@ -59,16 +61,16 @@ const agregarAccion = computed(() => {
       <thead class="bg-gray-50">
         <tr>
           <th
-            v-for="(cabecera, index) in cabeceras"
+            v-for="(cabecera, index) in Cabeceras"
             :key="`header-${index}`"
-            class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider dark:"
+            class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
           >
             {{ cabecera }}
           </th>
         </tr>
       </thead>
       <tbody class="bg-white divide-y divide-gray-200">
-        <tr v-for="cadena in cadena" :key="cadena.id || cadena.nombre">
+        <tr v-for="cadena in Cadena" :key="cadena.id || cadena.nombre">
           <td
             v-for="(campo, index) in campos"
             :key="`data-${cadena.id}-${index}`"
@@ -82,12 +84,17 @@ const agregarAccion = computed(() => {
                 <ActionButton
                     :href="typeof accion.href === 'function' ? accion.href(cadena) : accion.href"
                     :color="accion.color"
-                    :name="accion.name"
+                    :nombre="accion.name"
                     :iconName="accion.iconName"
                     @click="() => accion.onClick && accion.onClick(cadena)"
                 />
               </template>
             </div>
+          </td>
+        </tr>
+        <tr v-if="!Cadena || Cadena.length === 0">
+          <td :colspan="Cabeceras.length + (acciones.length > 0 ? 1 : 0)" class="px-6 py-4 text-center text-gray-500">
+            No se encontraron datos.
           </td>
         </tr>
       </tbody>
