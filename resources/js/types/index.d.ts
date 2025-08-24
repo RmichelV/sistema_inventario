@@ -23,16 +23,28 @@ export type AppPageProps<T extends Record<string, unknown> = Record<string, unkn
     auth: Auth;
     ziggy: Config & { location: string };
     sidebarOpen: boolean;
+
 };
 
 export interface User {
     id: number;
     name: string;
+    address: string;
+    phone: string;
+    role_id: number;
+    base_salary: number;
+    hire_date: Date;
     email: string;
     avatar?: string;
     email_verified_at: string | null;
     created_at: string;
     updated_at: string;
+    role?: Role;
+}
+
+export interface Role {
+    id: number;
+    name: string;
 }
 
 export type BreadcrumbItemType = BreadcrumbItem;

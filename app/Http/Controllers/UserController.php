@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use GuzzleHttp\Promise\Create;
 use Illuminate\Http\Request;
 
 //modelos 
@@ -10,16 +11,46 @@ use App\Models\Role;
 
 //librerias
 use Inertia\Inertia;
+use Illuminate\Support\Facades\Validator;
 class UserController extends Controller
 {
     /**
      * Display a listing of the resource.
      */
+    // public function index()
+    // {
+    //     $users = User::with("Role")->get();
+    
+    //     $roles = Role::all();
+    //     return Inertia::render("Users/Index", compact("users","roles"));
+    // }
     public function index()
     {
+    // Obtiene los usuarios con la relación 'Role'
         $users = User::with("Role")->get();
+        
+        // Transforma la colección de usuarios para agregar el nuevo campo 'saludos'
+        $usersWithGreetings = $users->map(function ($user) {
+            return [
+                'id' => $user->id,
+                'name' => $user->name,
+                'address' => $user->address,
+                'phone'=> $user->phone,
+                'role' => $user->role->name, 
+                'base_salary'=> $user->base_salary,
+                'email'=> $user->email,
+                'saludos' => 'Hola soy ' . $user->name, // Nuevo campo
+            ];
+        });
+
+        // También obtén los roles para pasarlos a la vista, si los necesitas
         $roles = Role::all();
-        return Inertia::render("Users/Index", compact("users","roles"));
+
+        // Pasa las colecciones transformadas a la vista de Inertia
+        return Inertia::render("Users/Index", [
+            'users' => $usersWithGreetings,
+            'roles' => $roles,
+        ]);
     }
 
     /**
@@ -27,7 +58,10 @@ class UserController extends Controller
      */
     public function create()
     {
-        //
+        $roles = Role::all();
+        return Inertia::render('Users/create',[
+            'roles' => $roles
+        ]);
     }
 
     /**
@@ -35,7 +69,37 @@ class UserController extends Controller
      */
     public function store(Request $request)
     {
-        //
+        // $validator = Validator::make($request->all(), [
+            
+        // ]);
+        // if ($validator->fails()) {
+        //     return redirect()->back()
+        //         ->withErrors($validator)
+        //         ->withInput();
+        // }
+        // $user = new User();
+        // $user->name = $request->input('name');
+        // $user->address = $request->input('address');
+        // $user->phone = $request->input('phone');
+        // $user->role_id = $request->input('role_id');
+        // $user->base_salary = $request->input('base_salary');
+        // $user->email = $request->input('email');
+        // $user->password = bcrypt($request->input('password')); 
+        // $user->save();
+
+        // return  redirect()->route('Users.index')->with('success','');
+        $user = User::create([
+            'name' => $request->name,
+            'address' => $request->address,
+            'phone' => $request->phone,
+            'role_id' => $request->role_id,
+            'base_salary' => $request->base_salary,
+            'hire_date' => $request->hire_date,
+            'email' => $request->email,
+            'password' => bcrypt($request->password), // Asegúrate de hashear la contraseña
+        ]);
+        return redirect()->route('rusers.index')->with('success','!Registro Exitoso¡');
+
     }
 
     /**
