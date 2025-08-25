@@ -38,6 +38,7 @@ class UserController extends Controller
                 'phone'=> $user->phone,
                 'role' => $user->role->name, 
                 'base_salary'=> $user->base_salary,
+                'hire_date' => $user->hire_date,
                 'email'=> $user->email,
                 'saludos' => 'Hola soy ' . $user->name, // Nuevo campo
             ];
