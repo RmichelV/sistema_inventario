@@ -115,7 +115,12 @@ class UserController extends Controller
      */
     public function edit(string $id)
     {
-        //
+        $user = User::findOrFail($id);
+        $roles = Role::all();
+        return Inertia::render('Users/edit', [
+            'user'=> $user,
+            'roles' => $roles
+        ]);
     }
 
     /**
@@ -123,7 +128,19 @@ class UserController extends Controller
      */
     public function update(Request $request, string $id)
     {
-        //
+        $user = User::findOrFail($id);
+        $user->name = $request->input('name');
+        $user->address = $request->input('address');
+        $user->phone = $request->input('phone');
+        $user->role_id = $request->input('role_id');
+        $user->base_salary = $request->input('base_salary');
+        $user->email = $request->input('email');
+        if ($request->filled('password')) {
+            $user->password = bcrypt($request->input('password')); 
+        }
+        $user->save();
+
+        return redirect()->route('rusers.index')->with('success','¡Actualización Exitosa!');
     }
 
     /**
