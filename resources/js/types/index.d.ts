@@ -39,6 +39,7 @@ export interface User {
     email_verified_at: string | null;
     created_at: string;
     updated_at: string;
+    asistencia_registrada?: boolean;
     role?: Role;
 }
 
@@ -60,4 +61,17 @@ export interface Role {
     name: string;
 }
 
+
+export interface SalaryAdjustment {
+    id: number;
+    user_id: number;
+    salary_adjustment_type: number;
+    amount: number;
+    effective_date: string;
+    reason: string;
+    created_at: string;
+    updated_at: string;
+    user?: User;
+    AdjustmentType?: AdjustmentType;
+}
 export type BreadcrumbItemType = BreadcrumbItem;

@@ -13,7 +13,7 @@ class Salary_adjustment extends Model
     protected $primaryKey = "id";
     protected $fillable = [
         "user_id",
-        "adjustment_type_id",
+        "salary_adjustment_type",
         "amount",
         "description",
         "date"
@@ -21,9 +21,5 @@ class Salary_adjustment extends Model
     
     public function User(){
         return $this->belongsTo(User::class,"user_id","id");
-    }
-
-    public function AdjustmentType(){   
-        return $this->belongsTo(Salary_adjustment_type::class,"adjustment_type_id","id");
     }
 }

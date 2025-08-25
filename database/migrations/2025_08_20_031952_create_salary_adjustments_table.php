@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('salary_adjustments', function (Blueprint $table) {
             $table->id();
             $table->foreignId('user_id')->constrained('users');
-            $table->foreignId('salary_adjustment_type_id')->constrained('salary_adjustment_types');
+            $table->string('salary_adjustment_type');
             $table->decimal('amount',10,2);
             $table->string('description');
             $table->date('date');

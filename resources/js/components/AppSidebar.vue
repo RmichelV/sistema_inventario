@@ -30,6 +30,16 @@ const mainNavItems: NavItem[] = [
         href: route('rattendance_records.create'),
         icon: TimerIcon,
     },
+    {
+        title: 'Registros de Movimientos de salarios',
+        href: '/rsalary_adjustments',
+        icon: TimerIcon,
+    },
+    {
+        title: 'Gestion de salarios',
+        href: route('rsalary_adjustments.create'),
+        icon: TimerIcon,
+    },
 ];
 
 const footerNavItems: NavItem[] = [

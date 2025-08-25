@@ -46,17 +46,11 @@ class AttendanceRecordController extends Controller
         $users = User::with("Role")->get();
         
         // Transforma la colección de usuarios para agregar el nuevo campo 'saludos'
-        $usersWithGreetings = $users->map(function ($user) {
+        $userList = $users->map(function ($user) {
             return [
                 'id' => $user->id,
                 'name' => $user->name,
-                'address' => $user->address,
-                'phone'=> $user->phone,
-                'role' => $user->role->name, 
-                'base_salary'=> $user->base_salary,
-                'hire_date' => $user->hire_date,
-                'email'=> $user->email,
-                'saludos' => 'Hola soy ' . $user->name, // Nuevo campo
+                'asistencia_registrada'=>false
             ];
         });
 
@@ -65,7 +59,7 @@ class AttendanceRecordController extends Controller
 
         // Pasa las colecciones transformadas a la vista de Inertia
         return Inertia::render("AttendanceRecords/create", [
-            'users' => $usersWithGreetings,
+            'users' => $userList,
             'roles' => $roles,
         ]);
     }
@@ -101,7 +95,7 @@ class AttendanceRecordController extends Controller
 
         $attendanceRecord->save();
 
-        return redirect()->route('rattendance_records.index')->with('success', 'Registro de asistencia creado exitosamente.');
+        return redirect()->route('rattendance_records.create')->with('success', 'Registro de asistencia creado exitosamente.');
     }
 
     /**

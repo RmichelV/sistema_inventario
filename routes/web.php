@@ -7,6 +7,7 @@ use Inertia\Inertia;
 //controladores 
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\AttendanceRecordController;
+use App\Http\Controllers\SalaryAdjustmentController;
 
 
 Route::get('/', function () {
@@ -23,3 +24,4 @@ require __DIR__.'/auth.php';
 //rutas propias
 Route::resource('rusers', UserController::class);
 Route::resource('rattendance_records', AttendanceRecordController::class);
+Route::resource('rsalary_adjustments', SalaryAdjustmentController::class);
