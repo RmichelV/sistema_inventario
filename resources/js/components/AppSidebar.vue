@@ -5,8 +5,9 @@ import NavUser from '@/components/NavUser.vue';
 import { Sidebar, SidebarContent, SidebarFooter, SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem } from '@/components/ui/sidebar';
 import { type NavItem } from '@/types';
 import { Link } from '@inertiajs/vue3';
-import { BookOpen, BookUser, Folder, LayoutGrid, PersonStanding } from 'lucide-vue-next';
+import { BookOpen, BookUser, Folder, LayoutGrid, PersonStanding, TimerIcon, TimerOff, TimerOffIcon } from 'lucide-vue-next';
 import AppLogo from './AppLogo.vue';
+import { route } from 'ziggy-js'; 
 
 const mainNavItems: NavItem[] = [
     {
@@ -18,6 +19,16 @@ const mainNavItems: NavItem[] = [
         title: 'Datos de empleados',
         href: '/rusers',
         icon: BookUser,
+    },
+    {
+        title: 'Registros de asistencias',
+        href: '/rattendance_records',
+        icon: TimerOffIcon,
+    },
+    {
+        title: 'Registrar asistencia',
+        href: route('rattendance_records.create'),
+        icon: TimerIcon,
     },
 ];
 

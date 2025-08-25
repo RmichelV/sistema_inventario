@@ -14,7 +14,8 @@ class Attendance_record extends Model
     protected $primaryKey = "id";
     protected $fillable = [
         "user_id",
-        "attendance_status_id",
+        "attendance_status",
+        "attendance_date",
         "check_in_at",
         "check_out_at",
         "late_minutes",
@@ -24,7 +25,5 @@ class Attendance_record extends Model
     public function User(){
         return $this->belongsTo(User::class,"user_id","id");
     }
-    public function AttendanceStatus(){
-        return $this->belongsTo(Attendance_status::class,"attendance_status_id","id");
-    }
+
 }

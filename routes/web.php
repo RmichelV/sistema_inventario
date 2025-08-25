@@ -1,10 +1,12 @@
 <?php
 
+
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
 //controladores 
 use App\Http\Controllers\UserController;
+use App\Http\Controllers\AttendanceRecordController;
 
 
 Route::get('/', function () {
@@ -20,3 +22,4 @@ require __DIR__.'/auth.php';
 
 //rutas propias
 Route::resource('rusers', UserController::class);
+Route::resource('rattendance_records', AttendanceRecordController::class);

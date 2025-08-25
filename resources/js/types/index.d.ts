@@ -42,6 +42,19 @@ export interface User {
     role?: Role;
 }
 
+export interface Attendace_records {
+    id: number;
+    user_id: number;
+    attendance_status: string;
+    attendance_date: string;
+    check_in_at: string | null;
+    check_out_at: string | null;
+    late_minutes: number | null;
+    created_at: string;
+    updated_at: string;
+    user?: User;
+}
+
 export interface Role {
     id: number;
     name: string;
