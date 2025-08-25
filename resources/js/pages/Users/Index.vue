@@ -39,7 +39,7 @@ const props = defineProps<{
             
             <UserTable
                 :cadena="users??[]"
-                :cabeceras="['nombre','Cargo','Salario','Acciones']"
+                :cabeceras="['nombre','Cargo','Salario (Bs.)','Acciones']"
                 :campos="['name','role','base_salary']"
                 :agregar="{ 
                     href: route('rusers.create'), 
@@ -52,12 +52,6 @@ const props = defineProps<{
                         color: 'blue',
                         name: 'Editar',
                         iconName: 'bx-pencil',
-                    },
-                    {
-                        href: (item) => `/users/${item.id}`,
-                        color: 'green',
-                        name: 'Ver',
-                        iconName: 'eye',
                     }
                 ]"
             />

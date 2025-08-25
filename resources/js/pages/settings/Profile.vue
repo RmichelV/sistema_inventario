@@ -20,7 +20,7 @@ defineProps<Props>();
 
 const breadcrumbItems: BreadcrumbItem[] = [
     {
-        title: 'Profile settings',
+        title: 'Datos del perfil',
         href: '/settings/profile',
     },
 ];
@@ -31,15 +31,15 @@ const user = page.props.auth.user as User;
 
 <template>
     <AppLayout :breadcrumbs="breadcrumbItems">
-        <Head title="Profile settings" />
+        <Head title="Datos del perfil" />
 
         <SettingsLayout>
             <div class="flex flex-col space-y-6">
-                <HeadingSmall title="Profile information" description="Update your name and email address" />
+                <HeadingSmall title="Información de perfil" description="Aquí puedes actualizar tu nombre y/o correo electrónico" />
 
                 <Form method="patch" :action="route('profile.update')" class="space-y-6" v-slot="{ errors, processing, recentlySuccessful }">
                     <div class="grid gap-2">
-                        <Label for="name">Name</Label>
+                        <Label for="name">Nombre Completo </Label>
                         <Input
                             id="name"
                             class="mt-1 block w-full"
@@ -47,13 +47,13 @@ const user = page.props.auth.user as User;
                             :default-value="user.name"
                             required
                             autocomplete="name"
-                            placeholder="Full name"
+                            placeholder="Nombre completo"
                         />
                         <InputError class="mt-2" :message="errors.name" />
                     </div>
 
                     <div class="grid gap-2">
-                        <Label for="email">Email address</Label>
+                        <Label for="email">Correo electrónico</Label>
                         <Input
                             id="email"
                             type="email"
@@ -62,7 +62,7 @@ const user = page.props.auth.user as User;
                             :default-value="user.email"
                             required
                             autocomplete="username"
-                            placeholder="Email address"
+                            placeholder="Ej. ewtto@ewtto.com"
                         />
                         <InputError class="mt-2" :message="errors.email" />
                     </div>
@@ -86,7 +86,7 @@ const user = page.props.auth.user as User;
                     </div>
 
                     <div class="flex items-center gap-4">
-                        <Button :disabled="processing">Save</Button>
+                        <Button :disabled="processing">Guardar</Button>
 
                         <Transition
                             enter-active-class="transition ease-in-out"
@@ -94,13 +94,13 @@ const user = page.props.auth.user as User;
                             leave-active-class="transition ease-in-out"
                             leave-to-class="opacity-0"
                         >
-                            <p v-show="recentlySuccessful" class="text-sm text-neutral-600">Saved.</p>
+                            <p v-show="recentlySuccessful" class="text-sm text-neutral-600">Guardado</p>
                         </Transition>
                     </div>
                 </Form>
             </div>
 
-            <DeleteUser />
+            <!-- <DeleteUser /> -->
         </SettingsLayout>
     </AppLayout>
 </template>
