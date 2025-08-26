@@ -24,9 +24,13 @@ class ProductController extends Controller
                 $productBoxesQuantityT = 'Cantidad de cajas:' . $productBoxesQuantity;
             }
             else{
-                $productBoxesQuantityT = 'Cantidad de cajas: ' . $productBoxesQuantity . ' una caja abierta'; 
+                if($productBoxesQuantity <= 1) {
+                    $productBoxesQuantityT = 'Cantidad de cajas: 0 pero una caja abierta'; 
+                }
+                else{
+                    $productBoxesQuantityT = 'Cantidad de cajas: ' . $productBoxesQuantity .' pero una caja abierta'; 
+                }
             }
-
             $Imgname = $product->img_product;
             $routeImg = asset('/storage/product_images/' . $Imgname);
             return [

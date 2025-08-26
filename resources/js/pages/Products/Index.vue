@@ -50,10 +50,19 @@ const props = defineProps<{
                     'Cantidad Minima PM+',
                     'precio unitario al por mayor', 
                     'precion unitario al por menor']"
-                :campos="['name','code',{key:'img_product' , type:'image' },'boxes']"
+                :campos="[
+                        'name',
+                        'code',
+                        {key:'img_product' , type:'image' },
+                        'quantity_in_stock',
+                        'boxes',
+                        'units_per_box',
+                        'minimum_wholesale_quantity',
+                        'unit_price_wholesale',
+                        'unit_price_retail',
+                        ]"
                 :agregar="false"
                 :acciones="[
-                    
                 ]"
             />
             </div>

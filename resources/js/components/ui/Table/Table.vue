@@ -144,7 +144,7 @@ const normalizedCampos = computed(() => {
             class="px-6 py-4 whitespace-nowrap text-sm text-gray-900"
           >
             <div v-if="campo.type === 'image'">
-                <img :src="getValor(item, campo.key)" alt="Imagen" class="w-16 h-16 rounded-full object-cover">
+                <img :src="getValor(item, campo.key)" alt="Imagen" class="w-50 h-20 rounded-full object-cover">
             </div>
             <div v-else>
                 {{ getValor(item, campo.key) }}
