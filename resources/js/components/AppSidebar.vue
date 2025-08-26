@@ -40,6 +40,16 @@ const mainNavItems: NavItem[] = [
         href: route('rsalary_adjustments.create'),
         icon: TimerIcon,
     },
+    {
+        title: 'Registro de Productos',
+        href: route('rproducts.create'),
+        icon: TimerIcon,
+    },
+    {
+        title: 'Lista de productos',
+        href: '/rproducts',
+        icon: TimerIcon,
+    },
 ];
 
 const footerNavItems: NavItem[] = [

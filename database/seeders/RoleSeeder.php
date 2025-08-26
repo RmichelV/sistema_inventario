@@ -17,6 +17,7 @@ class RoleSeeder extends Seeder
             ['name' => 'Gerente'],
             ['name' => 'Encargado de tienda'],
             ['name' => 'Encargado de bodega'],
+            ['name' => 'Vendedor'],
         ]);
     }
 }

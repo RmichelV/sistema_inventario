@@ -2,10 +2,16 @@
 import { ActionButton } from '../ActionButton';
 import { computed, ref, onMounted, onUnmounted } from 'vue';
 
+// Define un tipo de dato más flexible para los campos
+interface TableField {
+  key: string;
+  type?: 'text' | 'image'; // 'text' es el valor por defecto
+}
+
 const props = defineProps<{
   cadena: any[]
   cabeceras: string[]
-  campos: string[]
+  campos: (string | TableField)[]; // Ahora acepta strings o objetos
   agregar: {
     href: string;
     color: string;
@@ -38,8 +44,6 @@ onUnmounted(() => {
   window.removeEventListener('resize', handleResize);
 });
 
-// Propiedad computada que define si la pantalla es "pequeña" (móvil)
-// Aquí, el breakpoint es 768px, el mismo que usa Tailwind para 'md'
 const isSmallScreen = computed(() => windowWidth.value <= 768);
 
 // --- Lógica existente ---
@@ -62,6 +66,15 @@ const agregarAccion = computed(() => {
   return null;
 });
 
+// Normalizar la prop 'campos' para que siempre sea un array de objetos
+const normalizedCampos = computed(() => {
+  return props.campos.map(campo => {
+    if (typeof campo === 'string') {
+      return { key: campo, type: 'text' };
+    }
+    return { key: campo.key, type: campo.type || 'text' };
+  });
+});
 </script>
 
 <template>
@@ -80,12 +93,17 @@ const agregarAccion = computed(() => {
       :key="item.id || item.nombre"
       class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md border border-gray-200 dark:border-gray-700"
     >
-      <div v-for="(campo, index) in campos" :key="`card-data-${item.id}-${index}`" class="mb-4 last:mb-0">
+      <div v-for="(campo, index) in normalizedCampos" :key="`card-data-${item.id}-${index}`" class="mb-4 last:mb-0">
         <p class="text-sm font-semibold text-gray-500 uppercase tracking-wider dark:text-gray-400">
           {{ cabeceras[index] }}
         </p>
         <p class="mt-1 text-base text-gray-900 dark:text-white">
-          {{ getValor(item, campo) }}
+          <div v-if="campo.type === 'image'">
+            <img :src="getValor(item, campo.key)" alt="Imagen" class="w-16 h-16 rounded-full object-cover">
+          </div>
+          <div v-else>
+            {{ getValor(item, campo.key) }}
+          </div>
         </p>
       </div>
 
@@ -121,11 +139,16 @@ const agregarAccion = computed(() => {
       <tbody class="bg-white divide-y divide-gray-200">
         <tr v-for="item in cadena" :key="item.id || item.nombre">
           <td
-            v-for="(campo, index) in campos"
+            v-for="(campo, index) in normalizedCampos"
             :key="`data-${item.id}-${index}`"
             class="px-6 py-4 whitespace-nowrap text-sm text-gray-900"
           >
-            {{ getValor(item, campo) }}
+            <div v-if="campo.type === 'image'">
+                <img :src="getValor(item, campo.key)" alt="Imagen" class="w-16 h-16 rounded-full object-cover">
+            </div>
+            <div v-else>
+                {{ getValor(item, campo.key) }}
+            </div>
           </td>
           <td v-if="acciones.length > 0" class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
             <div class="flex items-center gap-2">

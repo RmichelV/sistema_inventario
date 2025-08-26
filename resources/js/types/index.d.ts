@@ -74,4 +74,18 @@ export interface SalaryAdjustment {
     user?: User;
     AdjustmentType?: AdjustmentType;
 }
+
+export interface Product{
+    id: number;
+    name: string;
+    code: string;
+    img_product: string;
+    quantity_in_stock: number;
+    units_per_box:number;
+    minimum_wholesale_quantity: number;
+    currency_type: string;
+    unit_price_wholesale: number;
+    unit_price_retail: number;
+}
+
 export type BreadcrumbItemType = BreadcrumbItem;

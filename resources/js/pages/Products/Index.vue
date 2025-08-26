@@ -3,18 +3,18 @@ import AppLayout from '@/layouts/AppLayout.vue';
 import { type BreadcrumbItem } from '@/types';
 import { Head } from '@inertiajs/vue3';
 import PlaceholderPattern from '../../components/PlaceholderPattern.vue';
-import { Table as UserTable} from '@/components/ui/Table';
-import type { User } from '@/types'
+import { Table as ProductTable} from '@/components/ui/Table';
+import type { Product } from '@/types'
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
-        title: 'Lista de empleados',
-        href: '/rusers',
+        title: 'Lista de productos',
+        href: '/rproducts',
     },
 ];
 
 const props = defineProps<{
-    users: User[];
+    products: Product[];
     
 }>();
 </script>
@@ -38,22 +38,22 @@ const props = defineProps<{
             </div>
             <div class="relative min-h-[100vh] flex-1 rounded-xl border border-sidebar-border/70 md:min-h-min dark:border-sidebar-border">
             
-            <UserTable
-                :cadena="users??[]"
-                :cabeceras="['nombre','Cargo','Salario (Bs.)','Ingreso','Acciones']"
-                :campos="['name','role','base_salary','hire_date']"
-                :agregar="{ 
-                    href: route('rusers.create'), 
-                    color: 'green', 
-                    name: 'Agregar Empleado',
-                    iconName: 'bx-plus' }"
+            <ProductTable
+                :cadena="products??[]"
+                :cabeceras="[
+                    'Nombre',
+                    'Codigo',
+                    'imagen del producto',
+                    'Cantidad en Stock',
+                    'Cantidad de cajas',
+                    'unidades por caja',
+                    'Cantidad Minima PM+',
+                    'precio unitario al por mayor', 
+                    'precion unitario al por menor']"
+                :campos="['name','code',{key:'img_product' , type:'image' },'boxes']"
+                :agregar="false"
                 :acciones="[
-                    {
-                        href: (item) => route('rusers.edit' , item.id),
-                        color: 'blue',
-                        name: 'Editar',
-                        iconName: 'bx-pencil',
-                    }
+                    
                 ]"
             />
             </div>

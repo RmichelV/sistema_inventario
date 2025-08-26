@@ -8,7 +8,7 @@ use Inertia\Inertia;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\AttendanceRecordController;
 use App\Http\Controllers\SalaryAdjustmentController;
-
+use App\Http\Controllers\ProductController;
 
 Route::get('/', function () {
     return Inertia::render('Welcome');
@@ -25,3 +25,4 @@ require __DIR__.'/auth.php';
 Route::resource('rusers', UserController::class);
 Route::resource('rattendance_records', AttendanceRecordController::class);
 Route::resource('rsalary_adjustments', SalaryAdjustmentController::class);
+Route::resource('rproducts', ProductController::class);
