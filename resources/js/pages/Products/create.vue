@@ -68,18 +68,18 @@ const props = defineProps<{
                             </div>
 
                             <div class="grid gap-2">
-                                <Label for="quantity_in_stock">Cantidad en Stock</Label>
+                                <Label for="quantity_in_stock">Cantidad que ingresa / Cantidad en Stock</Label>
                                 <Input id="aquantity_in_stock" type="number" required autofocus :tabindex="1" autocomplete="quantity_in_stock" name="quantity_in_stock" placeholder="Ej. 500" step="0.01" min="0"/>
                                 <InputError :message="errors.quantity_in_stock" />
                             </div>
 
                             <div class="grid gap-2">
-                                <Label for="units_per_box">Cantidad por caja del producto</Label>
+                                <Label for="units_per_box">Unidades del producto por caja</Label>
                                 <Input id="units_per_box" type="number" required autofocus :tabindex="1" autocomplete="units_per_box" name="units_per_box" placeholder="Ej. 50" step="0.01" min="0"/>
                                 <InputError :message="errors.units_per_box" />
                             </div>
 
-                             <div class="grid gap-2">
+                             <!-- <div class="grid gap-2">
                                 <Label for="minimum_wholesale_quantity">Cantidad minima para el precio por mayor</Label>
                                 <Input id="minimum_wholesale_quantity" type="number" required autofocus :tabindex="1" autocomplete="minimum_wholesale_quantity" name="minimum_wholesale_quantity" placeholder="Ej. 12" step="0.01" min="0"/>
                                 <InputError :message="errors.minimum_wholesale_quantity" />
@@ -106,7 +106,7 @@ const props = defineProps<{
                                 <Input id="unit_price_retail" type="number" required autofocus :tabindex="1" autocomplete="unit_price_retail" name="unit_price_retail" placeholder="Ej. 9.99" step="0.01" min="0"/>
                                 <InputError :message="errors.unit_price_retail" />
                             </div>
-
+ -->
 
                             <Button type="submit" class="w-full mt-2" tabindex="5" :disabled="processing">
                                 <LoaderCircle v-if="processing" class="w-4 h-4 animate-spin" />

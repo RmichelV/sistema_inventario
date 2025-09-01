@@ -22,7 +22,7 @@ const now = new Date();
 const horaActual = now.getHours();
 const MinutosActuales = now.getMinutes();
 
-const HoraEntradaMaxima = (12 * 60 + 50) ;
+const HoraEntradaMaxima = (17 * 60 + 0) ;
 const HoraActualMinutos = (horaActual * 60 + MinutosActuales);
 
 // 'acciones' es una propiedad computada que devuelve un array de botones.

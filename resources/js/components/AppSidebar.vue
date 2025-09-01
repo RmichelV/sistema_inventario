@@ -41,13 +41,24 @@ const mainNavItems: NavItem[] = [
         icon: TimerIcon,
     },
     {
-        title: 'Registro de Productos',
-        href: route('rproducts.create'),
+        title: 'Lista de productos',
+        href: '/rproducts',
         icon: TimerIcon,
     },
     {
-        title: 'Lista de productos',
-        href: '/rproducts',
+        title: 'Registrar de Productos',
+        href: route('rproducts.create'),
+        icon: TimerIcon,
+    },
+    
+    {
+        title: 'Historial de compras',
+        href: '/rpurchases',
+        icon: TimerIcon,
+    },
+    {
+        title: 'Registrar de Compra',
+        href: route('rpurchases.create'),
         icon: TimerIcon,
     },
 ];

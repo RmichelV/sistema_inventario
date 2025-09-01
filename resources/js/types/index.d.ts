@@ -88,4 +88,12 @@ export interface Product{
     unit_price_retail: number;
 }
 
+export interface Purchase{
+    id: number;
+    product_id: number;
+    purchase_quantity: number;
+    purchase_date: string;
+    total_paid: number;
+}
+
 export type BreadcrumbItemType = BreadcrumbItem;

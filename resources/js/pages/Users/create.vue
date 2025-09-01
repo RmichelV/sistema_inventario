@@ -88,7 +88,7 @@ const props = defineProps<{
                             </div>
 
                             <div class="grid gap-2">
-                                <Label for="ci">Fecha de ingreso</Label>
+                                <Label for="hire_date">Fecha de ingreso</Label>
                                 <Input id="hire_date" type="date" required autofocus :tabindex="1" autocomplete="hire_date" name="hire_date" />
                                 <InputError :message="errors.hire_date" />
                             </div>

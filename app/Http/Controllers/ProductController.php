@@ -41,10 +41,6 @@ class ProductController extends Controller
                 "quantity_in_stock" => $product->quantity_in_stock,
                 "boxes" => $productBoxesQuantityT,
                 "units_per_box" => $product->units_per_box,
-                "minimum_wholesale_quantity" => $product->minimum_wholesale_quantity,
-                "currency_type"=> $product->currency_type,
-                "unit_price_wholesale" => $product->unit_price_wholesale,
-                "unit_price_retail"=> $product->unit_price_retail
             ];
         });
         return Inertia::render("Products/Index", [

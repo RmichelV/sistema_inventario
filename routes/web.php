@@ -9,6 +9,7 @@ use App\Http\Controllers\UserController;
 use App\Http\Controllers\AttendanceRecordController;
 use App\Http\Controllers\SalaryAdjustmentController;
 use App\Http\Controllers\ProductController;
+use App\Http\Controllers\PurchaseController;
 
 Route::get('/', function () {
     return Inertia::render('Welcome');
@@ -26,3 +27,4 @@ Route::resource('rusers', UserController::class);
 Route::resource('rattendance_records', AttendanceRecordController::class);
 Route::resource('rsalary_adjustments', SalaryAdjustmentController::class);
 Route::resource('rproducts', ProductController::class);
+Route::resource('rpurchases', PurchaseController::class);

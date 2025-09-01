@@ -3,19 +3,20 @@ import AppLayout from '@/layouts/AppLayout.vue';
 import { type BreadcrumbItem } from '@/types';
 import { Head } from '@inertiajs/vue3';
 import PlaceholderPattern from '../../components/PlaceholderPattern.vue';
-import { Table as UserTable} from '@/components/ui/Table';
-import type { SalaryAdjustment, User } from '@/types'
+import { Table as ProductTable} from '@/components/ui/Table';
+import type { Product, Purchase } from '@/types'
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
-        title: 'Lista de empleados',
-        href: '/rusers',
+        title: 'Historial de compras',
+        href: '/rpurchases',
     },
 ];
 
 const props = defineProps<{
-    salaryAdjustments: SalaryAdjustment[]
-    users: User[];
+    products: Product[];
+    purchases: Purchase[];
+    
 }>();
 </script>
 
@@ -38,15 +39,21 @@ const props = defineProps<{
             </div>
             <div class="relative min-h-[100vh] flex-1 rounded-xl border border-sidebar-border/70 md:min-h-min dark:border-sidebar-border">
             
-            <UserTable
-                :cadena="salaryAdjustments??[]"
-                :cabeceras="['id','Empleado','Tipo','Monto','Descripción']"
-                :campos="['id','user_name','salary_adjustment_type','amount','description']"
-                :agregar="{ 
-                    href: route('rsalary_adjustments.create'), 
-                    color: 'green', 
-                    name: 'Agregar Cobro',
-                    iconName: 'bx-plus' }"
+            <ProductTable
+                :cadena="purchases??[]"
+                :cabeceras="[
+                    'Id',
+                    'Producto',
+                    'Cantidad comprada',
+                    'Fecha de compra',
+                ]"
+                :campos="[
+                        'id',
+                        'product',
+                        'purchase_quantity',
+                        'purchase_date',
+                        ]"
+                :agregar="false"
                 :acciones="[
                 ]"
             />

@@ -18,9 +18,5 @@ class Product extends Model
         'img_product',
         'quantity_in_stock',
         'units_per_box',
-        'minimum_wholesale_quantity',
-        'currency_type',
-        'unit_price_wholesale',
-        'unit_price_retail',
     ];
 }
