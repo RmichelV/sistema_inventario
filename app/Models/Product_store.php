@@ -9,4 +9,18 @@ class Product_store extends Model
 {
     /** @use HasFactory<\Database\Factories\ProductStoreFactory> */
     use HasFactory;
+
+    protected $table = "product_stores";
+    protected $primaryKey = "id";
+    protected $fillable = [
+        "product_id",
+        "quantity",
+        "unit_price_wholesale",
+        "unit_price_retail",
+        "saleprice",
+    ];
+
+    public function product(){
+        return $this->belongsTo(Product::class,"product_id","id");
+    }
 }

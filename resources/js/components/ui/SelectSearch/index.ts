@@ -1,0 +1,1 @@
+export { default as SelectSearch } from './SelecSearch.vue'

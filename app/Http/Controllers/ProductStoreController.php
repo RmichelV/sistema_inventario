@@ -5,6 +5,12 @@ namespace App\Http\Controllers;
 use App\Models\Product_store;
 use Illuminate\Http\Request;
 
+//librerias
+use Inertia\Inertia;
+
+//Modelos
+use App\Models\Product;
+
 class ProductStoreController extends Controller
 {
     /**
@@ -12,7 +18,10 @@ class ProductStoreController extends Controller
      */
     public function index()
     {
-        //
+        $productstores = Product_store::all();
+        return Inertia::render("ProductsStore/Index", [
+            "productstores"=> $productstores
+        ]);
     }
 
     /**
@@ -20,7 +29,10 @@ class ProductStoreController extends Controller
      */
     public function create()
     {
-        //
+        $products = Product::all();
+        return Inertia::render("ProductsStore/create", [
+            "products"=> $products
+        ]);
     }
 
     /**

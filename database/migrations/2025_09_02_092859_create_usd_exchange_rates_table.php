@@ -11,13 +11,9 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('product_stores', function (Blueprint $table) {
+        Schema::create('usd_exchange_rates', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('product_id')->constrained('products')->unique();
-            $table->integer('quantity');
-            $table->decimal('unit_price_wholesale',10,2);
-            $table->decimal('unit_price_retail',10,2);
-            $table->decimal('saleprice',10,2);
+            $table->decimal('exchange_rate',5,2);
             $table->timestamps();
         });
     }
@@ -27,6 +23,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('product_stores');
+        Schema::dropIfExists('usd_exchange_rates');
     }
 };

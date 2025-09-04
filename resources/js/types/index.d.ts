@@ -96,4 +96,18 @@ export interface Purchase{
     total_paid: number;
 }
 
+export interface Usd_exchange_rate{
+    id: number;
+    exchange_rate: number;
+}
+
+export interface ProductStore{
+    id: number;
+    product_id:number;
+    quantity:number
+    unit_price_wholesale:number;
+    unit_price_retail:number;
+    saleprice:number;
+}
+
 export type BreadcrumbItemType = BreadcrumbItem;

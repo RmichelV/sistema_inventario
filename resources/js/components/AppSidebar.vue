@@ -61,6 +61,16 @@ const mainNavItems: NavItem[] = [
         href: route('rpurchases.create'),
         icon: TimerIcon,
     },
+    {
+        title: 'Productos en la tienda',
+        href: '/rproductstores',
+        icon: TimerIcon,
+    },
+    {
+        title: 'Ingresar Productos',
+        href: route('rproductstores.create'),
+        icon: TimerIcon,
+    },
 ];
 
 const footerNavItems: NavItem[] = [
