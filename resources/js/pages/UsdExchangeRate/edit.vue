@@ -9,7 +9,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import InputError from '@/components/InputError.vue';
 import { LoaderCircle } from 'lucide-vue-next';
-
+import AuthBase from '@/layouts/AuthLayout.vue';
 const breadcrumbs: BreadcrumbItem[] = [
     {
         title: 'Lista de empleados',
@@ -26,6 +26,7 @@ const form = useForm({
     exchange_rate: props.usd.exchange_rate
 });
 
+console.log(props)
 // 2. Define el método para enviar la actualización
 const submit = () => {
     // Usa form.put() para enviar una solicitud PUT y el id del usuario en la URL

@@ -9,6 +9,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import InputError from '@/components/InputError.vue';
 import { LoaderCircle } from 'lucide-vue-next';
+import AuthBase from '@/layouts/AuthLayout.vue';
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
@@ -64,7 +65,7 @@ const submit = () => {
                 </div>
             </div>
             <div class="relative min-h-[100vh] flex-1 rounded-xl border border-sidebar-border/70 md:min-h-min dark:border-sidebar-border">
-                <AuthBase title="Registra un nuevo empleado" >
+                <AuthBase title="Editar empleado" >
                     <Head title="Registro" />
 
                     <form @submit.prevent="submit" class="flex flex-col gap-6">

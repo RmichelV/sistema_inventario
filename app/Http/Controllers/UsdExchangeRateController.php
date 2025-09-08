@@ -53,8 +53,9 @@ class UsdExchangeRateController extends Controller
     public function edit(Usd_exchange_rate $usd_exchange_rate)
     {
         $usd_exchange_rates= Usd_exchange_rate::find(1);
+
         return Inertia::render("UsdExchangeRate/edit",[
-            "usd"=>$usd_exchange_rate
+            "usd" => $usd_exchange_rates
         ]);
     }
 
@@ -66,7 +67,7 @@ class UsdExchangeRateController extends Controller
         $usd_exchange_rate= Usd_exchange_rate::find($id);
         $usd_exchange_rate->exchange_rate = $request->exchange_rate;
         $usd_exchange_rate->save();
-        return back()->with("success","");
+        return redirect()->route('dashboard'); 
     }
 
     /**

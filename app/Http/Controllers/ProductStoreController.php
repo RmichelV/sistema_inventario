@@ -44,6 +44,7 @@ class ProductStoreController extends Controller
 
 
     }
+    
 
     /**
      * Show the form for creating a new resource.
@@ -121,17 +122,29 @@ class ProductStoreController extends Controller
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit(Product_store $product_store)
+    public function edit(string $id)
     {
-        //
+        $productStore = Product_store::findOrFail($id);
+        $products = Product::all();
+
+        return Inertia::render('ProductsStore/edit',
+        [
+            'productStore' => $productStore, // Pasa el modelo original
+            'products' => $products
+        ]);
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, Product_store $product_store)
+    public function update(Request $request, string $id)
     {
-        //
+        $productStore = Product_store::findOrFail($id);
+        $productStore->product_id = $request->product_id;
+        $productStore->quantity = $request->quantity;
+        $productStore->unit_price_wholesale = $request->unit_price_wholesale;
+        $productStore->unit_price_retail = $request->unit_price_retail;
+        $productStore->saleprice = $request->saleprice;
+
+        $productStore->save();
+        return redirect()->route('rproductstores.index');
     }
 
     /**
