@@ -48,6 +48,7 @@ const currentProduct = computed(() => {
                             :options="props.products"
                             :searchKeys="['name', 'code']"
                             placeholder="Buscar un producto por nombre o código..."
+                            labelKey="code"
                         />
                         <h1 class="text-2xl font-bold"> Cantidad</h1>
                         <Input id="quantity" type="number" required autofocus :tabindex="1" autocomplete="quantity" name="quantity" placeholder="Cantidad" defaultValue="1" />

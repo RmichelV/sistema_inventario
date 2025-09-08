@@ -17,20 +17,34 @@ class ProductController extends Controller
         $productsList = Product::all();
 
         $products = $productsList->map(function ($product) {
-            $productsQuantity = $product->quantity_in_stock;
-            $productBoxes = $product->units_per_box;
-            $productBoxesQuantity = $productsQuantity/$productBoxes;
-            if( ($productBoxesQuantity %2) == 0 ) {
-                $productBoxesQuantityT = 'Cantidad de cajas:' . $productBoxesQuantity;
+         $productsQuantity = $product->quantity_in_stock;
+        $productBoxes = $product->units_per_box;
+
+        // cuántas cajas completas caben
+        $fullBoxes = intdiv($productsQuantity, $productBoxes);
+
+        // cuántas unidades sobran
+        $remainder = $productsQuantity % $productBoxes;
+
+        if ($remainder === 0) {
+            // todas las cajas están cerradas
+            $productBoxesQuantityT = $fullBoxes;
+        } else {
+            // hay cajas completas + 1 abierta
+            if ($fullBoxes > 0) {
+                $productBoxesQuantityT = $fullBoxes . ' Y 1 abierta';
+            } else {
+                $productBoxesQuantityT = '0 pero 1 abierta';
             }
-            else{
-                if($productBoxesQuantity <= 1) {
-                    $productBoxesQuantityT = 'Cantidad de cajas: 0 pero una caja abierta'; 
-                }
-                else{
-                    $productBoxesQuantityT = 'Cantidad de cajas: ' . $productBoxesQuantity .' pero una caja abierta'; 
-                }
-            }
+        }
+            // else{
+            //     if($productBoxesQuantity < 1) {
+            //         $productBoxesQuantityT = '0 pero 1 caja abierta'; 
+            //     }
+            //     else{
+            //         $productBoxesQuantityT = 'Cantidad de cajas: ' . $productBoxesQuantity .' pero una caja abierta'; 
+            //     }
+            // }
             $Imgname = $product->img_product;
             $routeImg = asset('/storage/product_images/' . $Imgname);
             return [
@@ -64,8 +78,7 @@ class ProductController extends Controller
      */
     public function store(Request $request)
     {
-        $productcode = $request->input("code");
-     
+      
         $img_name=null;
         if ($request->hasFile('img_product')) {
             $imgProduct = $request->file('img_product');
@@ -79,6 +92,7 @@ class ProductController extends Controller
         // $datos = $request->all();
         // dd($datos);
 
+        
         $product = Product::create([
             'name' => $request->name,
             'code' => $request->code,

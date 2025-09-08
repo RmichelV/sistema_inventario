@@ -5,7 +5,7 @@ import { computed, ref, onMounted, onUnmounted } from 'vue';
 // Define un tipo de dato más flexible para los campos
 interface TableField {
   key: string;
-  type?: 'text' | 'image'; // 'text' es el valor por defecto
+  type?: 'text' | 'image' ; // 'text' es el valor por defecto
 }
 
 const props = defineProps<{

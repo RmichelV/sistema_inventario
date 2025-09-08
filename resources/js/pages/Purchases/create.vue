@@ -12,6 +12,10 @@ import AppLayout from '@/layouts/AppLayout.vue';
 import { type BreadcrumbItem } from '@/types';
 import PlaceholderPattern from '../../components/PlaceholderPattern.vue';
 import type { Product} from '@/types'
+import {SelectSearch} from '@/components/ui/SelectSearch';
+
+import { defineProps, ref, computed } from 'vue';
+
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
@@ -23,6 +27,16 @@ const breadcrumbs: BreadcrumbItem[] = [
 const props = defineProps<{
     products:Product[];
 }>();
+
+const selectedProduct = ref<number | null>(null);
+// 🚨 CAMBIO AQUÍ: Propiedad computada para encontrar el producto seleccionado
+const currentProduct = computed(() => {
+    if (selectedProduct.value === null) {
+        return null;
+    }
+    // Busca en el array `props.products` por el ID
+    return props.products.find(p => p.id === selectedProduct.value) || null;
+});
 
 </script>
 
@@ -53,10 +67,20 @@ const props = defineProps<{
                         <div class="grid gap-6">
                             <div class="grid gap-2">
                                 <Label for="product_id">Elija un producto </Label>
-                                <select id="product_id" name="product_id" class="px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:text-sm" required>
+                                <!-- <select id="product_id" name="product_id" class="px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:text-sm" required>
                                 <option value="" disabled selected>Seleccione un producto</option>
                                 <option v-for="product in products" :key="product.id" :value="product.id">{{ product.name }}</option>
-                                </select>
+                                </select> -->
+                                <SelectSearch
+                                        v-model="selectedProduct"
+                                        :options="props.products"
+                                        :searchKeys="['name', 'code']"
+                                        placeholder="Buscar un producto por nombre o código..."
+                                        required
+                                        name="product_id"
+                                        id="product_id"
+                                        labelKey="code"
+                                    />
                                 <InputError :message="errors.product_id" />
                             </div>
                             

@@ -98,6 +98,12 @@ onMounted(() => {
       @focus="isOpen = true"
       @input="isOpen = true"
     />
+     <input 
+      type="hidden" 
+      :name="name" 
+      :id="id" 
+      :value="modelValue" 
+    />
     <div
       v-if="isOpen"
       class="absolute bg-white border border-gray-300 w-full shadow-md mt-1 rounded-md max-h-40 overflow-y-auto z-10"

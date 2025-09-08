@@ -4,7 +4,7 @@ import { type BreadcrumbItem } from '@/types';
 import { Head } from '@inertiajs/vue3';
 import PlaceholderPattern from '../../components/PlaceholderPattern.vue';
 import { Table as ProductTable} from '@/components/ui/Table';
-import type { Product, Purchase } from '@/types'
+import type { Product, ProductStore, Purchase } from '@/types'
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
@@ -15,7 +15,7 @@ const breadcrumbs: BreadcrumbItem[] = [
 
 const props = defineProps<{
     products: Product[];
-    purchases: Purchase[];
+    productstores: ProductStore[]
     
 }>();
 </script>
@@ -40,7 +40,7 @@ const props = defineProps<{
             <div class="relative min-h-[100vh] flex-1 rounded-xl border border-sidebar-border/70 md:min-h-min dark:border-sidebar-border">
             
             <ProductTable
-                :cadena="purchases??[]"
+                :cadena="productstores??[]"
                 :cabeceras="[
                     'Id',
                     'Producto',
@@ -48,6 +48,7 @@ const props = defineProps<{
                     'P/U POR MAYOR',
                     'P/U POR MENOR',
                     'PRECIO DE VENTA',
+                    'Acciones'
                 ]"
                 :campos="[
                         'id',
