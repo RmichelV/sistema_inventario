@@ -64,6 +64,12 @@ const props = defineProps<{
                 :agregar="false"
                 :acciones="[
                 ]"
+                :searchSelectConfig="{
+                options: products, // Puedes pasar la misma cadena u otra lista de objetos
+                valueKey: 'id',
+                labelKey: 'code',
+                placeholder: 'Buscar productos...'
+                }"
             />
             </div>
         </div>
