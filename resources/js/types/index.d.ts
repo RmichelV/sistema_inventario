@@ -109,5 +109,20 @@ export interface ProductStore{
     unit_price_retail:number;
     saleprice:number;
 }
+export interface Sale{
+    id: number;
+    sale_code: string;
+    customer_name: string;
+    sale_date: Date;
+    initial_price: number;
+    final_price: number;
+}
+export interface SaleItem{
+    id: number;
+    sale_id: number;
+    product_id: number;
+    quantity_products: number;
+    total_price: number;
+}
 
 export type BreadcrumbItemType = BreadcrumbItem;

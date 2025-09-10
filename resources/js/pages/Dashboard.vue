@@ -2,14 +2,14 @@
 import AppLayout from '@/layouts/AppLayout.vue';
 import { type BreadcrumbItem } from '@/types';
 import { Head } from '@inertiajs/vue3';
-import PlaceholderPattern from '../components/PlaceholderPattern.vue';
+
 import { defineProps, ref, computed } from 'vue';
 import { Usd_exchange_rate, Product } from '@/types';
 import {SelectSearch} from '@/components/ui/SelectSearch';
 import { Input } from '@/components/ui/input';
 import { ActionButton } from '@/components/ui/ActionButton';
 
-
+import PlaceholderPattern from '../components/PlaceholderPattern.vue';
 const breadcrumbs: BreadcrumbItem[] = [
     {
         title: 'Dashboard',
@@ -49,6 +49,7 @@ const currentProduct = computed(() => {
                             :searchKeys="['name', 'code']"
                             placeholder="Buscar un producto por nombre o código..."
                             labelKey="code"
+                            
                         />
                         <h1 class="text-2xl font-bold"> Cantidad</h1>
                         <Input id="quantity" type="number" required autofocus :tabindex="1" autocomplete="quantity" name="quantity" placeholder="Cantidad" defaultValue="1" />

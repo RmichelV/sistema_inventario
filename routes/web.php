@@ -12,6 +12,7 @@ use App\Http\Controllers\ProductController;
 use App\Http\Controllers\PurchaseController;
 use App\Http\Controllers\ProductStoreController;
 use App\Http\Controllers\UsdExchangeRateController;
+use App\Http\Controllers\SaleController;
 
 //modelos
 use App\Models\Usd_exchange_rate;
@@ -41,3 +42,4 @@ Route::resource('rproducts', ProductController::class);
 Route::resource('rpurchases', PurchaseController::class);
 Route::resource('rproductstores', ProductStoreController::class);
 Route::resource('rusdexchangerates', UsdExchangeRateController::class);
+Route::resource('rsales', SaleController::class);

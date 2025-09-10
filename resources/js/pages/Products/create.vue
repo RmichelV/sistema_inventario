@@ -15,7 +15,7 @@ import type { Product} from '@/types'
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
-        title: 'Registro de productos',
+        title: 'Registrar Producto',
         href: route('rproducts.create'),
     },
 ];
@@ -78,35 +78,6 @@ const props = defineProps<{
                                 <Input id="units_per_box" type="number" required autofocus :tabindex="1" autocomplete="units_per_box" name="units_per_box" placeholder="Ej. 50" step="0.01" min="0"/>
                                 <InputError :message="errors.units_per_box" />
                             </div>
-
-                             <!-- <div class="grid gap-2">
-                                <Label for="minimum_wholesale_quantity">Cantidad minima para el precio por mayor</Label>
-                                <Input id="minimum_wholesale_quantity" type="number" required autofocus :tabindex="1" autocomplete="minimum_wholesale_quantity" name="minimum_wholesale_quantity" placeholder="Ej. 12" step="0.01" min="0"/>
-                                <InputError :message="errors.minimum_wholesale_quantity" />
-                            </div>
-
-                           <div class="grid gap-2">
-                                <Label for="currency_type">Tipo de moneda</Label>
-                                <select id="currency_type" name="currency_type" class="px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:text-sm" required>
-                                    <option value="" disabled selected>Seleccione un tipo de moneda</option>
-                                    <option value="Bolivianos"> Bolivianos</option>
-                                    <option value="Dolares"> Dolares</option>
-                                </select>
-                                <InputError :message="errors.currency_type" />
-                            </div>
-
-                            <div class="grid gap-2">
-                                <Label for="unit_price_wholesale">Precio unitario al por mayor</Label>
-                                <Input id="unit_price_wholesale" type="number" required autofocus :tabindex="1" autocomplete="unit_price_wholesale" name="unit_price_wholesale" placeholder="Ej. 9.99" step="0.01" min="0"/>
-                                <InputError :message="errors.unit_price_wholesale" />
-                            </div>
-
-                            <div class="grid gap-2">
-                                <Label for="unit_price_retail">Precio unitario al por menor</Label>
-                                <Input id="unit_price_retail" type="number" required autofocus :tabindex="1" autocomplete="unit_price_retail" name="unit_price_retail" placeholder="Ej. 9.99" step="0.01" min="0"/>
-                                <InputError :message="errors.unit_price_retail" />
-                            </div>
- -->
 
                             <Button type="submit" class="w-full mt-2" tabindex="5" :disabled="processing">
                                 <LoaderCircle v-if="processing" class="w-4 h-4 animate-spin" />

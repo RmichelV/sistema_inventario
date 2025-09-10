@@ -1,13 +1,13 @@
 <script setup lang="ts">
 import { ActionButton } from '../ActionButton';
 import { computed, ref, onMounted, onUnmounted, watch } from 'vue';
-import { SelectSearch as SearchSelect } from '../SelectSearch'; // Asegúrate de que la ruta sea correcta
+import { SelectSearch as SearchSelect} from '../SelectSearch'; // Asegúrate de que la ruta sea correcta
 
 // ------------------- TIPOS -------------------
 interface TableField {
   key: string;
-  type?: 'text' | 'image' | 'select'; // Agregamos 'select'
-  options?: any[]; // Opciones para el select
+  type?: 'text' | 'image' | 'select';
+  options?: any[];
   valueKey?: string;
   labelKey?: string;
 }
@@ -99,7 +99,7 @@ const normalizedCampos = computed(() => {
 </script>
 
 <template>
-  <div class="p-4 flex flex-col md:flex-row justify-between items-center gap-4">
+  <div :class="{'flex flex-col md:flex-row justify-between items-center p-4 gap-4': searchSelectConfig, 'flex justify-end p-4': !searchSelectConfig}">
     <div v-if="searchSelectConfig" class="w-full md:w-1/3">
       <SearchSelect
         v-model="selectedValue"
@@ -110,7 +110,7 @@ const normalizedCampos = computed(() => {
       />
     </div>
 
-    <div v-if="agregarAccion" :class="{'w-full md:w-auto flex justify-end' : searchSelectConfig, 'w-full flex justify-end' : !searchSelectConfig}">
+    <div v-if="agregarAccion" class="w-full flex justify-end">
       <ActionButton
         :href="agregarAccion.href"
         :color="agregarAccion.color"
@@ -167,9 +167,7 @@ const normalizedCampos = computed(() => {
           >
             {{ cabecera }}
           </th>
-          <th v-if="acciones.length > 0" class="px-6 py-3">
-            <span class="sr-only">Acciones</span>
-          </th>
+          
         </tr>
       </thead>
       <tbody class="bg-white divide-y divide-gray-200">
@@ -180,10 +178,10 @@ const normalizedCampos = computed(() => {
             class="px-6 py-4 whitespace-nowrap text-sm text-gray-900"
           >
             <div v-if="campo.type === 'image'">
-                <img :src="getValor(item, campo.key)" alt="Imagen" class="w-20 h-20 rounded-full">
+              <img :src="getValor(item, campo.key)" alt="Imagen" class="w-20 h-20 rounded-full">
             </div>
             <div v-else>
-                {{ getValor(item, campo.key) }}
+              {{ getValor(item, campo.key) }}
             </div>
           </td>
           <td v-if="acciones.length > 0" class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">

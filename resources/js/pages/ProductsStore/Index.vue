@@ -8,7 +8,7 @@ import type { Product, ProductStore, Purchase } from '@/types'
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
-        title: 'Historial de compras',
+        title: 'Lista de productos en la tienda',
         href: '/rpurchases',
     },
 ];

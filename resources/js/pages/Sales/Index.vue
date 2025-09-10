@@ -4,17 +4,18 @@ import { type BreadcrumbItem } from '@/types';
 import { Head } from '@inertiajs/vue3';
 import PlaceholderPattern from '../../components/PlaceholderPattern.vue';
 import { Table as ProductTable} from '@/components/ui/Table';
-import type { Product } from '@/types'
+import type { Product, ProductStore, Purchase } from '@/types'
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
-        title: 'Lista de productos en bodega',
-        href: '/rproducts',
+        title: 'Historial de ventas',
+        href: '/rsales',
     },
 ];
 
 const props = defineProps<{
     products: Product[];
+    productstores: ProductStore[]
     
 }>();
 </script>
@@ -39,32 +40,37 @@ const props = defineProps<{
             <div class="relative min-h-[100vh] flex-1 rounded-xl border border-sidebar-border/70 md:min-h-min dark:border-sidebar-border">
             
             <ProductTable
-                :cadena="products??[]"
+                :cadena="productstores??[]"
                 :cabeceras="[
-                    'Nombre',
-                    'Codigo',
-                    'imagen del producto',
-                    'Cantidad en Stock',
-                    'Cantidad de cajas',
-                    'unidades por caja',
+                    'Id',
+                    'Producto',
+                    'Cantidad',
+                    'P/U POR MAYOR',
+                    'P/U POR MENOR',
+                    'PRECIO DE VENTA',
+                    'Acciones'
                 ]"
                 :campos="[
-                        'name',
-                        'code',
-                        {key:'img_product' , type:'image' },
-                        'quantity_in_stock',
-                        'boxes',
-                        'units_per_box',
+                        'id',
+                        'product_id',
+                        'quantity',
+                        'unit_price_wholesale',
+                        'unit_price_retail',
+                        'saleprice',
                         ]"
-                :agregar="false"
-                :acciones="[
+                :agregar="{
+                    href: route('rsales.create'), 
+                    color: 'green', 
+                    name: 'registrar venta',
+                    iconName: 'bx-plus' }"
+                 :acciones="[
+                    {
+                        href: (item) => route('rproductstores.edit' , item.id),
+                        color: 'blue',
+                        name: 'Editar',
+                        iconName: 'bx-pencil',
+                    }
                 ]"
-                :searchSelectConfig="{
-                options: products, // Puedes pasar la misma cadena u otra lista de objetos
-                valueKey: 'id',
-                labelKey: 'code',
-                placeholder: 'Buscar productos...'
-                }"
             />
             </div>
         </div>

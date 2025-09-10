@@ -13,9 +13,10 @@ return new class extends Migration
     {
         Schema::create('sales', function (Blueprint $table) {
             $table->id();
-            $table->string('custom_name');
+            $table->string('sale_code');
+            $table->string('customer_name');
             $table->date('sale_date');
-            $table->decimal('initial_price');
+            $table->string('pay_type');
             $table->decimal('final_price');
             $table->timestamps();
         });

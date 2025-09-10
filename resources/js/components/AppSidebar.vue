@@ -5,7 +5,7 @@ import NavUser from '@/components/NavUser.vue';
 import { Sidebar, SidebarContent, SidebarFooter, SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem } from '@/components/ui/sidebar';
 import { type NavItem } from '@/types';
 import { Link } from '@inertiajs/vue3';
-import { BookOpen, BookUser, Folder, LayoutGrid, PersonStanding, TimerIcon, TimerOff, TimerOffIcon } from 'lucide-vue-next';
+import { Banknote, BookOpen, BookUser, FileClock, Folder, LayoutGrid, List, ListCheck, ListChecks, PersonStanding, ShoppingCart, Store, TimerIcon, TimerOff, TimerOffIcon, Warehouse } from 'lucide-vue-next';
 import AppLogo from './AppLogo.vue';
 import { route } from 'ziggy-js'; 
 
@@ -33,43 +33,50 @@ const mainNavItems: NavItem[] = [
     {
         title: 'Registros de Movimientos de salarios',
         href: '/rsalary_adjustments',
-        icon: TimerIcon,
+        icon: Banknote,
     },
     {
         title: 'Gestion de salarios',
         href: route('rsalary_adjustments.create'),
-        icon: TimerIcon,
+        icon: Banknote,
     },
+    //bodega
     {
-        title: 'Lista de productos',
+        title: 'Productos en Bodega',
         href: '/rproducts',
-        icon: TimerIcon,
+        icon: List,
     },
     {
         title: 'Registrar de Productos',
         href: route('rproducts.create'),
-        icon: TimerIcon,
+        icon: ListChecks,
     },
     
     {
         title: 'Historial de compras',
         href: '/rpurchases',
-        icon: TimerIcon,
+        icon: FileClock,
     },
     {
         title: 'Registrar de Compra',
         href: route('rpurchases.create'),
-        icon: TimerIcon,
+        icon: ShoppingCart,
     },
+    //tienda
     {
         title: 'Productos en la tienda',
         href: '/rproductstores',
-        icon: TimerIcon,
+        icon: Store,
     },
     {
         title: 'Ingresar Productos',
         href: route('rproductstores.create'),
-        icon: TimerIcon,
+        icon: Warehouse,
+    },
+    {
+        title: 'Ventas',
+        href: '/rsales',
+        icon: ShoppingCart,
     },
 ];
 

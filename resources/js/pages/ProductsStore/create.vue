@@ -16,7 +16,7 @@ import type { BreadcrumbItem, Product, ProductStore } from '@/types';
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
-        title: 'Registro de compras',
+        title: 'Ingreso de productos a la tienda',
         href: route('rproductstores.create'),
     },
 ];
