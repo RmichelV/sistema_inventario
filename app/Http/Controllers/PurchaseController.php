@@ -11,7 +11,7 @@ use App\Models\Product;
 //librerias
 use Illuminate\Support\Facades\Validator;
 use Inertia\Inertia;
-
+use Illuminate\Support\Facades\DB;
 
 class PurchaseController extends Controller
 {
@@ -58,21 +58,40 @@ class PurchaseController extends Controller
     public function store(Request $request)
     {
           
-        $purchase = Purchase::create([
-            "product_id"=> $request->product_id,
-            "purchase_quantity"=> $request->purchase_quantity,
-            "purchase_date"=> $request->purchase_date,
-        ]);
+        DB::beginTransaction();
 
-        $product = Product::find($request->product_id);
+        try {
+            // Itera sobre el array de ítems de compra que viene del formulario
+            foreach ($request->input('items') as $itemData) {
+                
+                // 1. Crear el registro de la compra
+                Purchase::create([
+                    "product_id"      => $itemData['product_id'],
+                    "purchase_quantity" => $itemData['purchase_quantity'],
+                    "purchase_date"   => $request->input('purchase_date'), // La fecha es la misma para todos los ítems
+                ]);
 
-        // 4. Actualiza la cantidad en stock
-        if ($product) {
-            $product->quantity_in_stock += $request->purchase_quantity;
-            $product->save();
+                // 2. Buscar el producto para actualizar su stock
+                $product = Product::find($itemData['product_id']);
+
+                // 3. Actualizar la cantidad en stock
+                if ($product) {
+                    $product->quantity_in_stock += $itemData['purchase_quantity'];
+                    $product->save();
+                }
+            }
+
+            // Si todas las operaciones fueron exitosas, confirma la transacción
+            DB::commit();
+
+            return redirect()->route('rpurchases.index')->with('success', 'Compra registrada y stock actualizado.');
+
+        } catch (\Exception $e) {
+            // Si algo falla, revierte todos los cambios de la base de datos
+            DB::rollBack();
+
+            return redirect()->back()->with('error', 'Hubo un error al registrar la compra. Por favor, inténtalo de nuevo.');
         }
-
-        return redirect()->route('rpurchases.index')->with('success', 'Compra registrada y stock actualizado.');
 
     }
 
