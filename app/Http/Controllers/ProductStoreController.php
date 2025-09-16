@@ -9,6 +9,7 @@ use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Illuminate\Support\Facades\Validator;
 use App\Models\Usd_exchange_rate;
+use Illuminate\Support\Facades\DB;
 
 //Modelos
 use App\Models\Product;
@@ -60,55 +61,66 @@ class ProductStoreController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request)
+   public function store(Request $request)
     {
-        // 1. Validar la solicitud
+        // 1. Validar la solicitud para el array de ítems
         $validator = Validator::make($request->all(), [
-            'product_id' => 'required|exists:products,id',
-            'quantity' => 'required|numeric|min:1',
-            'unit_price_wholesale' => 'required|numeric|min:0',
-            'unit_price_retail' => 'required|numeric|min:0',
-            'saleprice' => 'required|numeric|min:0',
+            'items' => 'required|array',
+            'items.*.product_id' => 'required|exists:products,id',
+            'items.*.quantity' => 'required|numeric|min:1',
+            'items.*.unit_price_wholesale' => 'required|numeric|min:0',
+            'items.*.unit_price_retail' => 'required|numeric|min:0',
+            'items.*.saleprice' => 'required|numeric|min:0',
         ]);
 
         if ($validator->fails()) {
             return redirect()->back()->withErrors($validator)->withInput();
         }
 
-        // 2. Buscar el producto de la bodega (tabla 'products') para obtener la cantidad en stock
-        $productInStock = Product::findOrFail($request->product_id);
+        // Iniciar una transacción de base de datos para garantizar la integridad
+        DB::beginTransaction();
 
-        // 3. Validar si la cantidad solicitada es menor o igual a la cantidad en stock de bodega
-        if ($request->quantity > $productInStock->quantity_in_stock) {
-            return redirect()->back()->withErrors(['quantity' => 'La cantidad solicitada es mayor que la cantidad disponible en bodega.'])->withInput();
+        try {
+            // 2. Iterar sobre cada ítem para procesarlo individualmente
+            foreach ($request->input('items') as $index => $itemData) {
+
+                // Buscar el producto en la bodega por su ID
+                $productInStock = Product::findOrFail($itemData['product_id']);
+
+                // 3. Validar si la cantidad solicitada es mayor que el stock disponible
+                if ($itemData['quantity'] > $productInStock->quantity_in_stock) {
+                    // Si falla, revertimos la transacción
+                    DB::rollBack();
+                    // Usamos un índice dinámico para mostrar el error correctamente en el formulario
+                    return redirect()->back()->withErrors(["items.{$index}.quantity" => 'La cantidad solicitada es mayor que la cantidad disponible en bodega.'])->withInput();
+                }
+
+                // 4. Buscar o crear el producto en la tabla de la tienda
+                $productInStore = Product_store::firstOrNew(['product_id' => $itemData['product_id']]);
+
+                // Actualizar la cantidad y precios
+                $productInStore->quantity += $itemData['quantity'];
+                $productInStore->unit_price_wholesale = $itemData['unit_price_wholesale'];
+                $productInStore->unit_price_retail = $itemData['unit_price_retail'];
+                $productInStore->saleprice = $itemData['saleprice'];
+                $productInStore->save();
+
+                // 5. Restar la cantidad del stock en la bodega
+                $productInStock->quantity_in_stock -= $itemData['quantity'];
+                $productInStock->save();
+            }
+
+            // Si todas las operaciones fueron exitosas, confirma la transacción
+            DB::commit();
+
+            return redirect()->route('rproductstores.index')->with('success', 'Productos transferidos a la tienda exitosamente.');
+
+        } catch (\Exception $e) {
+            // Si algo falla, revierte todos los cambios de la base de datos
+            DB::rollBack();
+
+            return redirect()->back()->with('error', 'Ocurrió un error inesperado al transferir los productos. Inténtalo de nuevo.')->withInput();
         }
-
-        // 4. Buscar el producto en la tabla de la tienda (`product_stores`)
-        $productInStore = Product_store::where('product_id', $request->product_id)->first();
-
-        if ($productInStore) {
-            // El producto ya existe en la tienda, actualizamos la cantidad
-            $productInStore->quantity += $request->quantity;
-            $productInStore->unit_price_wholesale = $request->unit_price_wholesale;
-            $productInStore->unit_price_retail = $request->unit_price_retail;
-            $productInStore->saleprice = $request->saleprice;
-            $productInStore->save();
-        } else {
-            // El producto no existe en la tienda, creamos un nuevo registro
-            Product_store::create([
-                "product_id" => $request->product_id,
-                "quantity" => $request->quantity,
-                "unit_price_wholesale" => $request->unit_price_wholesale,
-                "unit_price_retail" => $request->unit_price_retail,
-                "saleprice" => $request->saleprice,
-            ]);
-        }
-        
-        // 5. Restar la cantidad del stock en la bodega
-        $productInStock->quantity_in_stock -= $request->quantity;
-        $productInStock->save();
-
-        return redirect()->route('rproductstores.index')->with('success', 'Producto transferido a la tienda exitosamente.');
     }
 
     /**
