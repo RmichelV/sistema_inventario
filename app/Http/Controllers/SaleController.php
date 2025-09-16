@@ -10,6 +10,7 @@ use Inertia\Inertia;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\ValidationException;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 
 //modelos
 use App\Models\Product;
@@ -50,84 +51,83 @@ class SaleController extends Controller
      */
    public function store(Request $request)
     {
-        // 1. Validar los datos de la solicitud
+        // 1. Validate the request with nested rules for the 'items' array.
         $validator = Validator::make($request->all(), [
-            'product_id' => ['required', 'exists:products,id'],
-            'quantity_products' => ['required', 'integer', 'min:1'],
-            'sale_date' => ['required', 'date'],
-            'pay_type' => ['required', 'string', 'in:Dolares,Bolivianos,Qr'],
-            'final_price' => ['required', 'numeric', 'min:0'],
-            'customer_name' => ['required', 'string', 'max:255'],
+            'sale_date' => 'required|date',
+            'pay_type' => 'required|string',
+            'final_price' => 'required|numeric|min:0',
+            'customer_name' => 'required|string|max:255',
+            'items' => 'required|array|min:1',
+            'items.*.product_id' => 'required|exists:products,id',
+            'items.*.quantity_from_warehouse' => 'nullable|numeric|min:0',
+            'items.*.quantity_from_store' => 'nullable|numeric|min:0',
         ]);
 
         if ($validator->fails()) {
-            throw ValidationException::withMessages($validator->messages()->toArray());
+            return redirect()->back()->withErrors($validator)->withInput();
         }
 
-        // Iniciar una transacción de base de datos
+        // 2. Start a database transaction
         DB::beginTransaction();
 
         try {
-            $validatedData = $validator->validated();
+            // 3. Create the sale first
+            $sale = Sale::create([
+                'sale_code' => 'EWTTO-' . Str::random(8),
+                'customer_name' => $request->customer_name,
+                'sale_date' => $request->sale_date,
+                'pay_type' => $request->pay_type,
+                'final_price' => $request->final_price,
+            ]);
 
-            // 2. Obtener los productos en tienda y bodega
-            $productInStore = Product_store::where('product_id', $validatedData['product_id'])->first();
-            $productInWarehouse = Product::findOrFail($validatedData['product_id']);
-            $quantityToSell = $validatedData['quantity_products'];
+            // 4. Process each item in the request
+            foreach ($request->items as $item) {
+                $product = Product::findOrFail($item['product_id']);
+                $productInStore = Product_store::where('product_id', $item['product_id'])->first();
 
-            // 3. Lógica para el descuento de stock
-            $storeQuantity = $productInStore ? $productInStore->quantity : 0;
-            $warehouseQuantity = $productInWarehouse->quantity_in_stock;
-
-            // Verificar si hay suficiente stock en total
-            if ($quantityToSell > ($storeQuantity + $warehouseQuantity)) {
-                DB::rollBack();
-                return redirect()->back()->withErrors(['quantity_products' => 'La cantidad solicitada supera el stock total disponible.']);
-            }
-
-            // Descontar primero del stock en la tienda
-            if ($storeQuantity >= $quantityToSell) {
-                // Stock de la tienda es suficiente
-                $productInStore->decrement('quantity', $quantityToSell);
-            } else {
-                // Descontar todo el stock de la tienda y el resto de la bodega
-                $remainingToSell = $quantityToSell - $storeQuantity;
+                $quantityFromWarehouse = $item['quantity_from_warehouse'] ?? 0;
+                $quantityFromStore = $item['quantity_from_store'] ?? 0;
+                $totalQuantity = $quantityFromWarehouse + $quantityFromStore;
                 
-                if ($productInStore) {
-                    $productInStore->update(['quantity' => 0]);
+                // 5. Validate available stock for each item
+                if ($quantityFromWarehouse > $product->quantity_in_stock) {
+                    DB::rollBack();
+                    return redirect()->back()->with('error', "La cantidad de {$product->name} solicitada de bodega excede el stock disponible.")->withInput();
                 }
 
-                $productInWarehouse->decrement('quantity_in_stock', $remainingToSell);
+                if ($productInStore && $quantityFromStore > $productInStore->quantity) {
+                    DB::rollBack();
+                    return redirect()->back()->with('error', "La cantidad de {$product->name} solicitada de tienda excede el stock disponible.")->withInput();
+                }
+
+                // 6. Create the sale item
+                Sale_item::create([
+                    'sale_id' => $sale->id,
+                    'product_id' => $product->id,
+                    'quantity_products' => $totalQuantity,
+                ]);
+
+                // 7. Update stock
+                if ($quantityFromWarehouse > 0) {
+                    $product->decrement('quantity_in_stock', $quantityFromWarehouse);
+                }
+                if ($quantityFromStore > 0 && $productInStore) {
+                    $productInStore->decrement('quantity', $quantityFromStore);
+                }
             }
 
-            // 4. Crear el registro de la venta en la tabla `sales`
-            $sale = Sale::create([
-                'sale_code' => 'SALE-' . now()->format('YmdHis') . '-' . rand(100, 999),
-                'customer_name' => $validatedData['customer_name'],
-                'sale_date' => $validatedData['sale_date'],
-                'pay_type' => $validatedData['pay_type'],
-                'final_price' => $validatedData['final_price'],
-            ]);
-
-            // 5. Crear el registro del ítem de la venta en la tabla `sale_items`
-            // El `sale_id` se asocia automáticamente a través de la relación.
-            $sale->items()->create([
-                'product_id' => $validatedData['product_id'],
-                'quantity_products' => $validatedData['quantity_products'],
-            ]);
-
-            // 6. Si todo es exitoso, confirmar la transacción.
+            // 8. Commit the transaction
             DB::commit();
 
-            return redirect()->route('sales.index')->with('success', 'Venta registrada con éxito.');
+            return redirect()->route('rsales.index')->with('success', 'Venta registrada exitosamente.');
 
         } catch (\Exception $e) {
-            // 7. Si algo falla, revertir la transacción.
+            // Revert all changes if an error occurs
             DB::rollBack();
-            return redirect()->back()->withErrors(['general' => 'Ocurrió un error al registrar la venta. Por favor, inténtelo de nuevo.']);
+
+            return redirect()->back()->with('error', 'Ocurrió un error al registrar la venta. Por favor, inténtelo de nuevo.')->withInput();
         }
     }
-
 
     /**
      * Display the specified resource.
