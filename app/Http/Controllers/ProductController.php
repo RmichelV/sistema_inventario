@@ -9,6 +9,8 @@ use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Illuminate\Support\Facades\DB;
 
+//validaciones
+use App\Http\Requests\Products\ProductRequest;
 
 class ProductController extends Controller
 {
@@ -79,7 +81,7 @@ class ProductController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request)
+    public function store(ProductRequest $request)
     {
         DB::beginTransaction();
 

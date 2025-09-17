@@ -12,6 +12,7 @@ use App\Models\Product;
 use Illuminate\Support\Facades\Validator;
 use Inertia\Inertia;
 use Illuminate\Support\Facades\DB;
+use App\Http\Requests\Products\PurchaseRequest;
 
 class PurchaseController extends Controller
 {
@@ -55,7 +56,7 @@ class PurchaseController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request)
+    public function store(PurchaseRequest $request)
     {
           
         DB::beginTransaction();

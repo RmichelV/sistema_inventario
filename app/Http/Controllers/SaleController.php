@@ -11,6 +11,7 @@ use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\ValidationException;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
+use App\Http\Requests\Sales\SaleRequest;
 
 //modelos
 use App\Models\Product;
@@ -49,24 +50,8 @@ class SaleController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-   public function store(Request $request)
+    public function store(SaleRequest $request)
     {
-        // 1. Validate the request with nested rules for the 'items' array.
-        $validator = Validator::make($request->all(), [
-            'sale_date' => 'required|date',
-            'pay_type' => 'required|string',
-            'final_price' => 'required|numeric|min:0',
-            'customer_name' => 'required|string|max:255',
-            'items' => 'required|array|min:1',
-            'items.*.product_id' => 'required|exists:products,id',
-            'items.*.quantity_from_warehouse' => 'nullable|numeric|min:0',
-            'items.*.quantity_from_store' => 'nullable|numeric|min:0',
-        ]);
-
-        if ($validator->fails()) {
-            return redirect()->back()->withErrors($validator)->withInput();
-        }
-
         // 2. Start a database transaction
         DB::beginTransaction();
 

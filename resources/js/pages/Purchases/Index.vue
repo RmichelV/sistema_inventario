@@ -6,6 +6,12 @@ import PlaceholderPattern from '../../components/PlaceholderPattern.vue';
 import { Table as ProductTable} from '@/components/ui/Table';
 import type { Product, Purchase } from '@/types'
 
+// Agrega las importaciones necesarias
+import { onMounted } from 'vue';
+import { usePage } from '@inertiajs/vue3';
+import { useSwal } from '../../composables/useSwal'; // Importa el composable
+
+
 const breadcrumbs: BreadcrumbItem[] = [
     {
         title: 'Historial de compras',
@@ -18,6 +24,22 @@ const props = defineProps<{
     purchases: Purchase[];
     
 }>();
+
+// Lógica de SweetAlert2
+const page = usePage();
+const swal = useSwal(); // Instancia el composable
+
+onMounted(() => {
+    // Si existe un mensaje flash de éxito, muestra la alerta
+    if (page.props.flash.success) {
+        // Usa el composable directamente
+        swal.fire({
+            icon: 'success',
+            title: '¡Éxito!',
+            text: page.props.flash.success,
+        });
+    }
+});
 </script>
 
 <template>

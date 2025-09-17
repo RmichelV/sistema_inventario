@@ -70,25 +70,6 @@ class UserController extends Controller
      */
     public function store(Request $request)
     {
-        // $validator = Validator::make($request->all(), [
-            
-        // ]);
-        // if ($validator->fails()) {
-        //     return redirect()->back()
-        //         ->withErrors($validator)
-        //         ->withInput();
-        // }
-        // $user = new User();
-        // $user->name = $request->input('name');
-        // $user->address = $request->input('address');
-        // $user->phone = $request->input('phone');
-        // $user->role_id = $request->input('role_id');
-        // $user->base_salary = $request->input('base_salary');
-        // $user->email = $request->input('email');
-        // $user->password = bcrypt($request->input('password')); 
-        // $user->save();
-
-        // return  redirect()->route('Users.index')->with('success','');
         $user = User::create([
             'name' => $request->name,
             'address' => $request->address,
