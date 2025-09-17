@@ -27,8 +27,9 @@ class SaleController extends Controller
     public function index()
     {
         $sales = Sale::all();
-        
-        return Inertia::render('Sales/Index');
+        return Inertia::render('Sales/Index',[
+            'sales'=>$sales,
+        ]);
     }
 
     /**
@@ -117,18 +118,26 @@ class SaleController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(Sale $sale)
+    public function show(string $id)
     {
-        //
+        $sale = Sale::find($id);
+        $sale_items = Sale_item::where('sale_id', $sale->id)->get();
+        $product_ids = $sale_items->pluck('product_id')->toArray();
+        $products = Product::whereIn('id', $product_ids)->get();
+        return Inertia::render('Sales/show', [
+            'sale' => $sale,
+            'sale_items' => $sale_items,
+            'products' => $products,
+        ]);
     }
 
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit(Sale $sale)
+    public function edit(Sale $id)
     {
-        //
-    }
+        
+    }   
 
     /**
      * Update the specified resource in storage.

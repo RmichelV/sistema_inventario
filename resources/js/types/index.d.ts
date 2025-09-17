@@ -90,6 +90,7 @@ export interface Product{
     currency_type: string;
     unit_price_wholesale: number;
     unit_price_retail: number;
+    product_store?: ProductStore; 
 }
 
 export interface Purchase{

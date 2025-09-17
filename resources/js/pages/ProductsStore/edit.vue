@@ -93,17 +93,17 @@ const submit = () => {
                                 <InputError :message="form.errors.quantity" />
                             </div>
                             <div class="grid gap-2">
-                                <Label for="unit_price_wholesale">Precio unitario al por Mayor $us. </Label>
+                                <Label for="unit_price_wholesale">P/U Caja $us. </Label>
                                 <Input id="unit_price_wholesale" type="number" required autofocus :tabindex="1" autocomplete="unit_price_wholesale" v-model="form.unit_price_wholesale" placeholder="Ej. 500.00" step="0.01" min="0"/>
                                 <InputError :message="form.errors.unit_price_wholesale" />
                             </div>
                             <div class="grid gap-2">
-                                <Label for="unit_price_retail">Precio unitario al por Menor $us. </Label>
+                                <Label for="unit_price_retail">P/U al Mayor $us. </Label>
                                 <Input id="unit_price_retail" type="number" required autofocus :tabindex="1" autocomplete="unit_price_retail" v-model="form.unit_price_retail" placeholder="Ej. 500.00" step="0.01" min="0"/>
                                 <InputError :message="form.errors.unit_price_retail" />
                             </div>
                             <div class="grid gap-2">
-                                <Label for="saleprice">Precio de Venta </Label>
+                                <Label for="saleprice">P/U al Menor </Label>
                                 <Input id="saleprice" type="number" required autofocus :tabindex="1" autocomplete="saleprice" v-model="form.saleprice" placeholder="Ej. 500.00" step="0.01" min="0"/>
                                 <InputError :message="form.errors.saleprice" />
                             </div>

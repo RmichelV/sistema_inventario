@@ -18,6 +18,10 @@ class Sale extends Model
         'final_price',
     ];
 
+    public function saleItems(){
+        return $this->hasMany(Sale_item::class,'sale_id', 'id');
+    }
+
     /** @use HasFactory<\Database\Factories\SaleFactory> */
     use HasFactory;
 }

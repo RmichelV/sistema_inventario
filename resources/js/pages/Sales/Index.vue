@@ -4,7 +4,7 @@ import { type BreadcrumbItem } from '@/types';
 import { Head } from '@inertiajs/vue3';
 import PlaceholderPattern from '../../components/PlaceholderPattern.vue';
 import { Table as ProductTable} from '@/components/ui/Table';
-import type { Product, ProductStore, Purchase } from '@/types'
+import type { Sale } from '@/types'
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
@@ -14,10 +14,10 @@ const breadcrumbs: BreadcrumbItem[] = [
 ];
 
 const props = defineProps<{
-    products: Product[];
-    productstores: ProductStore[]
-    
+    sales: Sale[]
 }>();
+
+console.log(props.sales)
 </script>
 
 <template>
@@ -40,23 +40,21 @@ const props = defineProps<{
             <div class="relative min-h-[100vh] flex-1 rounded-xl border border-sidebar-border/70 md:min-h-min dark:border-sidebar-border">
             
             <ProductTable
-                :cadena="productstores??[]"
+                :cadena="sales??[]"
                 :cabeceras="[
-                    'Id',
-                    'Producto',
-                    'Cantidad',
-                    'P/U POR MAYOR',
-                    'P/U POR MENOR',
-                    'PRECIO DE VENTA',
+                    'CODIGO',
+                    'CLIENTE',
+                    'FECHA',
+                    'TIPO DE PAGO',
+                    'PRECIO CANCELADO',
                     'Acciones'
                 ]"
                 :campos="[
-                        'id',
-                        'product_id',
-                        'quantity',
-                        'unit_price_wholesale',
-                        'unit_price_retail',
-                        'saleprice',
+                        'sale_code',
+                        'customer_name',
+                        'sale_date',
+                        'pay_type',
+                        'final_price',
                         ]"
                 :agregar="{
                     href: route('rsales.create'), 
@@ -65,10 +63,10 @@ const props = defineProps<{
                     iconName: 'bx-plus' }"
                  :acciones="[
                     {
-                        href: (item) => route('rproductstores.edit' , item.id),
+                        href: (item) => route('rsales.show' , item.id),
                         color: 'blue',
-                        name: 'Editar',
-                        iconName: 'bx-pencil',
+                        name: 'Detalle',
+                        iconName: 'bx-list-ul',
                     }
                 ]"
             />

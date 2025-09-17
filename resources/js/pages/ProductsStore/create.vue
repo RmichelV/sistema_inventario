@@ -112,7 +112,7 @@ const submit = () => {
                         </div>
 
                         <div class="grid gap-2">
-                            <Label :for="'unit_price_wholesale-' + index">P/U al Mayor en $us</Label>
+                            <Label :for="'unit_price_wholesale-' + index">Precio Caja en $us</Label>
                             <Input
                                 :id="'unit_price_wholesale-' + index"
                                 type="number"
@@ -125,7 +125,7 @@ const submit = () => {
                         </div>
                 
                         <div class="grid gap-2">
-                            <Label :for="'unit_price_retail-' + index">P/U al Menor en $us</Label>
+                            <Label :for="'unit_price_retail-' + index">P/U al Mayor en $us</Label>
                             <Input
                                 :id="'unit_price_retail-' + index"
                                 type="number"
@@ -138,7 +138,7 @@ const submit = () => {
                         </div>
 
                         <div class="grid gap-2">
-                            <Label :for="'saleprice-' + index">Precio de Venta</Label>
+                            <Label :for="'saleprice-' + index">P/U al Menor</Label>
                             <Input
                                 :id="'saleprice-' + index"
                                 type="number"

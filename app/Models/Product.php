@@ -19,4 +19,8 @@ class Product extends Model
         'quantity_in_stock',
         'units_per_box',
     ];
+    public function productStore()
+    {
+        return $this->hasOne(Product_store::class);
+    }
 }
