@@ -10,7 +10,7 @@ use Inertia\Inertia;
 use Illuminate\Support\Facades\DB;
 
 //validaciones
-use App\Http\Requests\Products\ProductRequest;
+use App\Http\Requests\Warehouse\ProductRequest;
 
 class ProductController extends Controller
 {

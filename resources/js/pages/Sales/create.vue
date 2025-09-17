@@ -37,6 +37,7 @@ const form = useForm({
         product_id: null as number | null,
         quantity_from_warehouse: undefined as number | undefined,
         quantity_from_store: undefined as number | undefined,
+        selected_price: null as number | null,
     }],
 });
 
@@ -46,6 +47,7 @@ const addSaleItem = () => {
         product_id: null,
         quantity_from_warehouse: undefined,
         quantity_from_store: undefined,
+        selected_price: null,
     });
 };
 
@@ -87,42 +89,34 @@ const toBs = (price: number | undefined | null) => {
     return (price * exchangeRate.value).toFixed(2);
 };
 
-// Propiedades computadas para calcular los precios totales
-const totalWholesalePrice = computed(() => {
-    return form.items.reduce((total, item) => {
-        const productInStore = findProductInStore(item.product_id);
-        const totalQuantity = (item.quantity_from_warehouse || 0) + (item.quantity_from_store || 0);
-
-        if (productInStore && totalQuantity > 0) {
-            return total + (productInStore.unit_price_wholesale * totalQuantity);
-        }
-        return total;
-    }, 0).toFixed(2);
-});
-
-const totalRetailPrice = computed(() => {
-    return form.items.reduce((total, item) => {
-        const productInStore = findProductInStore(item.product_id);
-        const totalQuantity = (item.quantity_from_warehouse || 0) + (item.quantity_from_store || 0);
-
-        if (productInStore && totalQuantity > 0) {
-            return total + (productInStore.unit_price_retail * totalQuantity);
-        }
-        return total;
-    }, 0).toFixed(2);
-});
-
+// Propiedad computada para calcular el precio total de la venta, usando el precio seleccionado de cada ítem
 const totalSalePrice = computed(() => {
     return form.items.reduce((total, item) => {
-        const productInStore = findProductInStore(item.product_id);
-        const totalQuantity = (item.quantity_from_warehouse || 0) + (item.quantity_from_store || 0);
-
-        if (productInStore && totalQuantity > 0) {
-            return total + (productInStore.saleprice * totalQuantity);
+        if (item.selected_price) {
+            return total + item.selected_price;
         }
         return total;
     }, 0).toFixed(2);
 });
+
+// Funciones para calcular precios individuales
+const itemWholesalePrice = (item: any) => {
+    const productInStore = findProductInStore(item.product_id);
+    const totalQuantity = (item.quantity_from_warehouse || 0) + (item.quantity_from_store || 0);
+    return productInStore && totalQuantity > 0 ? productInStore.unit_price_wholesale * totalQuantity : 0;
+};
+
+const itemRetailPrice = (item: any) => {
+    const productInStore = findProductInStore(item.product_id);
+    const totalQuantity = (item.quantity_from_warehouse || 0) + (item.quantity_from_store || 0);
+    return productInStore && totalQuantity > 0 ? productInStore.unit_price_retail * totalQuantity : 0;
+};
+
+const itemSalePrice = (item: any) => {
+    const productInStore = findProductInStore(item.product_id);
+    const totalQuantity = (item.quantity_from_warehouse || 0) + (item.quantity_from_store || 0);
+    return productInStore && totalQuantity > 0 ? productInStore.saleprice * totalQuantity : 0;
+};
 
 const submit = () => {
     form.post(route('rsales.store'), {
@@ -203,6 +197,53 @@ const submit = () => {
                                 />
                                 <InputError :message="form.errors[`items.${index}.quantity_from_store`]" />
                             </div>
+                            
+                            <div class="grid gap-2 mt-4">
+                                <Label>Seleccione un precio:</Label>
+                                <div class="flex items-center space-x-2">
+                                    <input 
+                                        type="radio" 
+                                        :id="'wholesale-price-' + index" 
+                                        :name="'item-price-' + index" 
+                                        :value="itemWholesalePrice(item)"
+                                        v-model="item.selected_price"
+                                        :disabled="!item.product_id || (!item.quantity_from_warehouse && !item.quantity_from_store)"
+                                        class="h-4 w-4 text-indigo-600 border-gray-300 focus:ring-indigo-500"
+                                        required
+                                    />
+                                    <label :for="'wholesale-price-' + index" class="text-sm font-medium text-gray-700 dark:text-gray-300">
+                                        Mayor: ${{ itemWholesalePrice(item).toFixed(2) }} (Bs {{ toBs(itemWholesalePrice(item)) }})
+                                    </label>
+                                </div>
+                                <div class="flex items-center space-x-2">
+                                    <input 
+                                        type="radio" 
+                                        :id="'retail-price-' + index" 
+                                        :name="'item-price-' + index" 
+                                        :value="itemRetailPrice(item)"
+                                        v-model="item.selected_price"
+                                        :disabled="!item.product_id || (!item.quantity_from_warehouse && !item.quantity_from_store)"
+                                        class="h-4 w-4 text-indigo-600 border-gray-300 focus:ring-indigo-500"
+                                    />
+                                    <label :for="'retail-price-' + index" class="text-sm font-medium text-gray-700 dark:text-gray-300">
+                                        Menor: ${{ itemRetailPrice(item).toFixed(2) }} (Bs {{ toBs(itemRetailPrice(item)) }})
+                                    </label>
+                                </div>
+                                <div class="flex items-center space-x-2">
+                                    <input 
+                                        type="radio" 
+                                        :id="'sale-price-' + index" 
+                                        :name="'item-price-' + index" 
+                                        :value="itemSalePrice(item)"
+                                        v-model="item.selected_price"
+                                        :disabled="!item.product_id || (!item.quantity_from_warehouse && !item.quantity_from_store)"
+                                        class="h-4 w-4 text-indigo-600 border-gray-300 focus:ring-indigo-500"
+                                    />
+                                    <label :for="'sale-price-' + index" class="text-sm font-medium text-gray-700 dark:text-gray-300">
+                                        Venta: ${{ itemSalePrice(item).toFixed(2) }} (Bs {{ toBs(itemSalePrice(item)) }})
+                                    </label>
+                                </div>
+                            </div>
 
                             <Button v-if="form.items.length > 1" type="button" @click="removeSaleItem(index)" variant="destructive">
                                 <Trash2 class="w-4 h-4 mr-2" />
@@ -215,14 +256,6 @@ const submit = () => {
                         </Button>
 
                         <div class="grid gap-2">
-                           <h3 class="text-lg font-semibold text-gray-700 dark:text-gray-300">
-                                Precio por Mayor (Total): <span class="text-xl font-bold">${{ totalWholesalePrice }}</span>
-                                <span class="text-sm text-gray-500 dark:text-gray-400"> (Bs {{ toBs(parseFloat(totalWholesalePrice)) }})</span>
-                            </h3>
-                            <h3 class="text-lg font-semibold text-gray-700 dark:text-gray-300">
-                                Precio por Menor (Total): <span class="text-xl font-bold">${{ totalRetailPrice }}</span>
-                                <span class="text-sm text-gray-500 dark:text-gray-400"> (Bs {{ toBs(parseFloat(totalRetailPrice)) }})</span>
-                            </h3>
                             <h3 class="text-lg font-semibold text-gray-700 dark:text-gray-300">
                                 Precio de venta (Total): <span class="text-xl font-bold">${{ totalSalePrice }}</span>
                                 <span class="text-sm text-gray-500 dark:text-gray-400"> (Bs {{ toBs(parseFloat(totalSalePrice)) }})</span>

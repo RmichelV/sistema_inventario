@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Requests\Sales;
+namespace App\Http\Requests\Store;
 
 use Illuminate\Foundation\Http\FormRequest;
 
@@ -30,6 +30,7 @@ class SaleRequest extends FormRequest
             'items.*.product_id' => ['required', 'exists:products,id'],
             'items.*.quantity_from_warehouse' => ['nullable', 'numeric', 'min:0'],
             'items.*.quantity_from_store' => ['nullable', 'numeric', 'min:0'],
+            'items.*.selected_price' => 'required|numeric|min:0',
         ];
     }
     public function messages(): array

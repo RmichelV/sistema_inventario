@@ -12,7 +12,7 @@ use App\Models\Product;
 use Illuminate\Support\Facades\Validator;
 use Inertia\Inertia;
 use Illuminate\Support\Facades\DB;
-use App\Http\Requests\Products\PurchaseRequest;
+use App\Http\Requests\Warehouse\PurchaseRequest;
 
 class PurchaseController extends Controller
 {

@@ -16,8 +16,7 @@ class UsdExchangeRateSeeder extends Seeder
     {
         Usd_exchange_rate::create([
             
-                "exchange_rate"=> "12.14",
-            
+                "exchange_rate"=> "6.96",
         ]);
     }
 }

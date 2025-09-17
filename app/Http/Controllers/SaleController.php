@@ -11,7 +11,7 @@ use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\ValidationException;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
-use App\Http\Requests\Sales\SaleRequest;
+use App\Http\Requests\Store\SaleRequest;
 
 //modelos
 use App\Models\Product;
@@ -53,6 +53,7 @@ class SaleController extends Controller
      */
     public function store(SaleRequest $request)
     {
+        // dd($request);
         // 2. Start a database transaction
         DB::beginTransaction();
 
@@ -91,6 +92,7 @@ class SaleController extends Controller
                     'sale_id' => $sale->id,
                     'product_id' => $product->id,
                     'quantity_products' => $totalQuantity,
+                    'total_price' => $item['selected_price'],
                 ]);
 
                 // 7. Update stock
