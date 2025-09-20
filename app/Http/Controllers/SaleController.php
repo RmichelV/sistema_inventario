@@ -55,7 +55,7 @@ class SaleController extends Controller
     {
        
         
-
+        $exchange_rate = Usd_exchange_rate::find(1);
         DB::beginTransaction();
 
         try {
@@ -66,6 +66,7 @@ class SaleController extends Controller
                 'sale_date' => $request->sale_date,
                 'pay_type' => $request->pay_type,
                 'final_price' => $request->final_price,
+                'exchange_rate' => $exchange_rate->exchange_rate
             ]);
 
             // 4. Process each item in the request

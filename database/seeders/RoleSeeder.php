@@ -14,10 +14,10 @@ class RoleSeeder extends Seeder
     public function run(): void
     {
         Role::insert([
-            ['name' => 'Gerente'],
-            ['name' => 'Encargado de tienda'],
-            ['name' => 'Encargado de bodega'],
-            ['name' => 'Vendedor'],
+            ['name' => 'Gerente General'],
+            ['name' => 'Gerente de Sucursal'],
+            ['name' => 'Asesor Comercial'],
+            ['name' => 'Jefe de Bodega'],
         ]);
     }
 }

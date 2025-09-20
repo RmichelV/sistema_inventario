@@ -18,6 +18,7 @@ return new class extends Migration
             $table->date('sale_date');
             $table->string('pay_type');
             $table->decimal('final_price');
+            $table->decimal('exchange_rate');
             $table->timestamps();
         });
     }
