@@ -3,7 +3,7 @@ import { defineProps, computed } from 'vue';
 import { Head } from '@inertiajs/vue3';
 import AppLayout from '@/layouts/AppLayout.vue';
 import { type BreadcrumbItem, type Sale, type Product, type SaleItem } from '@/types';
-
+import { Table as ItemsTable } from '@/components/ui/Table';
 // UI Components
 import { ActionButton } from '@/components/ui/ActionButton';
 
@@ -25,6 +25,22 @@ const findProduct = (productId: number) => {
     return props.products.find(p => p.id === productId);
 };
 
+// Propiedad computada para procesar los ítems de venta para la tabla
+const tableItems = computed(() => {
+    return props.sale_items.map(item => {
+        const product = findProduct(item.product_id);
+        const unitPrice = product?.product_store?.saleprice || 0;
+        const subtotal = item.quantity_products * unitPrice;
+
+        return {
+            ...item,
+            product_name: product?.name || 'N/A', // Agrega el nombre del producto
+            unit_price: unitPrice.toFixed(2), // Agrega el precio unitario
+            subtotal: subtotal.toFixed(2), // Agrega el subtotal
+        };
+    });
+});
+
 // Propiedad computada para calcular el total de los ítems de venta
 const totalItemsPrice = computed(() => {
     return props.sale_items.reduce((total, item) => {
@@ -35,6 +51,7 @@ const totalItemsPrice = computed(() => {
         return total;
     }, 0).toFixed(2);
 });
+
 </script>
 
 <template>
@@ -61,32 +78,20 @@ const totalItemsPrice = computed(() => {
 
                 <h3 class="font-bold text-2xl mt-8 mb-4">Productos de la Venta</h3>
                 <div class="relative overflow-x-auto shadow-md sm:rounded-lg">
-                    <table class="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400">
-                        <thead class="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
-                            <tr>
-                                <th scope="col" class="px-6 py-3">Producto</th>
-                                <th scope="col" class="px-6 py-3">Cantidad</th>
-                                <th scope="col" class="px-6 py-3">Precio Unitario</th>
-                                <th scope="col" class="px-6 py-3">Subtotal</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr v-for="item in props.sale_items" :key="item.id" class="bg-white border-b dark:bg-gray-800 dark:border-gray-700">
-                                <td class="px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white">
-                                    {{ findProduct(item.product_id)?.name }}
-                                </td>
-                                <td class="px-6 py-4">
-                                    {{ item.quantity_products }}
-                                </td>
-                                <td class="px-6 py-4">
-                                    ${{ findProduct(item.product_id)?.product_store?.saleprice.toFixed(2) }}
-                                </td>
-                                <td class="px-6 py-4">
-                                    ${{ (item.quantity_products * (findProduct(item.product_id)?.product_store?.saleprice || 0)).toFixed(2) }}
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
+                    <ItemsTable
+                        :cadena="tableItems"
+                        :cabeceras="['Producto','Cantidad','Precio','T/C en ese momento','Acciones']"
+                        :campos="['product_name','quantity_products','total_price','exchange_rate']"
+                        :agregar="false"
+                        :acciones="[
+                            {
+                                href: (item) => route('rsaleitems.edit' , item.id),
+                                color: 'red',
+                                name: 'Devolver',
+                                iconName: 'bx-pencil',
+                            }
+                        ]"
+                    />
                 </div>
 
                 <div class="mt-8 p-6 rounded-lg bg-blue-50 dark:bg-blue-900/40 text-right">

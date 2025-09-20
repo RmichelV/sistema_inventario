@@ -5,6 +5,21 @@ namespace App\Http\Controllers;
 use App\Models\Sale_item;
 use Illuminate\Http\Request;
 
+//librerias
+use Inertia\Inertia;
+use Illuminate\Support\Facades\Validator;
+use Illuminate\Validation\ValidationException;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
+use App\Http\Requests\Store\SaleRequest;
+
+//modelos
+use App\Models\Product;
+use App\Models\Product_store;
+use App\Models\Usd_exchange_rate;
+use App\Models\Sale;
+
+
 class SaleItemController extends Controller
 {
     /**
@@ -42,9 +57,17 @@ class SaleItemController extends Controller
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit(Sale_item $sale_item)
+    public function edit(string $id)
     {
-        //
+        $sale_item = Sale_item::find($id);
+        $product = Product::find($sale_item->product_id);
+        $sale = Sale::all();
+
+        return Inertia::render('Sales/edit',[
+            'saleItem'=> $sale_item,
+            'product'=> $product,
+            'sale' => $sale
+        ]);
     }
 
     /**

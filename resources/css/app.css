@@ -133,8 +133,8 @@
     --secondary: hsl(0 0% 14.9%);
     --secondary-foreground: hsl(0 0% 98%);
     --muted: #3B38A0; /* color del nombre*/
-    --muted-foreground: hsl(0 0% 63.9%);
-    --accent: #7A85C1; /* color de seleccion*/
+    --muted-foreground: hsl(0, 0%, 64%);
+    --accent: hsl(0 0% 14.9%); /* color de seleccion*/
     --accent-foreground: hsl(0 0% 98%);
     --destructive: hsl(0 84% 60%);
     --destructive-foreground: hsl(0 0% 98%);

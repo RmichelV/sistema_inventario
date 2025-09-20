@@ -1,6 +1,5 @@
 <?php
 
-
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
@@ -13,7 +12,8 @@ use App\Http\Controllers\PurchaseController;
 use App\Http\Controllers\ProductStoreController;
 use App\Http\Controllers\UsdExchangeRateController;
 use App\Http\Controllers\SaleController;
-
+use App\Http\Controllers\SaleItemController;
+use App\Http\Controllers\DevolutionController;
 //modelos
 use App\Models\Usd_exchange_rate;
 use App\Models\Product;
@@ -43,3 +43,5 @@ Route::resource('rpurchases', PurchaseController::class);
 Route::resource('rproductstores', ProductStoreController::class);
 Route::resource('rusdexchangerates', UsdExchangeRateController::class);
 Route::resource('rsales', SaleController::class);
+Route::resource('rsaleitems',SaleItemController::class);
+Route::resource('rdevolutions', DevolutionController::class);

@@ -53,8 +53,9 @@ class SaleController extends Controller
      */
     public function store(SaleRequest $request)
     {
-        // dd($request);
-        // 2. Start a database transaction
+       
+        
+
         DB::beginTransaction();
 
         try {
@@ -86,13 +87,14 @@ class SaleController extends Controller
                     DB::rollBack();
                     return redirect()->back()->with('error', "La cantidad de {$product->name} solicitada de tienda excede el stock disponible.")->withInput();
                 }
-
+                $exchange_rate = Usd_exchange_rate::find(1);
                 // 6. Create the sale item
                 Sale_item::create([
                     'sale_id' => $sale->id,
                     'product_id' => $product->id,
                     'quantity_products' => $totalQuantity,
                     'total_price' => $item['selected_price'],
+                    'exchange_rate' => $exchange_rate->exchange_rate
                 ]);
 
                 // 7. Update stock
@@ -136,7 +138,7 @@ class SaleController extends Controller
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit(Sale $id)
+    public function edit(string $id)
     {
         
     }   

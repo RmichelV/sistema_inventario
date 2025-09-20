@@ -114,7 +114,6 @@ class ProductController extends Controller
                     'img_product' => $img_name,
                     'quantity_in_stock' => $productData['quantity_in_stock'],
                     'units_per_box' => $productData['units_per_box'],
-                   
                 ]);
             }
 

@@ -128,6 +128,15 @@ export interface SaleItem{
     product_id: number;
     quantity_products: number;
     total_price: number;
+    exchange_rate: number;
+}
+
+export interface Devolution{
+    product_id:number;
+    quantity:number;
+    reason:string;
+    refund_amount:number;
+    sale_item_id:number;
 }
 
 export type BreadcrumbItemType = BreadcrumbItem;
