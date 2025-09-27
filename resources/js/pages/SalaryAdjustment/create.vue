@@ -72,7 +72,7 @@ const props = defineProps<{
 
                             <div class="grid gap-2">
                                 <Label for="amount">Monto</Label>
-                                <Input id="amount" type="number" required autofocus :tabindex="1" autocomplete="amount" name="amount" placeholder="Ej. 500.00" step="0.01" min="0"/>
+                                <Input id="amount" type="number" required autofocus :tabindex="1" autocomplete="amount" name="amount" placeholder="Ej. 500.00" step="0.01"/>
                                 <InputError :message="errors.amount" />
                             </div>
 

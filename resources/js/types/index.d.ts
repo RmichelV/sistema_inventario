@@ -138,4 +138,14 @@ export interface Devolution{
     sale_item_id:number;
 }
 
+export interface Salary{
+    user_id:number;
+    base_salary:number;
+    salary_adjustment:number;
+    discounts:number;
+    total_salary:number;
+    paydate:Date;
+    user_id_m:number;
+}
+
 export type BreadcrumbItemType = BreadcrumbItem;

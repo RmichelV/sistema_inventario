@@ -47,9 +47,10 @@ const currentProduct = computed(() => {
     return {
         ...product,
         quantity_in_store: productInStore ? productInStore.quantity : 0,
-        unit_price_wholesale: productInStore ? productInStore.unit_price_wholesale : 0,
-        unit_price_retail: productInStore ? productInStore.unit_price_retail : 0,
-        saleprice: productInStore ? productInStore.saleprice : 0,
+        unit_price: productInStore ? productInStore.unit_price : 0,
+        
+        // unit_price_retail: productInStore ? productInStore.unit_price_retail : 0,
+        // saleprice: productInStore ? productInStore.saleprice : 0,
     };
 });
 
@@ -60,6 +61,20 @@ const toBs = (price: number | undefined | null) => {
     }
     return (price * props.usd.exchange_rate).toFixed(2);
 };
+
+// FUNCIÓN MODIFICADA: Calcula el precio en Bs y le suma el 1.1%
+const toBsP = (price: number | undefined | null) => {
+    if (price === undefined || price === null || !props.usd || !props.usd.exchange_rate) {
+        return 'N/A';
+    }
+    // 1. Convertir a bolivianos
+    const priceInBs = price * props.usd.exchange_rate;
+    // 2. Sumar el 1.1% (multiplicar por 1.011)
+    const priceWithProfit = priceInBs * 1.011;
+    
+    return priceWithProfit.toFixed(2);
+};
+
 </script>
 
 <template>
@@ -89,9 +104,11 @@ const toBs = (price: number | undefined | null) => {
                             <p><strong>Código:</strong> {{ currentProduct.code }}</p>
                             <p><strong>Cantidad en Bodega:</strong> {{ currentProduct.quantity_in_stock }}</p>
                             <p><strong>Cantidad en Tienda:</strong> {{ currentProduct.quantity_in_store }}</p>
-                            <p><strong>P/U CAJA:</strong> ${{ currentProduct.unit_price_wholesale }} (Bs {{ toBs(currentProduct.unit_price_wholesale) }})</p>
-                            <p><strong>P/U MAYOR:</strong> ${{ currentProduct.unit_price_retail }} (Bs {{ toBs(currentProduct.unit_price_retail) }})</p>
-                            <p><strong>P/U MENOR:</strong> ${{ currentProduct.saleprice }} (Bs {{ toBs(currentProduct.saleprice) }})</p>
+                            <p><strong>P/U en Dolares:</strong> ${{ currentProduct.unit_price }} </p>
+                            <p><strong>P/U en Bolivianos:</strong> Bs. {{ toBs(currentProduct.unit_price) }} </p>
+                            
+                            <p><strong>P/U sugerido:</strong>Bs {{ toBsP(currentProduct.unit_price) }}</p>
+                            
                         </div>
                         <div v-else>
                             <p class="text-gray-500 mt-2">No hay producto seleccionado.</p>

@@ -14,10 +14,14 @@ use App\Http\Controllers\UsdExchangeRateController;
 use App\Http\Controllers\SaleController;
 use App\Http\Controllers\SaleItemController;
 use App\Http\Controllers\DevolutionController;
+use App\Http\Controllers\SalaryController;
+
 //modelos
 use App\Models\Usd_exchange_rate;
 use App\Models\Product;
 use App\Models\Product_Store;
+
+
 Route::get('/', function () {
     return Inertia::render('Welcome');
 })->name('home');
@@ -26,7 +30,7 @@ Route::get('/', function () {
 // Reemplazamos 'verified' por el middleware 'role' que acabamos de crear.
 Route::get('dashboard', function () {
     $usd = Usd_exchange_rate::find(1);
-    $products = Product::all(['id','name','code']);
+    $products = Product::all(['id','name','code','quantity_in_stock']);
     $productStores = Product_Store::all();
     return Inertia::render('Dashboard',[
         'usd'=>$usd,
@@ -68,3 +72,5 @@ Route::resource('rusdexchangerates', UsdExchangeRateController::class)->middlewa
 // Estas rutas probablemente estén relacionadas con las ventas, así que las protegemos para los mismos roles.
 Route::resource('rsaleitems',SaleItemController::class)->middleware(['auth', 'role:1,3']);
 Route::resource('rdevolutions', DevolutionController::class)->middleware(['auth', 'role:1,3']);
+
+Route::resource('rsalaries',SalaryController::class)->middleware(['auth', 'role:1']);

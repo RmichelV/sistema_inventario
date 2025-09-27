@@ -6,7 +6,6 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
-
 class User extends Authenticatable
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
@@ -33,6 +32,11 @@ class User extends Authenticatable
 
     public function Role(){
         return $this->belongsTo(Role::class,'role_id','id');
+    }
+    public function salary_adjustments()
+    {
+        // Esto asume que el modelo Salary_adjustment existe y tiene la FK 'user_id'.
+        return $this->hasMany(Salary_adjustment::class, 'user_id', 'id');
     }
 
     /**

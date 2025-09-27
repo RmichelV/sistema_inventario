@@ -23,7 +23,7 @@ const mainNavItems: NavItem[] = [
         title: 'Dashboard',
         href: '/dashboard',
         icon: LayoutGrid,
-        roles: [1], // Todos los roles
+        roles: [1, 2, 3], // Todos los roles pueden ver el Dashboard
     },
     {
         title: 'Datos de empleados',
@@ -36,6 +36,12 @@ const mainNavItems: NavItem[] = [
         href: '/rattendance_records',
         icon: TimerOffIcon,
         roles: [1, 2], // Rol 1 y 2
+    },
+    {
+        title: 'Gestion de salarios',
+        href: '/rsalaries',
+        icon: Banknote,
+        roles: [1], // Solo el rol 1 (Administrador)
     },
     {
         title: 'Registrar asistencia',
