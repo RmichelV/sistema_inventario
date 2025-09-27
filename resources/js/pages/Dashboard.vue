@@ -2,14 +2,15 @@
 import AppLayout from '@/layouts/AppLayout.vue';
 import { type BreadcrumbItem } from '@/types';
 import { Head } from '@inertiajs/vue3';
-
 import { defineProps, ref, computed } from 'vue';
-import { Usd_exchange_rate, Product } from '@/types';
-import {SelectSearch} from '@/components/ui/SelectSearch';
+
+// Importa los tipos Product y ProductStore
+import { type Product, type ProductStore, type Usd_exchange_rate } from '@/types'; 
+import { SelectSearch } from '@/components/ui/SelectSearch';
 import { Input } from '@/components/ui/input';
 import { ActionButton } from '@/components/ui/ActionButton';
-
 import PlaceholderPattern from '../components/PlaceholderPattern.vue';
+
 const breadcrumbs: BreadcrumbItem[] = [
     {
         title: 'Dashboard',
@@ -20,18 +21,45 @@ const breadcrumbs: BreadcrumbItem[] = [
 const props = defineProps<{
     usd: Usd_exchange_rate;
     products: Product[];
+    productStores: ProductStore[]; // 1. Recibe los productos de la tienda
 }>();
 
-const selectedProduct = ref<number | null>(null);
+const selectedProductId = ref<number | null>(null);
 
-// 🚨 CAMBIO AQUÍ: Propiedad computada para encontrar el producto seleccionado
+// 2. Propiedad computada para encontrar y combinar los datos del producto
 const currentProduct = computed(() => {
-    if (selectedProduct.value === null) {
+    if (selectedProductId.value === null) {
         return null;
     }
-    // Busca en el array `props.products` por el ID
-    return props.products.find(p => p.id === selectedProduct.value) || null;
+    
+    // Busca el producto en bodega (tabla 'products')
+    const product = props.products.find(p => p.id === selectedProductId.value);
+    
+    // Busca el producto en la tienda (tabla 'product_stores')
+    const productInStore = props.productStores.find(p => p.product_id === selectedProductId.value);
+    
+    // Si no hay producto en bodega, no hay nada que mostrar.
+    if (!product) {
+        return null;
+    }
+
+    // Combina los datos de ambas tablas en un solo objeto.
+    return {
+        ...product,
+        quantity_in_store: productInStore ? productInStore.quantity : 0,
+        unit_price_wholesale: productInStore ? productInStore.unit_price_wholesale : 0,
+        unit_price_retail: productInStore ? productInStore.unit_price_retail : 0,
+        saleprice: productInStore ? productInStore.saleprice : 0,
+    };
 });
+
+// 3. Función para convertir precios a Bolivianos (Bs)
+const toBs = (price: number | undefined | null) => {
+    if (price === undefined || price === null || !props.usd || !props.usd.exchange_rate) {
+        return 'N/A';
+    }
+    return (price * props.usd.exchange_rate).toFixed(2);
+};
 </script>
 
 <template>
@@ -41,28 +69,29 @@ const currentProduct = computed(() => {
         <div class="flex h-full flex-1 flex-col gap-4 rounded-xl p-4 overflow-x-auto">
             <div class="grid auto-rows-min gap-4 md:grid-cols-3">
                 <div class="relative aspect-video overflow-hidden rounded-xl border border-sidebar-border/70 dark:border-sidebar-border">
-                   <div class="absolute inset-0 flex flex-col items-center justify-center">
-                        <h1 class="text-2xl font-bold">Buscar Producto</h1>
+                   <div class="absolute inset-0 flex flex-col items-center justify-center p-4">
+                        <h1 class="text-2xl font-bold mb-4">Buscar Producto</h1>
                        <SelectSearch
-                            v-model="selectedProduct"
+                            v-model="selectedProductId"
                             :options="props.products"
                             :searchKeys="['name', 'code']"
                             placeholder="Buscar un producto por nombre o código..."
                             labelKey="code"
-                            
                         />
-                        <h1 class="text-2xl font-bold"> Cantidad</h1>
-                        <Input id="quantity" type="number" required autofocus :tabindex="1" autocomplete="quantity" name="quantity" placeholder="Cantidad" defaultValue="1" />
                     </div>
                 </div>
 
                 <div class="relative aspect-video overflow-hidden rounded-xl border border-sidebar-border/70 dark:border-sidebar-border">
                     <div class="p-4">
-                        <h1 class="text-xl font-bold">Mi Producto</h1>
+                        <h1 class="text-xl font-bold">Detalle del Producto</h1>
                         <div v-if="currentProduct">
-                            <p><strong>ID:</strong> {{ currentProduct.id }}</p>
                             <p><strong>Nombre:</strong> {{ currentProduct.name }}</p>
                             <p><strong>Código:</strong> {{ currentProduct.code }}</p>
+                            <p><strong>Cantidad en Bodega:</strong> {{ currentProduct.quantity_in_stock }}</p>
+                            <p><strong>Cantidad en Tienda:</strong> {{ currentProduct.quantity_in_store }}</p>
+                            <p><strong>P/U CAJA:</strong> ${{ currentProduct.unit_price_wholesale }} (Bs {{ toBs(currentProduct.unit_price_wholesale) }})</p>
+                            <p><strong>P/U MAYOR:</strong> ${{ currentProduct.unit_price_retail }} (Bs {{ toBs(currentProduct.unit_price_retail) }})</p>
+                            <p><strong>P/U MENOR:</strong> ${{ currentProduct.saleprice }} (Bs {{ toBs(currentProduct.saleprice) }})</p>
                         </div>
                         <div v-else>
                             <p class="text-gray-500 mt-2">No hay producto seleccionado.</p>
@@ -71,7 +100,7 @@ const currentProduct = computed(() => {
                 </div>
 
                 <div class="relative aspect-video overflow-hidden rounded-xl border border-sidebar-border/70 dark:border-sidebar-border">
-                   <div class="absolute inset-0 flex flex-col items-center justify-center">
+                   <div class="absolute inset-0 flex flex-col items-center justify-center p-4">
                        <p class="mt-2 text-xl">
                             Cambio Actual 
                        </p>

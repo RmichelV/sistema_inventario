@@ -23,7 +23,7 @@ const mainNavItems: NavItem[] = [
         title: 'Dashboard',
         href: '/dashboard',
         icon: LayoutGrid,
-        roles: [3], // Todos los roles
+        roles: [1], // Todos los roles
     },
     {
         title: 'Datos de empleados',
