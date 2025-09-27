@@ -21,8 +21,6 @@ const breadcrumbs: BreadcrumbItem[] = [
 ];
 
 const props = defineProps<{
-    // user: User; // <-- Cambia a `User` (singular)
-    // roles: Role[];
     productStore: ProductStore
     products: Product[]
 }>();
@@ -33,9 +31,7 @@ console.log(props)
 const form = useForm({
     product_id: props.productStore.product_id,
     quantity: props.productStore.quantity,
-    unit_price_wholesale: props.productStore.unit_price_wholesale,
-    unit_price_retail: props.productStore.unit_price_retail,
-    saleprice: props.productStore.saleprice,
+    unit_price: props.productStore.unit_price,
 });
 
 // 2. Define el método para enviar la actualización
@@ -93,20 +89,11 @@ const submit = () => {
                                 <InputError :message="form.errors.quantity" />
                             </div>
                             <div class="grid gap-2">
-                                <Label for="unit_price_wholesale">P/U Caja $us. </Label>
-                                <Input id="unit_price_wholesale" type="number" required autofocus :tabindex="1" autocomplete="unit_price_wholesale" v-model="form.unit_price_wholesale" placeholder="Ej. 500.00" step="0.01" min="0"/>
-                                <InputError :message="form.errors.unit_price_wholesale" />
+                                <Label for="unit_price_wholesale">Precio unitario en Dolares ($us) </Label>
+                                <Input id="unit_price_wholesale" type="number" required autofocus :tabindex="1" autocomplete="unit_price" v-model="form.unit_price" placeholder="Ej. 500.00" step="0.01" min="0"/>
+                                <InputError :message="form.errors.unit_price" />
                             </div>
-                            <div class="grid gap-2">
-                                <Label for="unit_price_retail">P/U al Mayor $us. </Label>
-                                <Input id="unit_price_retail" type="number" required autofocus :tabindex="1" autocomplete="unit_price_retail" v-model="form.unit_price_retail" placeholder="Ej. 500.00" step="0.01" min="0"/>
-                                <InputError :message="form.errors.unit_price_retail" />
-                            </div>
-                            <div class="grid gap-2">
-                                <Label for="saleprice">P/U al Menor </Label>
-                                <Input id="saleprice" type="number" required autofocus :tabindex="1" autocomplete="saleprice" v-model="form.saleprice" placeholder="Ej. 500.00" step="0.01" min="0"/>
-                                <InputError :message="form.errors.saleprice" />
-                            </div>
+                    
 
                             <Button type="submit" class="w-full mt-2" tabindex="5" :disabled="form.processing">
                                 <LoaderCircle v-if="form.processing" class="w-4 h-4 animate-spin" />

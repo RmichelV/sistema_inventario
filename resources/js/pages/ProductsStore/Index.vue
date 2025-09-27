@@ -45,18 +45,18 @@ const props = defineProps<{
                     'Id',
                     'Producto',
                     'Cantidad',
-                    'P/U POR MAYOR',
-                    'P/U POR MENOR',
-                    'PRECIO DE VENTA',
+                    'P/U $us.',
+                    'P/U Bs.',
+                    'P/U + 1.1%',
                     'Acciones'
                 ]"
                 :campos="[
                         'id',
                         'product_id',
                         'quantity',
-                        'unit_price_wholesale',
-                        'unit_price_retail',
-                        'saleprice',
+                        'unit_price',
+                        'unit_price_bs',
+                        'porcentaje',
                         ]"
                 :agregar="{
                     href: route('rproductstores.create'), 

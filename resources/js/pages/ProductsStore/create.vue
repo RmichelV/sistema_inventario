@@ -31,9 +31,7 @@ const productStoresForm = useForm({
     items: [{
         product_id: null as number | null,
         quantity: undefined as number | undefined,
-        unit_price_wholesale: undefined as number | undefined,
-        unit_price_retail: undefined as number | undefined,
-        saleprice: undefined as number | undefined,
+        unit_price: undefined as number | undefined,
     }],
 });
 
@@ -42,9 +40,7 @@ const addProductStoreItem = () => {
     productStoresForm.items.push({
         product_id: null,
         quantity: undefined,
-        unit_price_wholesale: undefined,
-        unit_price_retail: undefined,
-        saleprice: undefined,
+        unit_price: undefined,
     });
 };
 
@@ -105,50 +101,27 @@ const submit = () => {
                                 :id="'quantity-' + index"
                                 type="number"
                                 required
-                                min="0"
+                                min="1"
                                 v-model.number="item.quantity"
+                                placeholder="Ej. 10"
                             />
                             <InputError :message="productStoresForm.errors[`items.${index}.quantity`]" />
                         </div>
 
                         <div class="grid gap-2">
-                            <Label :for="'unit_price_wholesale-' + index">Precio Caja en $us</Label>
+                            <Label :for="'unit_price-' + index">Precio unitario en Dolares ($us) </Label>
                             <Input
-                                :id="'unit_price_wholesale-' + index"
+                                :id="'unit_price-' + index"
                                 type="number"
                                 min="0"
                                 step="0.01"
                                 required
-                                v-model.number="item.unit_price_wholesale"
+                                v-model.number="item.unit_price"
+                                placeholder="Ej. 45.50"
                             />
-                            <InputError :message="productStoresForm.errors[`items.${index}.unit_price_wholesale`]" />
+                            <InputError :message="productStoresForm.errors[`items.${index}.unit_price`]" />
                         </div>
                 
-                        <div class="grid gap-2">
-                            <Label :for="'unit_price_retail-' + index">P/U al Mayor en $us</Label>
-                            <Input
-                                :id="'unit_price_retail-' + index"
-                                type="number"
-                                min="0"
-                                step="0.01"
-                                required
-                                v-model.number="item.unit_price_retail"
-                            />
-                            <InputError :message="productStoresForm.errors[`items.${index}.unit_price_retail`]" />
-                        </div>
-
-                        <div class="grid gap-2">
-                            <Label :for="'saleprice-' + index">P/U al Menor</Label>
-                            <Input
-                                :id="'saleprice-' + index"
-                                type="number"
-                                min="0"
-                                step="0.01"
-                                required
-                                v-model.number="item.saleprice"
-                            />
-                            <InputError :message="productStoresForm.errors[`items.${index}.saleprice`]" />
-                        </div>
 
                         <Button v-if="productStoresForm.items.length > 1" type="button" @click="removeProductStoreItem(index)" variant="destructive">
                             <Trash2 class="w-4 h-4 mr-2" />

@@ -24,17 +24,17 @@ class ProductStoreController extends Controller
         $productinStore = Product_store::with("product")->get();
         $usd_exchange_rate = Usd_exchange_rate::find(1);
         $productStores = $productinStore->map(function ($productstore )use($usd_exchange_rate) {
+             
+            $unit_price_bs = 'Bs. ' . number_format(($usd_exchange_rate->exchange_rate * $productstore->unit_price),2); 
+            $porcentaje = 'Bs. ' . number_format((($usd_exchange_rate->exchange_rate * $productstore->unit_price)+(($productstore->unit_price*1.1)/100)*$usd_exchange_rate->exchange_rate),2); 
             
-            $wholesale = '$us '. $productstore->unit_price_wholesale . ' ' . 'Bs. '. number_format(($usd_exchange_rate->exchange_rate * $productstore->unit_price_wholesale),2 );  
-            $retail= '$us '. $productstore->unit_price_retail . ' ' . 'Bs. ' . number_format( ($usd_exchange_rate->exchange_rate * $productstore->unit_price_retail),2) ;
-            $sale= '$us '.$productstore->saleprice . ' ' . 'Bs. ' . number_format(($usd_exchange_rate->exchange_rate * $productstore->saleprice),2) ;
             return [
                 "id"=> $productstore->id,
                 "product_id"=> $productstore->product->name,
                 "quantity"=> $productstore->quantity,
-                "unit_price_wholesale"=> $wholesale,
-                "unit_price_retail"=> $retail,
-                "saleprice"=> $sale
+                "unit_price"=> $productstore->unit_price,
+                "unit_price_bs"=>$unit_price_bs,
+                "porcentaje"=>$porcentaje
             ];
         }); 
         $products = Product::all();
@@ -68,9 +68,7 @@ class ProductStoreController extends Controller
             'items' => 'required|array',
             'items.*.product_id' => 'required|exists:products,id',
             'items.*.quantity' => 'required|numeric|min:1',
-            'items.*.unit_price_wholesale' => 'required|numeric|min:0',
-            'items.*.unit_price_retail' => 'required|numeric|min:0',
-            'items.*.saleprice' => 'required|numeric|min:0',
+            'items.*.unit_price' => 'required|numeric|min:1',
         ]);
 
         if ($validator->fails()) {
@@ -100,9 +98,7 @@ class ProductStoreController extends Controller
 
                 // Actualizar la cantidad y precios
                 $productInStore->quantity += $itemData['quantity'];
-                $productInStore->unit_price_wholesale = $itemData['unit_price_wholesale'];
-                $productInStore->unit_price_retail = $itemData['unit_price_retail'];
-                $productInStore->saleprice = $itemData['saleprice'];
+                $productInStore->unit_price = $itemData['unit_price'];
                 $productInStore->save();
 
                 // 5. Restar la cantidad del stock en la bodega
@@ -151,9 +147,8 @@ class ProductStoreController extends Controller
         $productStore = Product_store::findOrFail($id);
         $productStore->product_id = $request->product_id;
         $productStore->quantity = $request->quantity;
-        $productStore->unit_price_wholesale = $request->unit_price_wholesale;
-        $productStore->unit_price_retail = $request->unit_price_retail;
-        $productStore->saleprice = $request->saleprice;
+        $productStore->unit_price = $request->unit_price;
+
 
         $productStore->save();
         return redirect()->route('rproductstores.index');

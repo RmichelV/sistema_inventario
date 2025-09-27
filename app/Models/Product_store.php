@@ -15,9 +15,7 @@ class Product_store extends Model
     protected $fillable = [
         "product_id",
         "quantity",
-        "unit_price_wholesale",
-        "unit_price_retail",
-        "saleprice",
+        "unit_price"
     ];
 
     public function product(){

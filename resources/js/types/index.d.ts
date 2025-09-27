@@ -111,9 +111,7 @@ export interface ProductStore{
     id: number;
     product_id:number;
     quantity:number
-    unit_price_wholesale:number;
-    unit_price_retail:number;
-    saleprice:number;
+    unit_price:number;
 }
 export interface Sale{
     id: number;
