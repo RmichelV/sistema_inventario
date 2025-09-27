@@ -7,12 +7,14 @@ use Illuminate\Http\Request;
 
 //librerias
 use Inertia\Inertia;
-use Illuminate\Support\Facades\Validator;
 use App\Models\Usd_exchange_rate;
 use Illuminate\Support\Facades\DB;
 
 //Modelos
 use App\Models\Product;
+
+//Requests
+use App\Http\Requests\Store\ProductStoreRequest;
 
 class ProductStoreController extends Controller
 {
@@ -30,7 +32,7 @@ class ProductStoreController extends Controller
             
             return [
                 "id"=> $productstore->id,
-                "product_id"=> $productstore->product->name,
+                "product_id"=> $productstore->product->code,
                 "quantity"=> $productstore->quantity,
                 "unit_price"=> $productstore->unit_price,
                 "unit_price_bs"=>$unit_price_bs,
@@ -61,20 +63,8 @@ class ProductStoreController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-   public function store(Request $request)
+   public function store(ProductStoreRequest $request)
     {
-        // 1. Validar la solicitud para el array de ítems
-        $validator = Validator::make($request->all(), [
-            'items' => 'required|array',
-            'items.*.product_id' => 'required|exists:products,id',
-            'items.*.quantity' => 'required|numeric|min:1',
-            'items.*.unit_price' => 'required|numeric|min:1',
-        ]);
-
-        if ($validator->fails()) {
-            return redirect()->back()->withErrors($validator)->withInput();
-        }
-
         // Iniciar una transacción de base de datos para garantizar la integridad
         DB::beginTransaction();
 

@@ -32,12 +32,14 @@ const form = useForm({
     sale_date: new Date().toISOString().slice(0, 10),
     customer_name: '' as string,
     pay_type: '' as string,
-    final_price: undefined as number | undefined,
+    // [CORRECCIÓN TS] Cambiado de 'null' a 'undefined' para compatibilidad con Input.vue
+    final_price: undefined as number | undefined, 
     items: [{
         product_id: null as number | null,
         quantity_from_warehouse: undefined as number | undefined,
         quantity_from_store: undefined as number | undefined,
-        selected_price: null as number | null,
+        // [CORRECCIÓN TS] Cambiado de 'null' a 'undefined'
+        selected_price: undefined as number | undefined, 
     }],
 });
 
@@ -47,7 +49,8 @@ const addSaleItem = () => {
         product_id: null,
         quantity_from_warehouse: undefined,
         quantity_from_store: undefined,
-        selected_price: null,
+        // [CORRECCIÓN TS] Cambiado de 'null' a 'undefined'
+        selected_price: undefined,
     });
 };
 
@@ -78,20 +81,57 @@ const exchangeRate = computed(() => {
     if (props.usd_exchange_rate && props.usd_exchange_rate.id === 1) {
         return props.usd_exchange_rate.exchange_rate;
     }
-    return 1;
+    return 1; 
 });
 
-// Función para convertir a bolivianos (Bs)
-const toBs = (price: number | undefined | null) => {
+// Función para convertir a bolivianos (Bs) - Devuelve String formateado
+const toBsDisplay = (price: number | undefined | null) => {
     if (price === undefined || price === null) {
         return 'N/A';
     }
     return (price * exchangeRate.value).toFixed(2);
 };
 
-// Propiedad computada para calcular el precio total de la venta, usando el precio seleccionado de cada ítem
+// --- LÓGICA DE CÁLCULO DE PRECIOS POR ÍTEM ---
+
+// Devuelve el precio total en USD
+const itemPriceUsd = (item: any) => {
+    const productInStore = findProductInStore(item.product_id);
+    const totalQuantity = (item.quantity_from_warehouse || 0) + (item.quantity_from_store || 0);
+    // 1. Precio del producto (en Dólares)
+    return productInStore && totalQuantity > 0 ? productInStore.unit_price * totalQuantity : 0;
+};
+
+// Devuelve el precio total en Bolivianos (Conversión directa)
+const itemPriceBs = (item: any) => {
+    const priceUsd = itemPriceUsd(item);
+    // 2. Precio en bolivianos (al tipo de cambio)
+    return priceUsd * exchangeRate.value;
+};
+
+// Devuelve el precio de Venta en Bolivianos (Bs + 1.1%)
+const itemSalePriceBs = (item: any) => {
+    const priceBs = itemPriceBs(item);
+    // 3. Precio de venta (Precio Bs + 1.1% -> Multiplicamos por 1.011)
+    return priceBs * 1.011;
+};
+
+
+// Propiedad computada para calcular el precio total de la venta, usando el precio seleccionado de cada ítem (en USD)
 const totalSalePrice = computed(() => {
+    // Suma los selected_price (en Bs) y los convierte a USD
     return form.items.reduce((total, item) => {
+        if (item.selected_price) {
+            return total + (item.selected_price / exchangeRate.value);
+        }
+        return total;
+    }, 0).toFixed(2);
+});
+
+// Propiedad computada para calcular el precio total de la venta, usando el precio seleccionado de cada ítem (en Bs)
+const totalSalePriceBs = computed(() => {
+    return form.items.reduce((total, item) => {
+        // Suma el selected_price (en Bs)
         if (item.selected_price) {
             return total + item.selected_price;
         }
@@ -99,24 +139,29 @@ const totalSalePrice = computed(() => {
     }, 0).toFixed(2);
 });
 
-// Funciones para calcular precios individuales
-const itemWholesalePrice = (item: any) => {
-    const productInStore = findProductInStore(item.product_id);
-    const totalQuantity = (item.quantity_from_warehouse || 0) + (item.quantity_from_store || 0);
-    return productInStore && totalQuantity > 0 ? productInStore.unit_price_wholesale * totalQuantity : 0;
-};
+// --- LÓGICA DEL PRECIO MÍNIMO DINÁMICO PARA FINAL_PRICE ---
+const minimumFinalPrice = computed(() => {
+    const totalBs = parseFloat(totalSalePriceBs.value);
+    const totalUsd = parseFloat(totalSalePrice.value);
 
-const itemRetailPrice = (item: any) => {
-    const productInStore = findProductInStore(item.product_id);
-    const totalQuantity = (item.quantity_from_warehouse || 0) + (item.quantity_from_store || 0);
-    return productInStore && totalQuantity > 0 ? productInStore.unit_price_retail * totalQuantity : 0;
-};
+    // Si no hay productos seleccionados o el total es cero
+    if (totalBs === 0) {
+        return 0;
+    }
 
-const itemSalePrice = (item: any) => {
-    const productInStore = findProductInStore(item.product_id);
-    const totalQuantity = (item.quantity_from_warehouse || 0) + (item.quantity_from_store || 0);
-    return productInStore && totalQuantity > 0 ? productInStore.saleprice * totalQuantity : 0;
-};
+    // Si el método de pago es Dólares, usamos el total en USD
+    if (form.pay_type === 'Dolares') {
+        return totalUsd;
+    } 
+    // Si el método de pago es Bolivianos o Qr, usamos el total en Bs
+    else if (form.pay_type === 'Bolivianos' || form.pay_type === 'Qr') {
+        return totalBs;
+    }
+    
+    // Si no se ha seleccionado método de pago, el mínimo es 0 hasta que se escoja uno.
+    return 0; 
+});
+
 
 const submit = () => {
     form.post(route('rsales.store'), {
@@ -159,10 +204,12 @@ const submit = () => {
                                     placeholder="Buscar un producto por nombre o código..."
                                     required
                                     labelKey="code"
+                                    :autofocus="index === 0"
                                 />
                                 <InputError :message="form.errors[`items.${index}.product_id`]"/>
                             </div>
                             
+                            <!-- Display de Stocks -->
                             <div class="grid gap-2">
                                 <p v-if="findProductInWarehouse(item.product_id)" class="text-base text-blue-700 dark:text-blue-300">
                                     Stock en bodega: <span class="font-extrabold text-lg">{{ findProductInWarehouse(item.product_id)?.quantity_in_stock }}</span> unidades
@@ -180,6 +227,7 @@ const submit = () => {
                                     required
                                     placeholder="Ej. 100"
                                     min="0"
+                                    defaultValue="0"
                                     v-model.number="item.quantity_from_warehouse"
                                 />
                                 <InputError :message="form.errors[`items.${index}.quantity_from_warehouse`]" />
@@ -193,56 +241,53 @@ const submit = () => {
                                     required
                                     placeholder="Ej. 20"
                                     min="0"
+                                    defaultValue="0"
                                     v-model.number="item.quantity_from_store"
                                 />
                                 <InputError :message="form.errors[`items.${index}.quantity_from_store`]" />
                             </div>
                             
-                            <div class="grid gap-2 mt-4">
-                                <Label>Seleccione un precio:</Label>
-                                <div class="flex items-center space-x-2">
-                                    <input 
-                                        type="radio" 
-                                        :id="'wholesale-price-' + index" 
-                                        :name="'item-price-' + index" 
-                                        :value="itemWholesalePrice(item)"
-                                        v-model="item.selected_price"
-                                        :disabled="!item.product_id || (!item.quantity_from_warehouse && !item.quantity_from_store)"
-                                        class="h-4 w-4 text-indigo-600 border-gray-300 focus:ring-indigo-500"
-                                        required
-                                    />
-                                    <label :for="'wholesale-price-' + index" class="text-sm font-medium text-gray-700 dark:text-gray-300">
-                                        Mayor: ${{ itemWholesalePrice(item).toFixed(2) }} (Bs {{ toBs(itemWholesalePrice(item)) }})
-                                    </label>
+                            <!-- BLOQUE DE PRECIOS DE REFERENCIA CON LOS 3 VALORES -->
+                            <div class="grid gap-2 mt-4 p-3 bg-gray-100 dark:bg-gray-800 rounded-lg border border-indigo-300 dark:border-indigo-700">
+                                <Label class="text-lg font-semibold text-indigo-700 dark:text-indigo-400">Referencias de Precio (Total por Cantidad)</Label>
+                                
+                                <div v-if="item.product_id && ((item.quantity_from_warehouse || 0) + (item.quantity_from_store || 0) > 0)">
+                                    <!-- 1. Precio Base en Dólares -->
+                                    <p class="text-sm font-medium text-gray-700 dark:text-gray-300">
+                                        Precio Producto (Dólares): 
+                                        <span class="font-bold text-base text-blue-600">${{ itemPriceUsd(item).toFixed(2) }}</span> 
+                                    </p>
+                                    
+                                    <!-- 2. Precio en Bolivianos (Conversión) -->
+                                    <p class="text-sm font-medium text-gray-700 dark:text-gray-300 mt-1">
+                                        Precio en Bolivianos: 
+                                        <span class="font-bold text-base text-green-700 dark:text-green-300">Bs. {{ itemPriceBs(item).toFixed(2) }}</span>
+                                    </p>
+
+                                    <!-- 3. Precio de Venta (Bs + 1.1%) -->
+                                    <p class="text-sm font-medium text-gray-700 dark:text-gray-300 mt-1">
+                                        Precio de Venta (Bs + 1.1%): 
+                                        <span class="font-bold text-base text-red-600">Bs. {{ itemSalePriceBs(item).toFixed(2) }}</span>
+                                    </p>
                                 </div>
-                                <div class="flex items-center space-x-2">
-                                    <input 
-                                        type="radio" 
-                                        :id="'retail-price-' + index" 
-                                        :name="'item-price-' + index" 
-                                        :value="itemRetailPrice(item)"
-                                        v-model="item.selected_price"
-                                        :disabled="!item.product_id || (!item.quantity_from_warehouse && !item.quantity_from_store)"
-                                        class="h-4 w-4 text-indigo-600 border-gray-300 focus:ring-indigo-500"
-                                    />
-                                    <label :for="'retail-price-' + index" class="text-sm font-medium text-gray-700 dark:text-gray-300">
-                                        Menor: ${{ itemRetailPrice(item).toFixed(2) }} (Bs {{ toBs(itemRetailPrice(item)) }})
-                                    </label>
-                                </div>
-                                <div class="flex items-center space-x-2">
-                                    <input 
-                                        type="radio" 
-                                        :id="'sale-price-' + index" 
-                                        :name="'item-price-' + index" 
-                                        :value="itemSalePrice(item)"
-                                        v-model="item.selected_price"
-                                        :disabled="!item.product_id || (!item.quantity_from_warehouse && !item.quantity_from_store)"
-                                        class="h-4 w-4 text-indigo-600 border-gray-300 focus:ring-indigo-500"
-                                    />
-                                    <label :for="'sale-price-' + index" class="text-sm font-medium text-gray-700 dark:text-gray-300">
-                                        Venta: ${{ itemSalePrice(item).toFixed(2) }} (Bs {{ toBs(itemSalePrice(item)) }})
-                                    </label>
-                                </div>
+                                <p v-else class="text-sm text-gray-500">Seleccione un producto y cantidades para ver las referencias de precio.</p>
+                            </div>
+                            
+                            <!-- Campo de Input para el Precio Final Cobrado por este Ítem -->
+                            <div class="grid gap-2 mt-2">
+                                <Label :for="'selected_price-' + index" class="font-bold text-lg">
+                                    Precio Cobrado por ESTE producto (Bs.)
+                                </Label>
+                                <Input 
+                                    :id="'selected_price-' + index"
+                                    type="number"
+                                    required
+                                    placeholder="Ingrese el precio final cobrado por este ítem..."
+                                    :min="itemPriceBs(item)"
+                                    step="0.01"
+                                    v-model.number="item.selected_price"
+                                />
+                                <InputError :message="form.errors[`items.${index}.selected_price`]" />
                             </div>
 
                             <Button v-if="form.items.length > 1" type="button" @click="removeSaleItem(index)" variant="destructive">
@@ -255,10 +300,10 @@ const submit = () => {
                             Agregar otro producto
                         </Button>
 
-                        <div class="grid gap-2">
+                        <div class="grid gap-2 p-4 border-t border-gray-200 mt-4">
                             <h3 class="text-lg font-semibold text-gray-700 dark:text-gray-300">
-                                Precio de venta (Total): <span class="text-xl font-bold">${{ totalSalePrice }}</span>
-                                <span class="text-sm text-gray-500 dark:text-gray-400"> (Bs {{ toBs(parseFloat(totalSalePrice)) }})</span>
+                                Precio de venta (Total de Ítems): <span class="text-xl font-bold">Bs {{ totalSalePriceBs }}</span>
+                                <span class="text-sm text-gray-500 dark:text-gray-400"> (${{ totalSalePrice }})</span>
                             </h3>
                         </div>
 
@@ -280,17 +325,21 @@ const submit = () => {
                         </div>
 
                         <div class="grid gap-2">
-                            <Label for="final_price">Precio Final</Label>
+                            <!-- Label Dinámico para Precio Final -->
+                            <Label for="final_price">
+                                Precio Final 
+                                <span v-if="form.pay_type === 'Dolares'" class="font-normal text-blue-600">($us)</span>
+                                <span v-else-if="form.pay_type === 'Bolivianos' || form.pay_type === 'Qr'" class="font-normal text-green-600">(Bs)</span>
+                                <span v-else class="font-normal text-red-500">(Elija el Método de Pago)</span>
+                            </Label>
                             <Input
                                 id="final_price"
                                 type="number"
                                 required
-                                autofocus
-                                :tabindex="1"
-                                autocomplete="final_price"
                                 name="final_price"
                                 placeholder="Ej. 500"
-                                min="0"
+                                :min="minimumFinalPrice"
+                                step="0.01"
                                 v-model.number="form.final_price"
                             />
                             <InputError :message="form.errors.final_price" />
@@ -302,9 +351,6 @@ const submit = () => {
                                 id="customer_name"
                                 type="text"
                                 required
-                                autofocus
-                                :tabindex="1"
-                                autocomplete="customer_name"
                                 name="customer_name"
                                 placeholder="Ingrese un nombre como referencia"
                                 v-model="form.customer_name"

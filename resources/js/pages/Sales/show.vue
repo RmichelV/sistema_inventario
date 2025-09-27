@@ -29,12 +29,12 @@ const findProduct = (productId: number) => {
 const tableItems = computed(() => {
     return props.sale_items.map(item => {
         const product = findProduct(item.product_id);
-        const unitPrice = product?.product_store?.saleprice || 0;
+        const unitPrice = product?.product_store?.unit_price || 0;
         const subtotal = item.quantity_products * unitPrice;
 
         return {
             ...item,
-            product_name: product?.name || 'N/A', // Agrega el nombre del producto
+            product_name: product?.code || 'N/A', // Agrega el nombre del producto
             unit_price: unitPrice.toFixed(2), // Agrega el precio unitario
             subtotal: subtotal.toFixed(2), // Agrega el subtotal
         };
@@ -46,7 +46,7 @@ const totalItemsPrice = computed(() => {
     return props.sale_items.reduce((total, item) => {
         const product = findProduct(item.product_id);
         if (product && product.product_store) {
-            return total + (item.quantity_products * product.product_store.saleprice);
+            return total + (item.quantity_products * product.product_store.unit_price);
         }
         return total;
     }, 0).toFixed(2);
@@ -63,16 +63,16 @@ const totalItemsPrice = computed(() => {
                 
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
                     <div class="p-4 rounded-lg bg-gray-50 dark:bg-gray-800 shadow">
-                        <h3 class="font-bold text-lg mb-2">Código de Venta</h3>
-                        <p class="text-2xl font-extrabold text-blue-600 dark:text-blue-400">{{ props.sale.sale_code }}</p>
+                        <h3 class="font-bold text-lg mb-2">Cliente</h3>
+                        <p class="text-xl text-gray-700 dark:text-gray-300">{{ props.sale.customer_name }}</p>
                     </div>
                     <div class="p-4 rounded-lg bg-gray-50 dark:bg-gray-800 shadow">
                         <h3 class="font-bold text-lg mb-2">Fecha de Venta</h3>
                         <p class="text-xl text-gray-700 dark:text-gray-300">{{ props.sale.sale_date }}</p>
                     </div>
                     <div class="p-4 rounded-lg bg-gray-50 dark:bg-gray-800 shadow">
-                        <h3 class="font-bold text-lg mb-2">Cliente</h3>
-                        <p class="text-xl text-gray-700 dark:text-gray-300">{{ props.sale.customer_name }}</p>
+                        <h3 class="font-bold text-lg mb-2">Código de Venta</h3>
+                        <p class="text-2xl font-extrabold text-blue-600 dark:text-blue-400">{{ props.sale.sale_code }}</p>
                     </div>
                 </div>
 
@@ -80,7 +80,7 @@ const totalItemsPrice = computed(() => {
                 <div class="relative overflow-x-auto shadow-md sm:rounded-lg">
                     <ItemsTable
                         :cadena="tableItems"
-                        :cabeceras="['Producto','Cantidad','Precio','T/C en ese momento','Acciones']"
+                        :cabeceras="['Producto','Cantidad','Precio $us','T/C en ese momento','Acciones']"
                         :campos="['product_name','quantity_products','total_price','exchange_rate']"
                         :agregar="false"
                         :acciones="[
@@ -95,11 +95,11 @@ const totalItemsPrice = computed(() => {
                 </div>
 
                 <div class="mt-8 p-6 rounded-lg bg-blue-50 dark:bg-blue-900/40 text-right">
-                    <p class="text-lg font-semibold text-gray-700 dark:text-gray-300">
+                    <!-- <p class="text-lg font-semibold text-gray-700 dark:text-gray-300">
                         Total de Productos: <span class="text-xl font-bold">${{ totalItemsPrice }}</span>
-                    </p>
+                    </p> -->
                     <p class="text-lg font-semibold text-gray-700 dark:text-gray-300">
-                        Precio Final Pagado: <span class="text-xl font-bold text-green-600 dark:text-green-400">${{ props.sale.final_price }}</span>
+                        Precio Final Cancelado: <span class="text-xl font-bold text-green-600 dark:text-green-400">${{ props.sale.final_price }}</span>
                     </p>
                 </div>
 

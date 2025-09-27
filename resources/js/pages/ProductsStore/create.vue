@@ -86,7 +86,7 @@ const submit = () => {
                                 :searchKeys="['name', 'code']"
                                 placeholder="Buscar un producto por nombre o código..."
                                 required
-                                labelKey="name"
+                                labelKey="code"
                             />
                             <InputError :message="productStoresForm.errors[`items.${index}.product_id`]" />
                             

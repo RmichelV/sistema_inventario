@@ -22,7 +22,7 @@ class ProductRequest extends FormRequest
     public function rules(): array
     {
         return [
-                'products.*.name' => ['string', 'max:255'],
+                'products.*.name' => ['string', 'max:255', 'nullable'],
                 'products.*.code' => ['required', 'string', 'max:255', 'unique:products,code'],
                 'products.*.img_product' => ['required', 'image', 'max:2048'],
                 'products.*.quantity_in_stock' => ['required', 'numeric', 'min:0'],

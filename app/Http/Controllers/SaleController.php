@@ -94,7 +94,7 @@ class SaleController extends Controller
                     'sale_id' => $sale->id,
                     'product_id' => $product->id,
                     'quantity_products' => $totalQuantity,
-                    'total_price' => $item['selected_price'],
+                    'total_price' => $item['selected_price'] / $exchange_rate->exchange_rate,
                     'exchange_rate' => $exchange_rate->exchange_rate
                 ]);
 

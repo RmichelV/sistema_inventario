@@ -80,7 +80,7 @@ const submit = () => {
                     <div v-for="(product, index) in productsForm.products" :key="index" class="grid gap-6 p-4 border-b border-gray-200">
                         <h3>Producto #{{ index + 1 }}</h3>
                         <div class="grid gap-2">
-                            <Label :for="'name-' + index">Nombre del producto</Label>
+                            <Label :for="'name-' + index">Nombre del producto (Opcional)</Label>
                             <Input
                                 :id="'name-' + index"
                                 type="text"

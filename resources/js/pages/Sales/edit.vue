@@ -68,13 +68,7 @@ watchEffect(() => {
 });
 </script>
 
----
 
-### Corrected Template
-
-Now, the `refund_amount` field no longer needs a separate hidden input, as its value is already correctly set in the `form` object. The hidden input with `name="refund_amountbs"` is also unnecessary unless your backend explicitly expects it.
-
-```vue
 <template>
     <Head title="Devolución" />
 
@@ -99,9 +93,7 @@ Now, the `refund_amount` field no longer needs a separate hidden input, as its v
                 <form @submit.prevent="form.post(route('rdevolutions.store'))" class="flex flex-col gap-6">
                     <div class="grid gap-6">
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div class="grid gap-2">
-                                <input type="hidden" name="sale_item_id" :value="props.saleItem.id" />
-                            </div>
+                            
                             <div class="grid gap-2">
                                 <Label for="product_name">Producto</Label>
                                 <Input 
@@ -172,7 +164,8 @@ Now, the `refund_amount` field no longer needs a separate hidden input, as its v
                                 />
                                 </div>
                         </div>
-                        
+                  
+                        <input type="hidden" name="sale_item_id" :value="props.saleItem.id" />
                         <input type="hidden" name="refund_amount" :value="form.refund_amount" />
                         
                         <Button type="submit" class="w-full mt-2" tabindex="3" :disabled="form.processing">
