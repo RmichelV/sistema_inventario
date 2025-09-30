@@ -78,7 +78,11 @@ const props = defineProps<{
                         'boxes',
                         'units_per_box',
                         ]"
-                :agregar="false"
+                :agregar="{
+                    href: route('rproducts.create'), 
+                    color: 'green', 
+                    name: 'Agregar Productos a la bodega',
+                    iconName: 'bx-plus' }"
                 :acciones="[
                 ]"
                 :searchSelectConfig="{

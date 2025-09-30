@@ -10,7 +10,7 @@ import { SelectSearch } from '@/components/ui/SelectSearch';
 import { Input } from '@/components/ui/input';
 import { ActionButton } from '@/components/ui/ActionButton';
 import PlaceholderPattern from '../components/PlaceholderPattern.vue';
-
+import { Table as productsTable} from '@/components/ui/Table';
 const breadcrumbs: BreadcrumbItem[] = [
     {
         title: 'Dashboard',
@@ -21,7 +21,9 @@ const breadcrumbs: BreadcrumbItem[] = [
 const props = defineProps<{
     usd: Usd_exchange_rate;
     products: Product[];
-    productStores: ProductStore[]; // 1. Recibe los productos de la tienda
+    productStores: ProductStore[];
+    productStores15Days: ProductStore[];
+    productStores30Days: ProductStore[];
 }>();
 
 const selectedProductId = ref<number | null>(null);
@@ -136,7 +138,75 @@ const toBsP = (price: number | undefined | null) => {
                 </div>
             </div>
             <div class="relative min-h-[100vh] flex-1 rounded-xl border border-sidebar-border/70 md:min-h-min dark:border-sidebar-border">
-                <PlaceholderPattern />
+                <h1 class="text-center mt-10">PRODUCTOS CON 30 SIN VENDER</h1>
+                <productsTable
+                :cadena="productStores30Days??[]"
+                :cabeceras="[
+                    'Id',
+                    'Producto',
+                    'Cantidad',
+                    'P/U $us.',
+                    'P/U Bs.',
+                    'P/U + 1.1%',
+                    'Acciones'
+                ]"
+                :campos="[
+                        'id',
+                        'product_id',
+                        'quantity',
+                        'unit_price',
+                        'unit_price_bs',
+                        'porcentaje',
+                        
+                        ]"
+                :agregar="false"
+                 :acciones="[
+                    {
+                        href: (item) => route('rproductstores.edit' , item.id),
+                        color: 'blue',
+                        name: 'Editar',
+                        iconName: 'bx-pencil',
+                    }
+                 
+                ]"
+                headerBgColor="bg-[#D1340D]"
+                headerTextColor="text-[#000000]"
+                />
+
+                <h1 class="text-center mt-10">PRODUCTOS CON 15 SIN VENDER</h1>
+                <productsTable
+                :cadena="productStores15Days??[]"
+                :cabeceras="[
+                    'Id',
+                    'Producto',
+                    'Cantidad',
+                    'P/U $us.',
+                    'P/U Bs.',
+                    'P/U + 1.1%',
+                    'Acciones'
+                ]"
+                :campos="[
+                        'id',
+                        'product_id',
+                        'quantity',
+                        'unit_price',
+                        'unit_price_bs',
+                        'porcentaje',
+                        
+                        ]"
+                :agregar="false"
+                 :acciones="[
+                    {
+                        href: (item) => route('rproductstores.edit' , item.id),
+                        color: 'blue',
+                        name: 'Editar',
+                        iconName: 'bx-pencil',
+                    }
+                 
+                ]"
+                headerBgColor="bg-[#D1960D]"
+                headerTextColor="text-[#000000]"
+                />
             </div>
         </div>
     </AppLayout>

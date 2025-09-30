@@ -75,7 +75,11 @@ onMounted(() => {
                         'purchase_quantity',
                         'purchase_date',
                         ]"
-                :agregar="false"
+                :agregar="{
+                    href: route('rpurchases.create'), 
+                    color: 'green', 
+                    name: 'Registrar compra',
+                    iconName: 'bx-plus' }"
                 :acciones="[
                 ]"
             />

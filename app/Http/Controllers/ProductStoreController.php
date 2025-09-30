@@ -28,7 +28,7 @@ class ProductStoreController extends Controller
         $productStores = $productinStore->map(function ($productstore )use($usd_exchange_rate) {
              
             $unit_price_bs = 'Bs. ' . number_format(($usd_exchange_rate->exchange_rate * $productstore->unit_price),2); 
-            $porcentaje = 'Bs. ' . number_format((($usd_exchange_rate->exchange_rate * $productstore->unit_price)+(($productstore->unit_price*1.1)/100)*$usd_exchange_rate->exchange_rate),2); 
+            $porcentaje = 'Bs. ' . number_format((($usd_exchange_rate->exchange_rate * $productstore->unit_price)*1.1),2); 
             
             return [
                 "id"=> $productstore->id,

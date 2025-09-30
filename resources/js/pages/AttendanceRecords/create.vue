@@ -25,8 +25,6 @@ const MinutosActuales = now.getMinutes();
 const HoraEntradaMaxima = (17 * 60 + 0) ;
 const HoraActualMinutos = (horaActual * 60 + MinutosActuales);
 
-// 'acciones' es una propiedad computada que devuelve un array de botones.
-// Su valor depende de la hora actual, pero no del usuario específico.
 const acciones = computed(() => {
     if (HoraActualMinutos <= HoraEntradaMaxima) {
         return [
@@ -105,8 +103,6 @@ const marcarTarde = (usuario: User, tipoAccion: string) => {
         }
     });
 };
-
-console.log('Hora actual:', horaActual, 'Minutos actuales:', MinutosActuales);
 
 </script>
 

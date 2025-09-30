@@ -32,78 +32,57 @@ const mainNavItems: NavItem[] = [
         roles: [1], // Solo el rol 1 (Administrador)
     },
     {
-        title: 'Registros de asistencias',
-        href: '/rattendance_records',
-        icon: TimerOffIcon,
-        roles: [1, 2], // Rol 1 y 2
-    },
-    {
         title: 'Gestion de salarios',
         href: '/rsalaries',
         icon: Banknote,
         roles: [1], // Solo el rol 1 (Administrador)
     },
     {
+        title: 'Registros de asistencias',
+        href: '/rattendance_records',
+        icon: TimerOffIcon,
+        roles: [1, 2], // Rol 1 y 2
+    },
+    
+    {
         title: 'Registrar asistencia',
         href: route('rattendance_records.create'),
         icon: TimerIcon,
-        roles: [1, 2, 3],
+        roles: [1, 2],
     },
     {
-        title: 'Registros de Movimientos de salarios',
+        title: 'Registros de descuentos/bonificaciones',
         href: '/rsalary_adjustments',
         icon: Banknote,
-        roles: [1],
-    },
-    {
-        title: 'Gestion de salarios',
-        href: route('rsalary_adjustments.create'),
-        icon: Banknote,
-        roles: [1],
+        roles: [1,2],
     },
     // bodega
     {
         title: 'Productos en Bodega',
         href: '/rproducts',
         icon: List,
-        roles: [1, 2],
+        roles: [1, 4],
     },
-    {
-        title: 'Registrar de Productos',
-        href: route('rproducts.create'),
-        icon: ListChecks,
-        roles: [1, 2],
-    },
+
     {
         title: 'Historial de compras',
         href: '/rpurchases',
         icon: FileClock,
-        roles: [1, 2],
-    },
-    {
-        title: 'Registrar de Compra',
-        href: route('rpurchases.create'),
-        icon: ShoppingCart,
-        roles: [1, 2],
+        roles: [1, 4],
     },
     // tienda
     {
         title: 'Productos en la tienda',
         href: '/rproductstores',
         icon: Store,
-        roles: [1, 3],
+        roles: [1,2, 3],
     },
-    {
-        title: 'Ingresar Productos',
-        href: route('rproductstores.create'),
-        icon: Warehouse,
-        roles: [1, 3],
-    },
+
     {
         title: 'Ventas',
         href: '/rsales',
         icon: ShoppingCart,
-        roles: [1, 3],
+        roles: [1,2,3],
     },
 ];
 

@@ -46,6 +46,7 @@ export interface User {
     updated_at: string;
     asistencia_registrada?: boolean;
     role?: Role;
+    final_salary?: number;
 }
 
 export interface Attendace_records {

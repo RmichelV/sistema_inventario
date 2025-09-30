@@ -48,8 +48,8 @@ console.log(props.users);
             <div class="relative min-h-[100vh] flex-1 rounded-xl border border-sidebar-border/70 md:min-h-min dark:border-sidebar-border">
                 <salaryTable
                     :cadena="users??[]"
-                    :cabeceras="['nombre','Cargo','Salario (Bs.)','Ingreso','Ajuste Total (Bs.)','Salario Final','Acciones']"
-                    :campos="['name','role','base_salary','hire_date','total_salary_adjustment','final_salary']"
+                    :cabeceras="['nombre','Cargo','Salario (Bs.)','Ajuste Total (Bs.)','Salario Final','Acciones']"
+                    :campos="['name','role','base_salary','total_salary_adjustment','final_salary']"
                     :agregar="{ 
                         href: route('rusers.create'), 
                         color: 'green', 
@@ -61,7 +61,7 @@ console.log(props.users);
                             color: 'blue',
                             name: 'Editar',
                             iconName: 'bx-pencil',
-                        }
+                        },
                     ]"
                 />
             </div>

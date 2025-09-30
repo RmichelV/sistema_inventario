@@ -19,40 +19,40 @@ class SalaryController extends Controller
     /**
      * Display a listing of the resource.
      */
-  public function index()
-{
-    $users = User::with(["Role", "salary_adjustments"])->get();
-    $roles = Role::all(); 
-
-    $usersWithCalculations = $users->map(function ($user) {
+public function index()
+    {
+        $nusers = User::with('role', 'salary_adjustments')->get();
+        $roles = Role::all();
         
-        $total_adjustment = $user->salary_adjustments->sum(function ($adjustment) {
+        $users = $nusers->map(function($user){
             
-            return (float) $adjustment->amount; 
+            // 1. Inicializa el cálculo de salario en 0 (base en 0)
+            $salario_inicial = 0.00;
             
+            // 2. Calcular la suma total de ajustes (positivo o negativo)
+            $total_adjustment = $user->salary_adjustments->sum(function ($adjustment) {
+                return (float) $adjustment->amount; 
+            });
+            
+            // 3. El salario final es la suma del inicial (0) + el total de ajustes
+            $salario_final_calculado = $salario_inicial + $total_adjustment;
+            
+            // 4. Aplicar el formato
+            $final_salary_formateado = number_format($salario_final_calculado, 2, '.', '');
+            
+            return [
+                'id'            => $user->id,
+                'name'          => $user->name,
+                'role'          => $user->role->name,
+                'base_salary'   => $user->base_salary,
+                'final_salary'  => $final_salary_formateado, // Aquí estará el total de ajustes
+            ];
         });
-        
-        $baseSalary = (float) $user->base_salary;
-        
-        // Devolvemos números flotantes puros
-        return [
-            'id' => $user->id,
-            'name' => $user->name,
-            'role' => $user->role->name,
-            'base_salary' => $baseSalary,
-            'hire_date' => $user->hire_date,
-            'total_salary_adjustment' => $total_adjustment, 
-            
-            // La suma sigue funcionando correctamente: 3000 + (-200) = 2800
-            'final_salary' => $baseSalary + $total_adjustment, 
-        ];
-    });
 
-    return Inertia::render("Salaries/Index", [
-        'users' => $usersWithCalculations,
-        'roles' => $roles,
-    ]);
-}
+        return Inertia::render('Salaries/Index', [
+            'users' => $users,
+        ]);
+    }
 
     /**
      * Show the form for creating a new resource.
