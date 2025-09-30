@@ -45,6 +45,7 @@ public function index()
                 'name'          => $user->name,
                 'role'          => $user->role->name,
                 'base_salary'   => $user->base_salary,
+                'total_adjustment' => number_format($total_adjustment, 2, '.', ''),
                 'final_salary'  => $final_salary_formateado, // Aquí estará el total de ajustes
             ];
         });

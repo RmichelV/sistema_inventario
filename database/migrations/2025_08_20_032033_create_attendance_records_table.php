@@ -22,7 +22,7 @@ return new class extends Migration
             $table->integer('late_minutes')->nullable();
             $table->timestamps();
 
-            $table->unique(['user_id', 'attendance_date']);
+            // $table->unique(['user_id', 'attendance_date']);
         });
     }
 
