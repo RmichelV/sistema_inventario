@@ -19,10 +19,10 @@ return new class extends Migration
             $table->date('attendance_date');
             $table->time('check_in_at')->nullable();
             $table->time('check_out_at')->nullable();
-            $table->integer('late_minutes')->nullable();
+            $table->integer('minutes_worked')->nullable();
             $table->timestamps();
 
-            // $table->unique(['user_id', 'attendance_date']);
+            $table->unique(['user_id', 'attendance_date']);
         });
     }
 

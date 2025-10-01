@@ -18,8 +18,7 @@ class Attendance_record extends Model
         "attendance_date",
         "check_in_at",
         "check_out_at",
-        "late_minutes",
-        "worked_hours",
+        "minutes_worked"
     ];
 
     public function User(){

@@ -16,6 +16,9 @@ use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule; // ¡Necesitas esta importación!
 use Carbon\Carbon; // ¡Necesitas esta importación!
 
+//request
+use App\Http\Requests\Attendance_Record\Attendance_recordStoreRequest;
+
 class AttendanceRecordController extends Controller
 {
     /**
@@ -68,55 +71,19 @@ class AttendanceRecordController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-        public function store(Request $request)
+    public function store(Attendance_recordStoreRequest $request)
     {
-        // 1. Definir la fecha de hoy para la validación
-        $todayDate = Carbon::today()->toDateString();
-
-        // 2. Definir y ejecutar la validación con la regla de unicidad
-        $validator = Validator::make($request->all(), [
-            'user_id' => [
-                'required',
-                'exists:users,id',
-                // REGLA DE UNICIDAD COMPUESTA:
-                // Verifica que no exista otro registro en 'attendance_records'
-                // donde el 'user_id' sea el de la solicitud Y el 'attendance_date' sea hoy.
-                Rule::unique('attendance_records')->where(function ($query) use ($request, $todayDate) {
-                    return $query->where('user_id', $request->user_id)
-                                 ->where('attendance_date', $todayDate);
-                }),
-            ],
-            'attendace_status' => 'required|string|in:Presente,Tarde,Ausente,Permiso',
-            'late_minutes' => 'nullable|integer', // Asegúrate de validar este campo si existe en el form
-        ]);
-
-        if ($validator->fails()) {
-            return redirect()->back()->withErrors($validator)->withInput();
-        }
-
-        // 3. Si la validación pasa (no hay registro de hoy), se procede a guardar.
-
-        $attendanceRecord = new Attendance_record();
-        $attendanceRecord->user_id = $request->user_id;
-        $attendanceRecord->attendance_status = $request->attendace_status;
         
-        // Usamos la variable $todayDate ya definida, o Carbon::now()->toDateString()
-        $attendanceRecord->attendance_date = $todayDate; 
-
-        if ($request->attendace_status === 'Presente') {
-            $attendanceRecord->check_in_at = now();
-        } elseif ($request->attendace_status === 'Tarde') {
-            $attendanceRecord->check_in_at = now();
-            // Asegúrate de que $request->late_minutes exista si el estado es Tarde
-            $attendanceRecord->late_minutes = $request->late_minutes;
-            
-        } elseif ($request->input('attendace_status') === 'Ausente') {
-            // No se necesita hacer nada especial para ausentes
-        }
-
-        $attendanceRecord->save();
-
-        return redirect()->route('rattendance_records.create')->with('success', 'Registro de asistencia creado exitosamente.');
+        dd($request->all());
+            //  Attendance_record::create([
+            //     'user_id' => $request->user_id,
+            //     'attendance_status' => $request->attendance_status, // 'Presente'
+            //     'attendance_date' => $request->attendance_date,     // Formato 'AAAA-MM-DD'
+            //     'check_in_at' => $request->check_in_at,             // Formato 'HH:MM:SS'
+            //     'check_out_at' => null, // Puede ser nulo
+            //     'minutes_worked' => null, // Puede
+            // ]);
+            // return redirect()->route('rattendance_records.create')->with('success', 'Registro de asistencia creado exitosamente.');
     }
 
 
