@@ -5,8 +5,70 @@ import { Head, router } from '@inertiajs/vue3';
 import PlaceholderPattern from '../../components/PlaceholderPattern.vue';
 import { Table as UserTable} from '@/components/ui/Table';
 import type { User } from '@/types'
-import { computed } from 'vue'; 
+import { computed, onMounted, watch } from 'vue'; 
+import { usePage } from '@inertiajs/vue3';
+import { useSwal } from '../../composables/useSwal'; 
 
+// Lógica de SweetAlert2
+const page = usePage();
+const swal = useSwal(); // Instancia el composable
+
+// Función unificada para manejar la visualización de alertas
+const handleAlerts = () => {
+    // 1. Manejar mensajes de ERROR personalizados (del controlador - try/catch)
+    if (page.props.flash?.error) {
+        swal.fire({
+            icon: 'error', 
+            title: '¡Error!',  
+            text: page.props.flash.error,
+        });
+        // Usamos 'undefined' en lugar de 'null' para cumplir con el tipo de TS
+        page.props.flash.error = undefined; 
+    }
+
+    // 2. Manejar mensajes de ÉXITO
+    if (page.props.flash?.success) {
+         swal.fire({
+            icon: 'success', 
+            title: '¡Éxito!', 
+            text: page.props.flash.success,
+        });
+        // Usamos 'undefined' en lugar de 'null' para cumplir con el tipo de TS
+        page.props.flash.success = undefined;
+    }
+
+    // 3. Manejar errores de VALIDACIÓN de formulario (cuando falla el FormRequest)
+    const validationErrors = Object.values(page.props.errors ?? {}).flat();
+    if (validationErrors.length > 0) {
+        const errorText = validationErrors.join('<br>');
+        swal.fire({
+            icon: 'warning',
+            title: 'Datos Faltantes o Inválidos',
+            html: errorText,
+        });
+    }
+};
+
+// Observamos TODO el objeto page.props con deep: true
+watch(
+    () => page.props, 
+    (newProps) => {
+        // Ejecutamos la función si el objeto flash está presente y tiene contenido.
+        if (newProps.flash && (newProps.flash.success || newProps.flash.error)) {
+            handleAlerts();
+        }
+    }, 
+    { deep: true } 
+);
+
+
+onMounted(() => {
+    // Ejecutar en la carga inicial
+    handleAlerts();
+});
+
+
+// fin sweet alert
 const breadcrumbs: BreadcrumbItem[] = [
     {
         title: 'Lista de empleados',
@@ -18,11 +80,14 @@ const props = defineProps<{
     users: User[];
 }>();
 
+
+
 const now = new Date();
 const horaActual = now.getHours();
 const MinutosActuales = now.getMinutes();
-
-const HoraEntradaMaxima = (17 * 60 + 0) ;
+const attendance_date_formatted = now.toISOString().split('T')[0]; // Ejemplo: '2025-10-01'
+const check_in_at_formatted = now.toTimeString().split(' ')[0]; 
+const HoraEntradaMaxima = (10 * 60 + 0) ;
 const HoraActualMinutos = (horaActual * 60 + MinutosActuales);
 
 const acciones = computed(() => {
@@ -33,7 +98,7 @@ const acciones = computed(() => {
                 name: 'Presente',
                 iconName: 'bx-check-double',
                 onClick: (usuario: User) => {
-                    marcarPresente(usuario, 'Presente');
+                    marcarPresente(usuario);
                 }
             },
             {
@@ -41,7 +106,7 @@ const acciones = computed(() => {
                 name: 'Permiso',
                 iconName: 'bx-check-double',
                  onClick: (usuario: User) => {
-                    marcarPermiso(usuario, 'Permiso');
+                    marcarPermiso(usuario);
                  }
             },
         ];
@@ -52,55 +117,43 @@ const acciones = computed(() => {
                 name: 'Tarde',
                 iconName: 'bx-time-five',
                 onClick: (usuario: User) => {
-                    marcarTarde(usuario, 'Tarde');
+                    marcarTarde(usuario);
                 }
             },
         ];
     }
 });
 
-const marcarPresente = (usuario: User, tipoAccion: string) => {
+// Nota: Hemos quitado los bloques onSuccess para confiar en el watch.
+// La actualización de asisitencia_registrada se puede realizar después
+// de la alerta de éxito si es necesario, pero por ahora dependemos de Inertia.
+
+const marcarPresente = (usuario: User) => {
     router.post(route('rattendance_records.store'), {
         user_id: usuario.id,
-        attendace_status: tipoAccion,
-    },{
-         onSuccess: () => {
-            // Encuentra el usuario específico y cambia su estado
-            const user = props.users.find(u => u.id === usuario.id);
-            if (user) {
-                user.asistencia_registrada = true;
-            }
-        }
+        attendance_status: "Presente",
+        attendance_date: attendance_date_formatted,
+        check_in_at: check_in_at_formatted,
+        check_out_at: null,
+        minutes_worked: null,
     });
 };
 
-const marcarPermiso = (usuario: User, tipoAccion: string) => {
+const marcarPermiso = (usuario: User) => {
     router.post(route('rattendance_records.store'), {
         user_id: usuario.id,
-        attendace_status: tipoAccion,
+        attendance_status: "Permiso",
+        attendance_date: attendance_date_formatted,
         late_minutes: HoraActualMinutos - HoraEntradaMaxima
-    },{
-        onSuccess: () => {
-            const user = props.users.find(u => u.id === usuario.id);
-            if (user) {
-                user.asistencia_registrada = true;
-            }
-        }
     });
 };
 
-const marcarTarde = (usuario: User, tipoAccion: string) => {
+const marcarTarde = (usuario: User) => {
     router.post(route('rattendance_records.store'), {
         user_id: usuario.id,
-        attendace_status: tipoAccion,
+        attendance_status: "Tarde",
+        attendance_date: attendance_date_formatted,
         late_minutes: HoraActualMinutos - HoraEntradaMaxima
-    },{
-         onSuccess: () => {
-            const user = props.users.find(u => u.id === usuario.id);
-            if (user) {
-                user.asistencia_registrada = true;
-            }
-        }
     });
 };
 

@@ -15,6 +15,8 @@ use Inertia\Inertia;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule; // ¡Necesitas esta importación!
 use Carbon\Carbon; // ¡Necesitas esta importación!
+use Illuminate\Database\QueryException;
+use Illuminate\Support\Facades\Log;
 
 //request
 use App\Http\Requests\Attendance_Record\Attendance_recordStoreRequest;
@@ -71,21 +73,58 @@ class AttendanceRecordController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Attendance_recordStoreRequest $request)
+       public function store(Attendance_recordStoreRequest $request)
     {
+        // Los datos ya están validados y disponibles en $request->validated()
+        $data = $request->validated();
+        $status = $data['attendance_status'];
         
-        dd($request->all());
-            //  Attendance_record::create([
-            //     'user_id' => $request->user_id,
-            //     'attendance_status' => $request->attendance_status, // 'Presente'
-            //     'attendance_date' => $request->attendance_date,     // Formato 'AAAA-MM-DD'
-            //     'check_in_at' => $request->check_in_at,             // Formato 'HH:MM:SS'
-            //     'check_out_at' => null, // Puede ser nulo
-            //     'minutes_worked' => null, // Puede
-            // ]);
-            // return redirect()->route('rattendance_records.create')->with('success', 'Registro de asistencia creado exitosamente.');
-    }
+        // 1. Inicializar la hora de entrada (check_in_at)
+        $checkInTime = null;
 
+        // 2. Lógica condicional: Si es Presente o Tarde, se registra la hora actual del servidor.
+        if (in_array($status, ['Presente', 'Tarde'])) {
+            // Usamos la hora actual del servidor para mayor precisión
+            // Si la hora se envía desde el frontend (como en 'Presente'), deberías usar $data['check_in_at']
+            // Pero si quieres la hora del servidor, esta línea es correcta:
+            $checkInTime = now()->format('H:i:s');
+        }
+
+        // 3. Preparar el array final para la creación del registro
+        $finalData = [
+            'user_id' => $data['user_id'],
+            'attendance_status' => $status,
+            'attendance_date' => $data['attendance_date'],
+            'check_in_at' => $checkInTime,
+            
+            // Los campos de salida y minutos trabajados siempre son nulos en la entrada
+            'check_out_at' => null, 
+            'minutes_worked' => null,
+            
+            // Omitimos 'late_minutes' ya que no está en la definición de la tabla.
+        ];
+
+        try {
+            // 4. Crear el registro
+            Attendance_record::create($finalData);
+            
+            // Mensaje de éxito: usamos back() para quedarnos en la misma página
+            return back()->with('success', 'Asistencia Registrada exitosamente.');
+            
+        } catch (QueryException $e) {
+            // 5. Manejar el error de restricción única de la base de datos (SQLSTATE 23000)
+            if ($e->getCode() === '23000') {
+                // Mensaje de error personalizado para el usuario
+                // IMPORTANTE: Eliminamos ->withInput() para evitar posibles conflictos con Inertia/Vue
+                return back()->with('error', 'El empleado ya tiene un registro de asistencia para esta fecha.');
+            }
+            
+            // Registrar y devolver otros errores inesperados
+            Log::error("Error al crear registro de asistencia: " . $e->getMessage());
+            // IMPORTANTE: Eliminamos ->withInput()
+            return back()->with('error', 'Ocurrió un error inesperado al guardar el registro.');
+        }
+    }
 
     /**
      * Display the specified resource.

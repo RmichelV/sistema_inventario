@@ -16,6 +16,7 @@ const breadcrumbs: BreadcrumbItem[] = [
 const props = defineProps<{
     attendanceRecords: Attendace_records[];
 }>();
+
 </script>
 
 <template>

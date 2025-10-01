@@ -8,61 +8,58 @@ use Illuminate\Validation\Rule;
 class Attendance_recordStoreRequest extends FormRequest
 {
     /**
-     * Determine if the user is authorized to make this request.
+     * Determina si el usuario está autorizado.
      */
     public function authorize(): bool
     {
-        // Si tienes autenticación con roles, puedes poner aquí las condiciones.
-        // Por ahora, asumimos que el usuario autenticado está autorizado.
         return true;
     }
 
     /**
-     * Get the validation rules that apply to the request.
-     *
-     * @return array<string, \Illuminate\Contracts\Validation\ValidationRule|array<mixed>|string>
+     * Define las reglas de validación.
      */
     public function rules(): array
     {
+        // 1. Validar campos obligatorios que vienen en todas las peticiones
         return [
-
+            
+            // user_id: Requerido, debe ser entero y existir en la tabla users.
+            // IMPORTANTE: Se ELIMINA Rule::unique, delegando la unicidad al 'try...catch' del controlador
             'user_id' => [
                 'required',
                 'integer',
                 'exists:users,id',
-                
-                Rule::unique('attendance_records')->where(fn ($query) => 
-                    $query->where('attendance_date', $this->attendance_date)
-                ),
             ],
             
-            // 2. attendance_status: Requerido y debe ser 'Presente' para esta acción 'store'.
-            'attendance_status' => ['required', 'string', 'in:Presente'],
+            // attendance_status: Requerido y solo permite los tres estados.
+            'attendance_status' => ['required', 'string'],
             
-            // 3. attendance_date: Requerido, debe ser una fecha real y seguir el formato 'AAAA-MM-DD'.
+            // attendance_date: Requerido, debe ser una fecha real y seguir el formato 'AAAA-MM-DD'.
             'attendance_date' => ['required', 'date', 'date_format:Y-m-d'],
             
-            // 4. check_in_at: Requerido (para la entrada) y debe seguir el formato de hora 'HH:MM:SS'.
-            'check_in_at' => ['nullable', 'date_format:H:i:s'],
-            'check_out_at' => ['nullable', 'date_format:H:i:s'],
-            'minutes_worked' => ['nullable', 'integer', 'min:0'],
+            // 2. Validar campos opcionales / condicionales
             
-            // 5. minutes_worked y check_out_at no se validan aquí porque son nulos/se calculan en la entrada.
+            'check_in_at' => ['nullable', 'date_format:H:i:s'],
+            
+            // late_minutes: Enviado solo por "Permiso" y "Tarde".
+            'late_minutes' => ['nullable', 'integer', 'min:0'], 
+            
+            // check_out_at y minutes_worked: Siempre null en el registro de entrada.
+            'check_out_at' => ['nullable'],
+            'minutes_worked' => ['nullable'],
         ];
     }
     
     /**
      * Define los mensajes de error personalizados.
-     *
-     * @return array
      */
     public function messages(): array
     {
+        // El mensaje 'user_id.unique' ya no es necesario aquí.
         return [
-            'user_id.unique' => 'El empleado ya tiene un registro de asistencia (Entrada) para el día de hoy.',
-            'attendance_status.in' => 'El estado de asistencia solo puede ser "Presente" para esta operación.',
+            'attendance_status.in' => 'El estado de asistencia debe ser "Presente", "Permiso" o "Tarde".',
             'attendance_date.date_format' => 'El formato de la fecha debe ser AAAA-MM-DD.',
-            'check_in_at.date_format' => 'El formato de la hora de entrada debe ser HH:MM:SS.',
+            'check_in_at.date_format' => 'La hora de entrada debe tener el formato HH:MM:SS.',
         ];
     }
 }
