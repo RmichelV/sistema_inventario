@@ -41,9 +41,6 @@ class Attendance_recordStoreRequest extends FormRequest
             
             'check_in_at' => ['nullable', 'date_format:H:i:s'],
             
-            // late_minutes: Enviado solo por "Permiso" y "Tarde".
-            'late_minutes' => ['nullable', 'integer', 'min:0'], 
-            
             // check_out_at y minutes_worked: Siempre null en el registro de entrada.
             'check_out_at' => ['nullable'],
             'minutes_worked' => ['nullable'],

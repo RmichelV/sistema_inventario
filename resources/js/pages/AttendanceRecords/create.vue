@@ -86,7 +86,7 @@ const now = new Date();
 const horaActual = now.getHours();
 const MinutosActuales = now.getMinutes();
 const attendance_date_formatted = now.toISOString().split('T')[0]; // Ejemplo: '2025-10-01'
-const check_in_at_formatted = now.toTimeString().split(' ')[0]; 
+const check_formatted = now.toTimeString().split(' ')[0]; 
 const HoraEntradaMaxima = (10 * 60 + 0) ;
 const HoraActualMinutos = (horaActual * 60 + MinutosActuales);
 
@@ -109,6 +109,14 @@ const acciones = computed(() => {
                     marcarPermiso(usuario);
                  }
             },
+            {
+                color: 'red',
+                name: 'Salida',
+                iconName: 'bx-check-double',
+                 onClick: (usuario: User) => {
+                    marcarSalida(usuario);
+                 }
+            },
         ];
     } else {
         return [
@@ -120,8 +128,25 @@ const acciones = computed(() => {
                     marcarTarde(usuario);
                 }
             },
+            {
+                color: '(#f59e0b)',
+                name: 'Permiso',
+                iconName: 'bx-check-double',
+                 onClick: (usuario: User) => {
+                    marcarPermiso(usuario);
+                 }
+            },
+            {
+                color: 'red',
+                name: 'Salida',
+                iconName: 'bx-check-double',
+                 onClick: (usuario: User) => {
+                    marcarSalida(usuario);
+                 }
+            },
         ];
     }
+   
 });
 
 // Nota: Hemos quitado los bloques onSuccess para confiar en el watch.
@@ -133,18 +158,20 @@ const marcarPresente = (usuario: User) => {
         user_id: usuario.id,
         attendance_status: "Presente",
         attendance_date: attendance_date_formatted,
-        check_in_at: check_in_at_formatted,
+        check_in_at: check_formatted,
         check_out_at: null,
         minutes_worked: null,
     });
 };
 
 const marcarPermiso = (usuario: User) => {
-    router.post(route('rattendance_records.store'), {
+    router.post(route('rattendance_records.permition'), {
         user_id: usuario.id,
         attendance_status: "Permiso",
         attendance_date: attendance_date_formatted,
-        late_minutes: HoraActualMinutos - HoraEntradaMaxima
+        check_in_at: null,
+        check_out_at: null,
+        minutes_worked: 0,
     });
 };
 
@@ -153,14 +180,28 @@ const marcarTarde = (usuario: User) => {
         user_id: usuario.id,
         attendance_status: "Tarde",
         attendance_date: attendance_date_formatted,
-        late_minutes: HoraActualMinutos - HoraEntradaMaxima
+        check_in_at: check_formatted,
+        check_out_at: null,
+        minutes_worked: null,
+    });
+};
+
+const marcarSalida = (usuario: User) => {
+    // PRUEBA DE DEPURACIÓN: Verificamos que esta función se llama.
+    console.log("marcarSalida ha sido llamada para el usuario:", usuario.id); 
+    
+    // CORRECCIÓN: Usar la ruta customizada 'updateCheckout' con el método PUT
+    router.put(route('rattendance_records.update', usuario.id), {
+        user_id: usuario.id, // NECESARIO para que el backend busque el registro
+        attendance_date: attendance_date_formatted, // NECESARIO para que el backend busque el registro
+        check_out_at: check_formatted,
     });
 };
 
 </script>
 
 <template>
-    <Head title="Empleados" />
+    <Head title="Empleados" />  
     <AppLayout :breadcrumbs="breadcrumbs">
         <div class="flex h-full flex-1 flex-col gap-4 rounded-xl p-4 overflow-x-auto">
             <div class="grid auto-rows-min gap-4 md:grid-cols-3">

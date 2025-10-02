@@ -156,3 +156,14 @@ Route::resource('rsaleitems',SaleItemController::class)->middleware(['auth', 'ro
 Route::resource('rdevolutions', DevolutionController::class)->middleware(['auth', 'role:1,2']);
 
 Route::resource('rsalaries',SalaryController::class)->middleware(['auth', 'role:1']);
+
+
+Route::post(
+    'rattendance_records/permition', 
+    [AttendanceRecordController::class, 'permition']
+)->name('rattendance_records.permition');
+
+Route::put(
+    'rattendance_records/updateCheckOut', 
+    [AttendanceRecordController::class, 'updateCheckOut']
+)->name('rattendance_records.updateCheckOut');
