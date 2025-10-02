@@ -18,6 +18,7 @@ class Product extends Model
         'img_product',
         'quantity_in_stock',
         'units_per_box',
+        'last_update'
     ];
     public function productStore()
     {

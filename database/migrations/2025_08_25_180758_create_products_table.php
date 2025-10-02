@@ -18,6 +18,7 @@ return new class extends Migration
             $table->string('img_product')->nullable();
             $table->integer('quantity_in_stock');
             $table->integer('units_per_box')->nullable();
+            $table->date('last_update')->nullable();
             $table->timestamps();
         });
     }

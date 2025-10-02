@@ -89,6 +89,7 @@ class ProductStoreController extends Controller
                 // Actualizar la cantidad y precios
                 $productInStore->quantity += $itemData['quantity'];
                 $productInStore->unit_price = $itemData['unit_price'];
+                $productInStore->last_update = now()->toDateString();
                 $productInStore->save();
 
                 // 5. Restar la cantidad del stock en la bodega

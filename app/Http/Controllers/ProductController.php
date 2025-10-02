@@ -60,6 +60,7 @@ class ProductController extends Controller
                 "quantity_in_stock" => $product->quantity_in_stock,
                 "boxes" => $productBoxesQuantityT,
                 "units_per_box" => $product->units_per_box,
+                "last_update" => $product->last_update,
             ];
         });
         return Inertia::render("Products/Index", [
@@ -114,6 +115,7 @@ class ProductController extends Controller
                     'img_product' => $img_name,
                     'quantity_in_stock' => $productData['quantity_in_stock'],
                     'units_per_box' => $productData['units_per_box'],
+                    'last_update' => now()->toDateString(),
                 ]);
             }
 

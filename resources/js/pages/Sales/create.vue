@@ -32,13 +32,11 @@ const form = useForm({
     sale_date: new Date().toISOString().slice(0, 10),
     customer_name: '' as string,
     pay_type: '' as string,
-    // [CORRECCIÓN TS] Cambiado de 'null' a 'undefined' para compatibilidad con Input.vue
     final_price: undefined as number | undefined, 
     items: [{
         product_id: null as number | null,
         quantity_from_warehouse: undefined as number | undefined,
         quantity_from_store: undefined as number | undefined,
-        // [CORRECCIÓN TS] Cambiado de 'null' a 'undefined'
         selected_price: undefined as number | undefined, 
     }],
 });
@@ -49,7 +47,6 @@ const addSaleItem = () => {
         product_id: null,
         quantity_from_warehouse: undefined,
         quantity_from_store: undefined,
-        // [CORRECCIÓN TS] Cambiado de 'null' a 'undefined'
         selected_price: undefined,
     });
 };
@@ -109,12 +106,20 @@ const itemPriceBs = (item: any) => {
     return priceUsd * exchangeRate.value;
 };
 
-// Devuelve el precio de Venta en Bolivianos (Bs + 1.1%)
+// Devuelve el precio de Venta en Bolivianos (Bs + 1.1% - Muestra la referencia de venta)
 const itemSalePriceBs = (item: any) => {
     const priceBs = itemPriceBs(item);
     // 3. Precio de venta (Precio Bs + 1.1% -> Multiplicamos por 1.011)
-    return priceBs * 1.011;
+    return priceBs * 1.1;
 };
+
+
+// 1. PROPIEDAD COMPUTADA: SUMA TOTAL DEL PRECIO BASE EN BOLIVIANOS (El MÍNIMO ABSOLUTO)
+const totalMinimumBs = computed(() => {
+    return form.items.reduce((total, item) => {
+        return total + itemPriceBs(item);
+    }, 0);
+});
 
 
 // Propiedad computada para calcular el precio total de la venta, usando el precio seleccionado de cada ítem (en USD)
@@ -125,7 +130,7 @@ const totalSalePrice = computed(() => {
             return total + (item.selected_price / exchangeRate.value);
         }
         return total;
-    }, 0).toFixed(2);
+    }, 0).toFixed(2); // Retorna String para display
 });
 
 // Propiedad computada para calcular el precio total de la venta, usando el precio seleccionado de cada ítem (en Bs)
@@ -136,26 +141,29 @@ const totalSalePriceBs = computed(() => {
             return total + item.selected_price;
         }
         return total;
-    }, 0).toFixed(2);
+    }, 0).toFixed(2); // Retorna String para display
 });
 
 // --- LÓGICA DEL PRECIO MÍNIMO DINÁMICO PARA FINAL_PRICE ---
-const minimumFinalPrice = computed(() => {
-    const totalBs = parseFloat(totalSalePriceBs.value);
-    const totalUsd = parseFloat(totalSalePrice.value);
+const minimumFinalPrice = computed<number>(() => { // <- Tipo explícito para asegurar que solo devuelve number
+    // totalMinimumBs.value es un float number (el precio base total en Bs)
+    const totalBs = totalMinimumBs.value; 
 
     // Si no hay productos seleccionados o el total es cero
     if (totalBs === 0) {
         return 0;
     }
 
-    // Si el método de pago es Dólares, usamos el total en USD
+    // Si el método de pago es Dólares, el mínimo es el total mínimo de Bs convertido a USD
     if (form.pay_type === 'Dolares') {
-        return totalUsd;
+        const minUsd = totalBs / exchangeRate.value;
+        // FIX: Se usa parseFloat para convertir el resultado de toFixed (que es un string) de nuevo a number.
+        return parseFloat(minUsd.toFixed(2));
     } 
-    // Si el método de pago es Bolivianos o Qr, usamos el total en Bs
+    // Si el método de pago es Bolivianos o Qr, el mínimo es el total mínimo en Bs
     else if (form.pay_type === 'Bolivianos' || form.pay_type === 'Qr') {
-        return totalBs;
+        // FIX: Se usa parseFloat para convertir el resultado de toFixed (que es un string) de nuevo a number.
+        return parseFloat(totalBs.toFixed(2));
     }
     
     // Si no se ha seleccionado método de pago, el mínimo es 0 hasta que se escoja uno.
@@ -260,7 +268,7 @@ const submit = () => {
                                     
                                     <!-- 2. Precio en Bolivianos (Conversión) -->
                                     <p class="text-sm font-medium text-gray-700 dark:text-gray-300 mt-1">
-                                        Precio en Bolivianos: 
+                                        Precio Base en Bolivianos: 
                                         <span class="font-bold text-base text-green-700 dark:text-green-300">Bs. {{ itemPriceBs(item).toFixed(2) }}</span>
                                     </p>
 
@@ -301,8 +309,9 @@ const submit = () => {
                         </Button>
 
                         <div class="grid gap-2 p-4 border-t border-gray-200 mt-4">
+        
                             <h3 class="text-lg font-semibold text-gray-700 dark:text-gray-300">
-                                Precio de venta (Total de Ítems): <span class="text-xl font-bold">Bs {{ totalSalePriceBs }}</span>
+                                Suma total: <span class="text-xl font-bold">Bs {{ totalSalePriceBs }}</span>
                                 <span class="text-sm text-gray-500 dark:text-gray-400"> (${{ totalSalePrice }})</span>
                             </h3>
                         </div>

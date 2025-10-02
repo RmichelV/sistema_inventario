@@ -30,51 +30,28 @@ Route::get('/', function () {
     return Inertia::render('Welcome');
 })->name('home');
 
-// La ruta del dashboard debe estar protegida para todos los roles que pueden acceder a él.
-// Reemplazamos 'verified' por el middleware 'role' que acabamos de crear.
-// Route::get('dashboard', function () {
-//     $usd = Usd_exchange_rate::find(1);
-//     $products = Product::all(['id','name','code','quantity_in_stock']);
-//     $productinStore = Product_store::with("product")->get();
-//     $productStores = $productinStore->map(function ($productstore )use($usd) {
-             
-//             $unit_price_bs = 'Bs. ' . number_format(($usd->exchange_rate * $productstore->unit_price),2); 
-//             $porcentaje = 'Bs. ' . number_format((($usd->exchange_rate * $productstore->unit_price)+(($productstore->unit_price*1.1)/100)*$usd->exchange_rate),2); 
-            
-//             return [
-//                 "id"=> $productstore->id,
-//                 "product_id"=> $productstore->product->code,
-//                 "quantity"=> $productstore->quantity,
-//                 "unit_price"=> $productstore->unit_price,
-//                 "unit_price_bs"=>$unit_price_bs,
-//                 "porcentaje"=>$porcentaje
-
-//             ];
-//         }); 
-      
-//     return Inertia::render('Dashboard',[
-//         'usd'=>$usd,
-//         'products'=>$products,
-//         'productStores' => $productStores
-//     ]);
-// })->middleware(['auth', 'role:1,2,3,4'])->name('dashboard');
-
 Route::get('dashboard', function () {
     $usd = Usd_exchange_rate::find(1);
     $products = Product::all(['id','name','code','quantity_in_stock']);
     
-    // --- 1. PRODUCTOS NO ACTUALIZADOS EN LOS ÚLTIMOS 15 DÍAS ---
+    // --- 1. PRODUCTOS EN TIENDA (RAW) - NECESARIO PARA LA FUNCIÓN DE BÚSQUEDA DEL DASHBOARD ---
+    // Obtenemos todos los productos en tienda (sin el 'with("product")' para hacerlo más ligero
+    // ya que el frontend solo necesita estas tres columnas para la búsqueda)
+    $productStoresRaw = Product_Store::all(['product_id', 'quantity', 'unit_price']);
+    
+    // --- 2. PRODUCTOS NO ACTUALIZADOS EN LOS ÚLTIMOS 15 DÍAS ---
     $cutoff15Days = Carbon::now()->subDays(15);
     
     // Consulta para productos cuya última actualización fue ANTERIOR a 15 días
-    $productinStore15 = Product_store::with("product")
+    $productinStore15 = Product_Store::with("product")
         ->where('updated_at', '<', $cutoff15Days)
         ->get();
 
     $productStores15Days = $productinStore15->map(function ($productstore )use($usd) {
             // Lógica de cálculo y formato de precios
             $unit_price_bs = 'Bs. ' . number_format(($usd->exchange_rate * $productstore->unit_price),2); 
-            $porcentaje = 'Bs. ' . number_format((($usd->exchange_rate * $productstore->unit_price)+(($productstore->unit_price*1.1)/100)*$usd->exchange_rate),2); 
+            // Corregí la lógica del porcentaje para ser consistente, aunque el frontend también tiene un cálculo similar.
+            $porcentaje = 'Bs. ' . number_format((($usd->exchange_rate * $productstore->unit_price) * 1.011),2); 
             
             return [
                 "id"=> $productstore->id,
@@ -83,22 +60,23 @@ Route::get('dashboard', function () {
                 "unit_price"=> $productstore->unit_price,
                 "unit_price_bs"=>$unit_price_bs,
                 "porcentaje"=>$porcentaje,
-                "updated_at" => $productstore->updated_at, // Incluir fecha para depuración
+                "updated_at" => $productstore->updated_at->diffForHumans(), // Usamos diffForHumans para mostrar hace cuánto tiempo se actualizó
             ];
         }); 
     
-    // --- 2. PRODUCTOS NO ACTUALIZADOS EN LOS ÚLTIMOS 30 DÍAS ---
+    // --- 3. PRODUCTOS NO ACTUALIZADOS EN LOS ÚLTIMOS 30 DÍAS ---
     $cutoff30Days = Carbon::now()->subDays(30);
 
     // Consulta para productos cuya última actualización fue ANTERIOR a 30 días
-    $productinStore30 = Product_store::with("product")
+    $productinStore30 = Product_Store::with("product")
         ->where('updated_at', '<', $cutoff30Days)
         ->get();
     
     $productStores30Days = $productinStore30->map(function ($productstore )use($usd) {
             // Lógica de cálculo y formato de precios (es la misma)
             $unit_price_bs = 'Bs. ' . number_format(($usd->exchange_rate * $productstore->unit_price),2); 
-            $porcentaje = 'Bs. ' . number_format((($usd->exchange_rate * $productstore->unit_price)+(($productstore->unit_price*1.1)/100)*$usd->exchange_rate),2); 
+            // Corregí la lógica del porcentaje para ser consistente
+            $porcentaje = 'Bs. ' . number_format((($usd->exchange_rate * $productstore->unit_price) * 1.011),2); 
             
             return [
                 "id"=> $productstore->id,
@@ -107,19 +85,18 @@ Route::get('dashboard', function () {
                 "unit_price"=> $productstore->unit_price,
                 "unit_price_bs"=>$unit_price_bs,
                 "porcentaje"=>$porcentaje,
-                "updated_at" => $productstore->updated_at, // Incluir fecha para depuración
+                "updated_at" => $productstore->updated_at->diffForHumans(), // Usamos diffForHumans
             ];
         }); 
       
     return Inertia::render('Dashboard',[
         'usd'=>$usd,
         'products'=>$products,
-        // PASAMOS LAS DOS NUEVAS VARIABLES
+        // AHORA PASAMOS LA LISTA COMPLETA DE PRODUCTOS EN TIENDA (RAW)
+        'productStores' => $productStoresRaw,
+        // Y las listas filtradas
         'productStores15Days' => $productStores15Days,
         'productStores30Days' => $productStores30Days,
-        // Dejé 'productStores' por si lo sigues usando, pero se recomienda usar las nuevas.
-        // Si ya no usas la variable 'productStores', la puedes eliminar de aquí.
-        'productStores' => [] 
     ]);
 })->middleware(['auth', 'role:1,2,3'])->name('dashboard');
 
@@ -138,10 +115,10 @@ Route::resource('rattendance_records', AttendanceRecordController::class)->middl
 // Rutas de "Movimientos de salarios". Solo el rol 1 (aa) puede ver y gestionar salarios.
 Route::resource('rsalary_adjustments', SalaryAdjustmentController::class)->middleware(['auth', 'role:1,2']);
 
-// Rutas de "Productos en Bodega". Los roles 1 (aa) y 2 (bb) pueden gestionarlos.
+// Rutas de "Productos en Bodega". Los roles 1 (aa) y 4 (dd) pueden gestionarlos.
 Route::resource('rproducts', ProductController::class)->middleware(['auth', 'role:1,4']);
 
-// Rutas de "Historial de compras". Solo los roles 1 (aa) y 2 (bb) pueden ver las compras.
+// Rutas de "Historial de compras". Solo los roles 1 (aa) y 4 (dd) pueden ver las compras.
 Route::resource('rpurchases', PurchaseController::class)->middleware(['auth', 'role:1,4']);
 
 // Rutas de "Productos en la tienda". Los roles 1 (aa) y 3 (cc) pueden gestionarlos.

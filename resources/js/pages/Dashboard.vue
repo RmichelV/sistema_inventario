@@ -72,7 +72,7 @@ const toBsP = (price: number | undefined | null) => {
     // 1. Convertir a bolivianos
     const priceInBs = price * props.usd.exchange_rate;
     // 2. Sumar el 1.1% (multiplicar por 1.011)
-    const priceWithProfit = priceInBs * 1.011;
+    const priceWithProfit = priceInBs * 1.1;
     
     return priceWithProfit.toFixed(2);
 };

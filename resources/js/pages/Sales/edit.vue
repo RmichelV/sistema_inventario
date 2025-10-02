@@ -59,7 +59,7 @@ const calculatedRefundAmountBs = computed(() => {
         return 0;
     }
     const unitPrice = props.saleItem.total_price / props.saleItem.quantity_products;
-    return (unitPrice * form.quantity) * props.saleItem.exchange_rate;
+    return unitPrice * form.quantity;
 });
 
 // ✅ SOLUTION: Update the form's refund_amount whenever the calculated value changes.
@@ -144,7 +144,7 @@ watchEffect(() => {
                         </div>
 
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div class="grid gap-2">
+                            <!-- <div class="grid gap-2">
                                 <Label for="refund_amount">Monto a reembolsar en $us</Label>
                                 <Input 
                                     id="refund_amount" 
@@ -153,11 +153,11 @@ watchEffect(() => {
                                     :value="calculatedRefundAmount.toFixed(2)"
                                 />
                                 <InputError :message="form.errors.refund_amount" />
-                            </div>
+                            </div> -->
                             <div class="grid gap-2">
                                 <Label for="refund_amountbs">Monto a reembolsar en Bs.</Label>
                                 <Input 
-                                    id="refund_amountbs" 
+                                    id="refund_amount" 
                                     type="text" 
                                     disabled 
                                     :value="calculatedRefundAmountBs.toFixed(2)"

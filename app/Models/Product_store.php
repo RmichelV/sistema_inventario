@@ -15,7 +15,8 @@ class Product_store extends Model
     protected $fillable = [
         "product_id",
         "quantity",
-        "unit_price"
+        "unit_price",
+        'last_update'
     ];
 
     public function product(){

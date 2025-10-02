@@ -116,6 +116,7 @@ export interface Product{
     unit_price_wholesale: number;
     unit_price_retail: number;
     product_store?: ProductStore; 
+    last_update?: Date;
 }
 
 export interface Purchase{
@@ -136,6 +137,7 @@ export interface ProductStore{
     product_id:number;
     quantity:number
     unit_price:number;
+    last_update:Date;
 }
 export interface Sale{
     id: number;

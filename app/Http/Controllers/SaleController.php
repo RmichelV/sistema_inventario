@@ -79,6 +79,7 @@ class SaleController extends Controller
                 $totalQuantity = $quantityFromWarehouse + $quantityFromStore;
                 
                 // 5. Validate available stock for each item
+                // ... (Validaciones existentes) ...
                 if ($quantityFromWarehouse > $product->quantity_in_stock) {
                     DB::rollBack();
                     return redirect()->back()->with('error', "La cantidad de {$product->name} solicitada de bodega excede el stock disponible.")->withInput();
@@ -88,22 +89,35 @@ class SaleController extends Controller
                     DB::rollBack();
                     return redirect()->back()->with('error', "La cantidad de {$product->name} solicitada de tienda excede el stock disponible.")->withInput();
                 }
-                $exchange_rate = Usd_exchange_rate::find(1);
+
+                // Aseguramos que la tasa de cambio se define dentro del bucle si es necesario, 
+                // o se usa la que está definida al inicio (asumo que se usará la inicial)
+                // $exchange_rate = Usd_exchange_rate::find(1); // Se usa la inicial
+
                 // 6. Create the sale item
                 Sale_item::create([
                     'sale_id' => $sale->id,
                     'product_id' => $product->id,
                     'quantity_products' => $totalQuantity,
-                    'total_price' => $item['selected_price'] / $exchange_rate->exchange_rate,
+                    'total_price' => $item['selected_price'],
                     'exchange_rate' => $exchange_rate->exchange_rate
                 ]);
 
                 // 7. Update stock
+                $currentDate = now()->toDateString(); // Obtener la fecha en formato DATE
+
+                // Actualización para productos vendidos desde Bodega (products)
                 if ($quantityFromWarehouse > 0) {
                     $product->decrement('quantity_in_stock', $quantityFromWarehouse);
+                    // Actualizar el campo 'last_update' en el modelo Product
+                    $product->update(['last_update' => $currentDate]); 
                 }
+
+                // Actualización para productos vendidos desde Tienda (product_stores)
                 if ($quantityFromStore > 0 && $productInStore) {
                     $productInStore->decrement('quantity', $quantityFromStore);
+                    // Actualizar el campo 'last_update' en el modelo Product_store
+                    $productInStore->update(['last_update' => $currentDate]);
                 }
             }
 
@@ -119,7 +133,6 @@ class SaleController extends Controller
             return redirect()->back()->with('error', 'Ocurrió un error al registrar la venta. Por favor, inténtelo de nuevo.')->withInput();
         }
     }
-
     /**
      * Display the specified resource.
      */

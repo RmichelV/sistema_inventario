@@ -21,6 +21,7 @@ const props = defineProps<{
     products: Product[];
 }>();
 
+
 // Creamos un array vacío para guardar los productos
 const productsForm = useForm({
     products: [{
@@ -29,10 +30,11 @@ const productsForm = useForm({
     img_product: null as File | null,
     quantity_in_stock: '',
     units_per_box: '',
+    last_update: '',
     }],
 });
 
-// Función para agregar un nuevo producto
+
 const addProduct = () => {
     productsForm.products.push({
         name: '',
@@ -40,6 +42,7 @@ const addProduct = () => {
         img_product: null as File | null,
         quantity_in_stock: '',
         units_per_box: '',
+        last_update: '',
     });
 };
 
