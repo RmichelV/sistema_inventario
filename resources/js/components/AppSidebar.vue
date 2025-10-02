@@ -51,7 +51,7 @@ const mainNavItems: NavItem[] = [
         roles: [1, 2],
     },
     {
-        title: 'Registros de descuentos/bonificaciones',
+        title: 'Descuentos/Bonificaciones',
         href: '/rsalary_adjustments',
         icon: Banknote,
         roles: [1,2],

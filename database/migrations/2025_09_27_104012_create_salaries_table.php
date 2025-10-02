@@ -15,7 +15,7 @@ return new class extends Migration
             $table->id();
             $table->foreignId('user_id')->constrained('users');
             $table->decimal('base_salary', 10, 2);
-            $table->foreignId('salary_adjustment');
+            $table->decimal('salary_adjustment',10,2);
             $table->decimal('discounts', 10, 2);
             $table->decimal('total_salary', 10, 2);
             $table->date('paydate');

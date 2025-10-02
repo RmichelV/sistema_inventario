@@ -37,16 +37,39 @@ export interface User {
     address: string;
     phone: string;
     role_id: number;
-    base_salary: number;
-    hire_date: Date;
     email: string;
     avatar?: string;
     email_verified_at: string | null;
     created_at: string;
     updated_at: string;
+
+    // --- Relaciones ---
+    role: Role; 
+    
+    // --- Campos Base (Formateados por el Controlador) ---
+    // base_salary llega formateado como string (ej: "5000.00")
+    base_salary: string; 
+
+    // --- Campos Calculados para la Nómina ---
+    
+    // Total de ajustes (Desc/Bon) formateado (ej: "150.00" o "-50.00")
+    total_adjustment: string; 
+    
+    // Costo por minuto (con alta precisión, ej: "0.3472")
+    cost_per_minute: string; 
+    
+    // Salario ganado solo por el tiempo trabajado (Salario Neto)
+    salario_devengado: string; 
+    
+    // Salario final a pagar (Salario Devengado + Ajuste)
+    final_salary: string; 
+    
+    // Tiempo trabajado total (el valor numérico entero bruto)
+    total_minutes_worked: number; 
+    // Tiempo trabajado total en formato legible (ej: "40:30")
+    total_time_formatted: string; 
+    
     asistencia_registrada?: boolean;
-    role?: Role;
-    final_salary?: number;
 }
 
 export interface Attendace_records {
