@@ -107,25 +107,39 @@ class SalaryController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request)
+  public function store(Request $request)
     {
-        Salary::create([
-            'user_id'=>$request->user_id,
-            'base_salary'=>$request->base_salary,
-            'salary_adjustment'=>$request->salary_adjustment,
-            'discounts'=>$request->discounts,
-            'total_salary'=>$request->total_salary,
-            'paydate'=>$request->paydate,
-            'user_id_m'=>$request->user_id_m
+        // 1. Creación del Salario
+        $salary = Salary::create([
+            'user_id'           => $request->user_id,
+            'base_salary'       => $request->base_salary,
+            'salary_adjustment' => $request->salary_adjustment,
+            'discounts'         => $request->discounts,
+            'total_salary'      => $request->total_salary,
+            'paydate'           => $request->paydate,
+            'user_id_m'         => $request->user_id_m
         ]);
-    }
 
+        // 2. Limpieza de Registros Temporales
+
+        // A. Eliminar todos los ajustes de salario para el usuario pagado
+        // (Asegúrate de importar el modelo SalaryAdjustment)
+        Salary_adjustment::where('user_id', $request->user_id)->delete();
+
+        // B. Eliminar todos los registros de asistencia para el usuario pagado
+        // (Asegúrate de importar el modelo AttendanceRecord)
+        Attendance_record::where('user_id', $request->user_id)->delete();
+
+        // 3. Redirección
+        // Redirigimos a la ruta definida '/rsalariesF' (asumiendo que es la vista de salarios finalizada)
+        return redirect('/rsalariesF')->with('success', 'Salario registrado y registros limpiados');
+    }
     /**
      * Display the specified resource.
      */
-    public function show(salary $salary)
+    public function show(salary $salaries)
     {
-        //
+       
     }
 
     /**

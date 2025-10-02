@@ -114,13 +114,9 @@ const accionesTabla = [
             <div class="relative min-h-[100vh] flex-1 rounded-xl border border-sidebar-border/70 md:min-h-min dark:border-sidebar-border">
                 <salaryTable
                     :cadena="users??[]"
-                    :cabeceras="['nombre','Cargo','Salario Base','Ajustes (B/D)','Minutos Trabajados','Horas trabajadas','Salario Final','Acciones']"
-                    :campos="['name','role','base_salary','total_adjustment','total_minutes_worked','total_time_formatted','final_salary']"
-                    :agregar="{ 
-                        href: route('rusers.create'), 
-                        color: 'green', 
-                        name: 'Agregar Empleado',
-                        iconName: 'bx-plus' }"
+                    :cabeceras="['nombre','Cargo','Salario Base','Ajustes (B/D)','Horas trabajadas','Salario Final','Acciones']"
+                    :campos="['name','role','base_salary','total_adjustment','total_time_formatted','final_salary']"
+                    :agregar="false"
                     :acciones="accionesTabla"
                 />
             </div>

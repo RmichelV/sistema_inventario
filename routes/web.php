@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\showSalaries;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
@@ -15,6 +16,7 @@ use App\Http\Controllers\SaleController;
 use App\Http\Controllers\SaleItemController;
 use App\Http\Controllers\DevolutionController;
 use App\Http\Controllers\SalaryController;
+use App\Http\Controllers\SalaryFController;
 
 //modelos
 use App\Models\Usd_exchange_rate;
@@ -167,3 +169,5 @@ Route::put(
     'rattendance_records/updateCheckOut', 
     [AttendanceRecordController::class, 'updateCheckOut']
 )->name('rattendance_records.updateCheckOut');
+
+Route::resource('rsalariesF',SalaryFController::class);

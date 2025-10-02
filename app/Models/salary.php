@@ -30,4 +30,9 @@ class salary extends Model
     public function user(){
         return $this->belongsTo(User::class,'user_id','id');
     }
+
+    public function registeredBy()
+    {
+        return $this->belongsTo(User::class, 'user_id_m');
+    }
 }
