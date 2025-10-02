@@ -225,7 +225,7 @@ class AttendanceRecordController extends Controller
             $checkOut = Carbon::parse($data['attendance_date'] . ' ' . $data['check_out_at']);
 
             // 6. Calcular minutos trabajados
-            $minutesWorked = $checkOut->diffInMinutes($checkIn);
+            $minutesWorked = ($checkOut->diffInMinutes($checkIn)*-1);
             
             // 7. Actualizar el registro
             $record->update([

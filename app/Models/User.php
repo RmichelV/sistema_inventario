@@ -38,6 +38,11 @@ class User extends Authenticatable
         // Esto asume que el modelo Salary_adjustment existe y tiene la FK 'user_id'.
         return $this->hasMany(Salary_adjustment::class, 'user_id', 'id');
     }
+    public function attendance_records()
+    {
+        // Esto asume que el modelo Salary_adjustment existe y tiene la FK 'user_id'.
+        return $this->hasMany(Attendance_record::class, 'user_id', 'id');
+    }
 
     /**
      * The attributes that should be hidden for serialization.

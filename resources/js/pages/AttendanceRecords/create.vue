@@ -80,7 +80,8 @@ const props = defineProps<{
     users: User[];
 }>();
 
-
+// Variables estáticas que SÍ deben estar fuera de la función (o mejor, como computed)
+// **Se mantienen las variables aquí para los botones de 'Presente'/'Tarde'**
 
 const now = new Date();
 const horaActual = now.getHours();
@@ -187,17 +188,22 @@ const marcarTarde = (usuario: User) => {
 };
 
 const marcarSalida = (usuario: User) => {
-    // PRUEBA DE DEPURACIÓN: Verificamos que esta función se llama.
-    console.log("marcarSalida ha sido llamada para el usuario:", usuario.id); 
+    // 1. OBTENER LA HORA EXACTA DEL CLIC
+    const nowOnCheckOut = new Date();
+    const check_out_formatted = nowOnCheckOut.toTimeString().split(' ')[0];
     
-    // CORRECCIÓN: Usar la ruta customizada 'updateCheckout' con el método PUT
+    // El attendance_date_formatted puede seguir siendo la variable estática del componente
+    // porque asumimos que la salida se hace el mismo día que la entrada.
+
+    console.log("marcarSalida ha sido llamada para el usuario:", usuario.id); 
+    console.log("Hora de Salida enviada:", check_out_formatted); // Depuración
+
     router.put(route('rattendance_records.update', usuario.id), {
-        user_id: usuario.id, // NECESARIO para que el backend busque el registro
-        attendance_date: attendance_date_formatted, // NECESARIO para que el backend busque el registro
-        check_out_at: check_formatted,
+        user_id: usuario.id, 
+        attendance_date: attendance_date_formatted, 
+        check_out_at: check_out_formatted, // <--- VARIABLE ACTUALIZADA
     });
 };
-
 </script>
 
 <template>
