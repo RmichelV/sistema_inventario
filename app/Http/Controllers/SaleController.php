@@ -90,10 +90,6 @@ class SaleController extends Controller
                     return redirect()->back()->with('error', "La cantidad de {$product->name} solicitada de tienda excede el stock disponible.")->withInput();
                 }
 
-                // Aseguramos que la tasa de cambio se define dentro del bucle si es necesario, 
-                // o se usa la que está definida al inicio (asumo que se usará la inicial)
-                // $exchange_rate = Usd_exchange_rate::find(1); // Se usa la inicial
-
                 // 6. Create the sale item
                 Sale_item::create([
                     'sale_id' => $sale->id,

@@ -15,7 +15,7 @@ use App\Models\Sale_item;
 use App\Models\Product_store;
 
 //Validaciones 
-use App\Http\Requests\DevolutionRequest;
+use App\Http\Requests\Devolution\DevolutionRequest;
 
 
 class DevolutionController extends Controller

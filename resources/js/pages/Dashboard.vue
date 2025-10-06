@@ -140,7 +140,7 @@ const toBsP = (price: number | undefined | null) => {
                     'P/U $us.',
                     'P/U Bs.',
                     'P/U + 1.1%',
-                    'Acciones'
+                    
                 ]"
                 :campos="[
                         'id',
@@ -153,12 +153,7 @@ const toBsP = (price: number | undefined | null) => {
                         ]"
                 :agregar="false"
                  :acciones="[
-                    {
-                        href: (item) => route('rproductstores.edit' , item.id),
-                        color: 'blue',
-                        name: 'Editar',
-                        iconName: 'bx-pencil',
-                    }
+                    
                  
                 ]"
                 headerBgColor="bg-[#D1340D]"
@@ -175,7 +170,7 @@ const toBsP = (price: number | undefined | null) => {
                     'P/U $us.',
                     'P/U Bs.',
                     'P/U + 1.1%',
-                    'Acciones'
+                  
                 ]"
                 :campos="[
                         'id',
@@ -188,13 +183,6 @@ const toBsP = (price: number | undefined | null) => {
                         ]"
                 :agregar="false"
                  :acciones="[
-                    {
-                        href: (item) => route('rproductstores.edit' , item.id),
-                        color: 'blue',
-                        name: 'Editar',
-                        iconName: 'bx-pencil',
-                    }
-                 
                 ]"
                 headerBgColor="bg-[#D1960D]"
                 headerTextColor="text-[#000000]"
