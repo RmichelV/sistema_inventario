@@ -44,14 +44,14 @@ Route::get('dashboard', function () {
     
     // Consulta para productos cuya última actualización fue ANTERIOR a 15 días
     $productinStore15 = Product_Store::with("product")
-        ->where('updated_at', '<', $cutoff15Days)
+        ->where('last_update', '<', $cutoff15Days)
         ->get();
 
     $productStores15Days = $productinStore15->map(function ($productstore )use($usd) {
             // Lógica de cálculo y formato de precios
             $unit_price_bs = 'Bs. ' . number_format(($usd->exchange_rate * $productstore->unit_price),2); 
             // Corregí la lógica del porcentaje para ser consistente, aunque el frontend también tiene un cálculo similar.
-            $porcentaje = 'Bs. ' . number_format((($usd->exchange_rate * $productstore->unit_price) * 1.011),2); 
+            $porcentaje = 'Bs. ' . number_format((($usd->exchange_rate * $productstore->unit_price) * 1.1),2); 
             
             return [
                 "id"=> $productstore->id,
@@ -60,7 +60,7 @@ Route::get('dashboard', function () {
                 "unit_price"=> $productstore->unit_price,
                 "unit_price_bs"=>$unit_price_bs,
                 "porcentaje"=>$porcentaje,
-                "updated_at" => $productstore->updated_at->diffForHumans(), // Usamos diffForHumans para mostrar hace cuánto tiempo se actualizó
+                "last_update" => $productstore->last_update, // Usamos diffForHumans para mostrar hace cuánto tiempo se actualizó
             ];
         }); 
     
@@ -69,7 +69,7 @@ Route::get('dashboard', function () {
 
     // Consulta para productos cuya última actualización fue ANTERIOR a 30 días
     $productinStore30 = Product_Store::with("product")
-        ->where('updated_at', '<', $cutoff30Days)
+        ->where('last_update', '<', $cutoff30Days)
         ->get();
     
     $productStores30Days = $productinStore30->map(function ($productstore )use($usd) {
@@ -85,7 +85,7 @@ Route::get('dashboard', function () {
                 "unit_price"=> $productstore->unit_price,
                 "unit_price_bs"=>$unit_price_bs,
                 "porcentaje"=>$porcentaje,
-                "updated_at" => $productstore->updated_at->diffForHumans(), // Usamos diffForHumans
+                "last_update" => $productstore->last_update, // Usamos diffForHumans
             ];
         }); 
       

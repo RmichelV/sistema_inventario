@@ -84,56 +84,48 @@ const toBsP = (price: number | undefined | null) => {
 
     <AppLayout :breadcrumbs="breadcrumbs">
         <div class="flex h-full flex-1 flex-col gap-4 rounded-xl p-4 overflow-x-auto">
-            <div class="grid auto-rows-min gap-4 md:grid-cols-3">
-                <div class="relative aspect-video overflow-hidden rounded-xl border border-sidebar-border/70 dark:border-sidebar-border">
-                   <div class="absolute inset-0 flex flex-col items-center justify-center p-4">
-                        <h1 class="text-2xl font-bold mb-4">Buscar Producto</h1>
-                       <SelectSearch
-                            v-model="selectedProductId"
-                            :options="props.products"
-                            :searchKeys="['name', 'code']"
-                            placeholder="Buscar un producto por nombre o código..."
-                            labelKey="code"
+            <div class="grid gap-4 md:grid-cols-3 grid-cols-1">
+                <!-- Placeholder 1: Buscar Producto -->
+                <div class="relative rounded-xl border border-sidebar-border/70 dark:border-sidebar-border flex flex-col items-center justify-center p-4 min-h-[220px] h-auto w-full">
+                    <h1 class="text-2xl font-bold mb-4">Buscar Producto</h1>
+                    <SelectSearch
+                        v-model="selectedProductId"
+                        :options="props.products"
+                        :searchKeys="['name', 'code']"
+                        placeholder="Buscar un producto por nombre o código..."
+                        labelKey="code"
+                        class="w-full"
+                    />
+                </div>
+
+                <!-- Placeholder 2: Detalle del Producto -->
+                <div class="relative rounded-xl border border-sidebar-border/70 dark:border-sidebar-border flex flex-col justify-center p-4 min-h-[220px] h-auto w-full">
+                    <h1 class="text-xl font-bold mb-2">Detalle del Producto</h1>
+                    <div v-if="currentProduct">
+                        <p><strong>Nombre:</strong> {{ currentProduct.name }}</p>
+                        <p><strong>Código:</strong> {{ currentProduct.code }}</p>
+                        <p><strong>Cantidad en Bodega:</strong> {{ currentProduct.quantity_in_stock }}</p>
+                        <p><strong>Cantidad en Tienda:</strong> {{ currentProduct.quantity_in_store }}</p>
+                        <p><strong>P/U en Dólares:</strong> ${{ currentProduct.unit_price }} </p>
+                        <p><strong>P/U en Bolivianos:</strong> Bs. {{ toBs(currentProduct.unit_price) }} </p>
+                        <p><strong>P/U sugerido:</strong> Bs {{ toBsP(currentProduct.unit_price) }}</p>
+                    </div>
+                    <div v-else>
+                        <p class="text-gray-500 mt-2">No hay producto seleccionado.</p>
+                    </div>
+                </div>
+
+                <!-- Placeholder 3: Cambio Actual -->
+                <div class="relative rounded-xl border border-sidebar-border/70 dark:border-sidebar-border flex flex-col items-center justify-center p-4 min-h-[220px] h-auto w-full">
+                    <p class="mt-2 text-xl">Cambio Actual</p>
+                    <h1 class="text-5xl font-bold">Bs. {{props.usd.exchange_rate}}</h1>
+                    <div class="mt-4">
+                        <ActionButton
+                            color="green"
+                            iconName="bx-pencil"
+                            :href="route('rusdexchangerates.edit',1)"
+                            name="Editar"
                         />
-                    </div>
-                </div>
-
-                <div class="relative aspect-video overflow-hidden rounded-xl border border-sidebar-border/70 dark:border-sidebar-border">
-                    <div class="p-4">
-                        <h1 class="text-xl font-bold">Detalle del Producto</h1>
-                        <div v-if="currentProduct">
-                            <p><strong>Nombre:</strong> {{ currentProduct.name }}</p>
-                            <p><strong>Código:</strong> {{ currentProduct.code }}</p>
-                            <p><strong>Cantidad en Bodega:</strong> {{ currentProduct.quantity_in_stock }}</p>
-                            <p><strong>Cantidad en Tienda:</strong> {{ currentProduct.quantity_in_store }}</p>
-                            <p><strong>P/U en Dolares:</strong> ${{ currentProduct.unit_price }} </p>
-                            <p><strong>P/U en Bolivianos:</strong> Bs. {{ toBs(currentProduct.unit_price) }} </p>
-                            
-                            <p><strong>P/U sugerido:</strong>Bs {{ toBsP(currentProduct.unit_price) }}</p>
-                            
-                        </div>
-                        <div v-else>
-                            <p class="text-gray-500 mt-2">No hay producto seleccionado.</p>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="relative aspect-video overflow-hidden rounded-xl border border-sidebar-border/70 dark:border-sidebar-border">
-                   <div class="absolute inset-0 flex flex-col items-center justify-center p-4">
-                       <p class="mt-2 text-xl">
-                            Cambio Actual 
-                       </p>
-                        <h1 class="text-5xl font-bold">
-                            Bs. {{props.usd.exchange_rate}}
-                        </h1>
-                        <div>
-                            <ActionButton
-                                color="green"
-                                iconName="bx-pencil"
-                                :href="route('rusdexchangerates.edit',1)"
-                                name="Editar"
-                            />
-                        </div>
                     </div>
                 </div>
             </div>

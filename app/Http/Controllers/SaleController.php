@@ -26,7 +26,7 @@ class SaleController extends Controller
      */
     public function index()
     {
-        $sales = Sale::all();
+        $sales = Sale::latest()->get();
         return Inertia::render('Sales/Index',[
             'sales'=>$sales,
         ]);

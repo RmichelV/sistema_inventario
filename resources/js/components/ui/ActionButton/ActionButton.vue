@@ -19,6 +19,11 @@ const colorClasses: {[key:string]:string}={
     'red': 'bg-red-600 hover:bg-red-700',
     'green': 'bg-green-600 hover:bg-green-700',
     'yellow': 'bg-yellow-600 hover:bg-yellow-700',
+    'orange': 'bg-orange-600 hover:bg-orange-700',
+    'purple': 'bg-purple-600 hover:bg-purple-700',
+    'gray': 'bg-gray-600 hover:bg-gray-700',
+    'teal': 'bg-teal-600 hover:bg-teal-700',
+    'indigo': 'bg-indigo-600 hover:bg-indigo-700',
 }
 
 //computed devolvera el valor segun el nombre de la clave que le pasemos
