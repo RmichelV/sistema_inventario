@@ -12,6 +12,9 @@ use App\Models\Role;
 //librerias
 use Inertia\Inertia;
 use Illuminate\Support\Facades\Validator;
+
+//request 
+use App\Http\Requests\Employees\UserRequest;
 class UserController extends Controller
 {
     /**
@@ -68,8 +71,9 @@ class UserController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request)
+    public function store(UserRequest $request)
     {
+        // dd( $request->all());
         $user = User::create([
             'name' => $request->name,
             'address' => $request->address,
