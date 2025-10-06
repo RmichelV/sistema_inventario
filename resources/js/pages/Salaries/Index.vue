@@ -5,6 +5,7 @@ import { Head, router } from '@inertiajs/vue3'; // Importar router
 import PlaceholderPattern from '../../components/PlaceholderPattern.vue';
 
 import { Table as salaryTable} from '@/components/ui/Table';
+import { useSwal } from '../../composables/useSwal';
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
@@ -27,50 +28,67 @@ const props = defineProps<{
  * Envía el ajuste total sin separar, dejando que el controlador de Laravel maneje
  * el valor negativo (-300) y lo divida entre salary_adjustment y discounts.
  */
+const swal = useSwal();
+
 const realizarPago = (usuario: User) => {
-    
-    // 1. CONVERTIR CAMPOS A NÚMEROS
-    const salarioBase = parseFloat(usuario.base_salary.replace(/,/g, ''));
-    // totalAdjustmentAdicional contiene el valor bruto (ej: -300)
-    const totalAdjustmentAdicional = parseFloat(usuario.total_adjustment.replace(/,/g, ''));
-    const salarioDevengado = parseFloat(usuario.salario_devengado.replace(/,/g, ''));
-    const finalSalary = parseFloat(usuario.final_salary.replace(/,/g, ''));
+    swal.fire({
+        title: `¿Registrar pago para ${usuario.name}?`,
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonText: 'Sí, pagar!',
+        cancelButtonText: 'No, cancelar!',
+        reverseButtons: true,
+    }).then((result: any) => {
+        if (result.isConfirmed) {
+            // 1. CONVERTIR CAMPOS A NÚMEROS
+            const salarioBase = parseFloat(usuario.base_salary.replace(/,/g, ''));
+            const totalAdjustmentAdicional = parseFloat(usuario.total_adjustment.replace(/,/g, ''));
+            const salarioDevengado = parseFloat(usuario.salario_devengado.replace(/,/g, ''));
+            const finalSalary = parseFloat(usuario.final_salary.replace(/,/g, ''));
 
+            // 2. CÁLCULO DE DESCUENTO POR MINUTOS NO TRABAJADOS (PÉRDIDA DE SUELDO BASE)
+            const descuentoPorMinutos = salarioBase - salarioDevengado;
+            const descuentoBasePorMinutos = Math.max(0, descuentoPorMinutos);
 
-    // 2. CÁLCULO DE DESCUENTO POR MINUTOS NO TRABAJADOS (PÉRDIDA DE SUELDO BASE)
-    const descuentoPorMinutos = salarioBase - salarioDevengado;
-    const descuentoBasePorMinutos = Math.max(0, descuentoPorMinutos); // Siempre >= 0
+            // 3. DATOS ADICIONALES
+            const payDate = new Date().toISOString().split('T')[0];
+            const userIdM = 1;
 
-
-    // 3. DATOS ADICIONALES
-    const payDate = new Date().toISOString().split('T')[0];
-    const userIdM = 1; 
-
-    // Enviamos los datos al endpoint de almacenamiento (store)
-    router.post(route('rsalaries.store'), {
-        user_id: usuario.id,
-        base_salary: salarioBase, // El sueldo completo de referencia
-        
-        // Mapeo a los campos de la tabla 'salaries'
-        
-        // -> salary_adjustment: El valor total del ajuste (PUEDE SER NEGATIVO, ej: -300).
-        // SU CONTROLADOR DEBE MANEJAR ESTO.
-        salary_adjustment: totalAdjustmentAdicional, 
-        
-        // -> discounts: SOLO la pérdida de salario por minutos no trabajados (el backend agregará aquí el -300).
-        discounts: descuentoBasePorMinutos, 
-
-        // -> total_salary: El monto final a pagar 
-        total_salary: finalSalary, 
-        
-        paydate: payDate,
-        user_id_m: userIdM,
-    }, {
-        onSuccess: () => {
-            router.reload({ only: ['users'] }); 
-        },
-        onError: (errors) => {
-            console.error('Error al registrar el pago:', errors);
+            router.post(route('rsalaries.store'), {
+                user_id: usuario.id,
+                base_salary: salarioBase,
+                salary_adjustment: totalAdjustmentAdicional,
+                discounts: descuentoBasePorMinutos,
+                total_salary: finalSalary,
+                paydate: payDate,
+                user_id_m: userIdM,
+            }, {
+                onSuccess: () => {
+                    swal.fire({
+                        title: '¡Pago registrado!',
+                        text: 'El pago se ha registrado correctamente.',
+                        icon: 'success',
+                        confirmButtonText: 'Cerrar',
+                    });
+                    router.reload({ only: ['users'] });
+                },
+                onError: (errors) => {
+                    swal.fire({
+                        title: 'Error',
+                        text: 'Hubo un error al registrar el pago.',
+                        icon: 'error',
+                        confirmButtonText: 'Cerrar',
+                    });
+                    console.error('Error al registrar el pago:', errors);
+                }
+            });
+        } else if (result.dismiss === swal.DismissReason.cancel) {
+            swal.fire({
+                title: 'Cancelado',
+                text: 'No se realizó el pago.',
+                icon: 'error',
+                confirmButtonText: 'Cerrar',
+            });
         }
     });
 };

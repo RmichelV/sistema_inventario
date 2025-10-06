@@ -13,27 +13,29 @@ import { useSwal } from '../../composables/useSwal';
 const page = usePage();
 const swal = useSwal(); // Instancia el composable
 
-// Función unificada para manejar la visualización de alertas
+// Función unificada para manejar la visualización de alertas con botones Bootstrap
 const handleAlerts = () => {
     // 1. Manejar mensajes de ERROR personalizados (del controlador - try/catch)
     if (page.props.flash?.error) {
         swal.fire({
-            icon: 'error', 
-            title: '¡Error!',  
+            icon: 'error',
+            title: '¡Error!',
             text: page.props.flash.error,
+            showCancelButton: false,
+            confirmButtonText: 'Cerrar',
         });
-        // Usamos 'undefined' en lugar de 'null' para cumplir con el tipo de TS
-        page.props.flash.error = undefined; 
+        page.props.flash.error = undefined;
     }
 
     // 2. Manejar mensajes de ÉXITO
     if (page.props.flash?.success) {
-         swal.fire({
-            icon: 'success', 
-            title: '¡Éxito!', 
+        swal.fire({
+            icon: 'success',
+            title: '¡Éxito!',
             text: page.props.flash.success,
+            showCancelButton: false,
+            confirmButtonText: 'Cerrar',
         });
-        // Usamos 'undefined' en lugar de 'null' para cumplir con el tipo de TS
         page.props.flash.success = undefined;
     }
 
@@ -45,6 +47,8 @@ const handleAlerts = () => {
             icon: 'warning',
             title: 'Datos Faltantes o Inválidos',
             html: errorText,
+            showCancelButton: false,
+            confirmButtonText: 'Cerrar',
         });
     }
 };
@@ -155,35 +159,107 @@ const acciones = computed(() => {
 // de la alerta de éxito si es necesario, pero por ahora dependemos de Inertia.
 
 const marcarPresente = (usuario: User) => {
-    router.post(route('rattendance_records.store'), {
-        user_id: usuario.id,
-        attendance_status: "Presente",
-        attendance_date: attendance_date_formatted,
-        check_in_at: check_formatted,
-        check_out_at: null,
-        minutes_worked: null,
+    swal.fire({
+        title: `¿Registrar a ${usuario.name} como presente?`,
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonText: 'Sí, registrar!',
+        cancelButtonText: 'No, cancelar!',
+        reverseButtons: true,
+    }).then((result: any) => {
+        if (result.isConfirmed) {
+            router.post(route('rattendance_records.store'), {
+                user_id: usuario.id,
+                attendance_status: "Presente",
+                attendance_date: attendance_date_formatted,
+                check_in_at: check_formatted,
+                check_out_at: null,
+                minutes_worked: null,
+            });
+            swal.fire({
+                title: '¡Registrado!',
+                text: 'La asistencia ha sido registrada como presente.',
+                icon: 'success',
+                confirmButtonText: 'Cerrar',
+            });
+        } else if (result.dismiss === swal.DismissReason.cancel) {
+            swal.fire({
+                title: 'Cancelado',
+                text: 'No se registró la asistencia.',
+                icon: 'error',
+                confirmButtonText: 'Cerrar',
+            });
+        }
     });
 };
 
 const marcarPermiso = (usuario: User) => {
-    router.post(route('rattendance_records.permition'), {
-        user_id: usuario.id,
-        attendance_status: "Permiso",
-        attendance_date: attendance_date_formatted,
-        check_in_at: null,
-        check_out_at: null,
-        minutes_worked: 0,
+    swal.fire({
+        title: `¿Registrar permiso para ${usuario.name}?`,
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonText: 'Sí, registrar!',
+        cancelButtonText: 'No, cancelar!',
+        reverseButtons: true,
+    }).then((result: any) => {
+        if (result.isConfirmed) {
+            router.post(route('rattendance_records.permition'), {
+                user_id: usuario.id,
+                attendance_status: "Permiso",
+                attendance_date: attendance_date_formatted,
+                check_in_at: null,
+                check_out_at: null,
+                minutes_worked: 0,
+            });
+            swal.fire({
+                title: '¡Registrado!',
+                text: 'El permiso ha sido registrado.',
+                icon: 'success',
+                confirmButtonText: 'Cerrar',
+            });
+        } else if (result.dismiss === swal.DismissReason.cancel) {
+            swal.fire({
+                title: 'Cancelado',
+                text: 'No se registró el permiso.',
+                icon: 'error',
+                confirmButtonText: 'Cerrar',
+            });
+        }
     });
 };
 
 const marcarTarde = (usuario: User) => {
-    router.post(route('rattendance_records.store'), {
-        user_id: usuario.id,
-        attendance_status: "Tarde",
-        attendance_date: attendance_date_formatted,
-        check_in_at: check_formatted,
-        check_out_at: null,
-        minutes_worked: null,
+    swal.fire({
+        title: `¿Registrar a ${usuario.name} como tarde?`,
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonText: 'Sí, registrar!',
+        cancelButtonText: 'No, cancelar!',
+        reverseButtons: true,
+    }).then((result: any) => {
+        if (result.isConfirmed) {
+            router.post(route('rattendance_records.store'), {
+                user_id: usuario.id,
+                attendance_status: "Tarde",
+                attendance_date: attendance_date_formatted,
+                check_in_at: check_formatted,
+                check_out_at: null,
+                minutes_worked: null,
+            });
+            swal.fire({
+                title: '¡Registrado!',
+                text: 'La asistencia ha sido registrada como tarde.',
+                icon: 'success',
+                confirmButtonText: 'Cerrar',
+            });
+        } else if (result.dismiss === swal.DismissReason.cancel) {
+            swal.fire({
+                title: 'Cancelado',
+                text: 'No se registró la asistencia.',
+                icon: 'error',
+                confirmButtonText: 'Cerrar',
+            });
+        }
     });
 };
 
@@ -191,17 +267,36 @@ const marcarSalida = (usuario: User) => {
     // 1. OBTENER LA HORA EXACTA DEL CLIC
     const nowOnCheckOut = new Date();
     const check_out_formatted = nowOnCheckOut.toTimeString().split(' ')[0];
-    
-    // El attendance_date_formatted puede seguir siendo la variable estática del componente
-    // porque asumimos que la salida se hace el mismo día que la entrada.
 
-    console.log("marcarSalida ha sido llamada para el usuario:", usuario.id); 
-    console.log("Hora de Salida enviada:", check_out_formatted); // Depuración
-
-    router.put(route('rattendance_records.update', usuario.id), {
-        user_id: usuario.id, 
-        attendance_date: attendance_date_formatted, 
-        check_out_at: check_out_formatted, // <--- VARIABLE ACTUALIZADA
+    // Confirmación antes de marcar salida
+    swal.fire({
+        title: `¿Registrar salida para ${usuario.name}?`,
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonText: 'Sí, registrar salida!',
+        cancelButtonText: 'No, cancelar!',
+        reverseButtons: true,
+    }).then((result: any) => {
+        if (result.isConfirmed) {
+            router.put(route('rattendance_records.update', usuario.id), {
+                user_id: usuario.id,
+                attendance_date: attendance_date_formatted,
+                check_out_at: check_out_formatted,
+            });
+            swal.fire({
+                title: '¡Salida registrada!',
+                text: 'La salida ha sido registrada correctamente.',
+                icon: 'success',
+                confirmButtonText: 'Cerrar',
+            });
+        } else if (result.dismiss === swal.DismissReason.cancel) {
+            swal.fire({
+                title: 'Cancelado',
+                text: 'La salida no fue registrada.',
+                icon: 'error',
+                confirmButtonText: 'Cerrar',
+            });
+        }
     });
 };
 </script>
