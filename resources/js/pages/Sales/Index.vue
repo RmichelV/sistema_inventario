@@ -47,10 +47,19 @@ const sumaDolares = computed(() => {
         .toFixed(2);
 });
 
-// Suma de bolivianos y QR (final_price de ventas filtradas con pay_type == 'Bolivianos' o 'QR' o ambos)
-const sumaBsQr = computed(() => {
+
+// Suma de bolivianos (solo pay_type == 'Bolivianos')
+const sumaBs = computed(() => {
     return ventasFiltradas.value
-        .filter(sale => sale.pay_type && (sale.pay_type.toLowerCase().includes('boliv') || sale.pay_type.toLowerCase().includes('qr')))
+        .filter(sale => sale.pay_type && sale.pay_type.toLowerCase().includes('boliv'))
+        .reduce((acc, sale) => acc + (Number(sale.final_price) || 0), 0)
+        .toFixed(2);
+});
+
+// Suma de QR (solo pay_type == 'QR')
+const sumaQr = computed(() => {
+    return ventasFiltradas.value
+        .filter(sale => sale.pay_type && sale.pay_type.toLowerCase().includes('qr'))
         .reduce((acc, sale) => acc + (Number(sale.final_price) || 0), 0)
         .toFixed(2);
 });
@@ -107,7 +116,7 @@ async function handleDescargarNotaVenta(sale: Sale) {
     <AppLayout :breadcrumbs="breadcrumbs">
         <div class="flex h-full flex-1 flex-col gap-4 rounded-xl p-4 overflow-x-auto">
             
-            <div class="grid auto-rows-min gap-4 md:grid-cols-3">
+            <div class="grid auto-rows-min gap-4 md:grid-cols-4">
                 <!-- Filtro de fechas -->
                 <div class="relative aspect-video overflow-hidden rounded-xl border border-sidebar-border/70 dark:border-sidebar-border flex flex-col items-center justify-center gap-2 p-4">
                     <label class="font-semibold">Filtrar por fecha</label>
@@ -121,10 +130,15 @@ async function handleDescargarNotaVenta(sale: Sale) {
                     <span class="text-lg font-semibold">Total Dólares</span>
                     <span class="text-2xl text-green-700 dark:text-green-400 font-bold mt-2">$us {{ sumaDolares }}</span>
                 </div>
-                <!-- Suma de bolivianos y QR -->
+                <!-- Suma de bolivianos -->
                 <div class="relative aspect-video overflow-hidden rounded-xl border border-sidebar-border/70 dark:border-sidebar-border flex flex-col items-center justify-center">
-                    <span class="text-lg font-semibold">Total Bs + QR</span>
-                    <span class="text-2xl text-blue-700 dark:text-blue-400 font-bold mt-2">Bs {{ sumaBsQr }}</span>
+                    <span class="text-lg font-semibold">Total Bolivianos</span>
+                    <span class="text-2xl text-blue-700 dark:text-blue-400 font-bold mt-2">Bs {{ sumaBs }}</span>
+                </div>
+                <!-- Suma de QR -->
+                <div class="relative aspect-video overflow-hidden rounded-xl border border-sidebar-border/70 dark:border-sidebar-border flex flex-col items-center justify-center">
+                    <span class="text-lg font-semibold">Total QR</span>
+                    <span class="text-2xl text-purple-700 dark:text-purple-400 font-bold mt-2">Bs {{ sumaQr }}</span>
                 </div>
             </div>
             <div class="relative min-h-[100vh] flex-1 rounded-xl border border-sidebar-border/70 md:min-h-min dark:border-sidebar-border">

@@ -37,7 +37,8 @@ const form = useForm({
         product_id: null as number | null,
         quantity_from_warehouse: undefined as number | undefined,
         quantity_from_store: undefined as number | undefined,
-        selected_price: undefined as number | undefined, 
+        selected_price: undefined as number | undefined,
+        selected_min_type: 'bs' as 'usd' | 'bs' | 'bs_sale', // Nuevo campo para radio
     }],
 });
 
@@ -48,7 +49,29 @@ const addSaleItem = () => {
         quantity_from_warehouse: undefined,
         quantity_from_store: undefined,
         selected_price: undefined,
+        selected_min_type: 'bs',
     });
+};
+// Calcula el mínimo según el radio seleccionado
+const getItemMinPrice = (item: any) => {
+    if (!item.product_id) return 0;
+    switch (item.selected_min_type) {
+        case 'usd':
+            return itemPriceUsd(item) * exchangeRate.value;
+        case 'bs':
+            return itemPriceBs(item);
+        case 'bs_sale':
+            return itemSalePriceBs(item);
+        default:
+            return itemPriceBs(item);
+    }
+};
+
+// Actualiza el precio y el mínimo al cambiar el radio
+const handleMinTypeChange = (item: any, type: 'usd' | 'bs' | 'bs_sale') => {
+    item.selected_min_type = type;
+    const minValue = getItemMinPrice(item);
+    item.selected_price = minValue;
 };
 
 const removeSaleItem = (index: number) => {
@@ -259,24 +282,28 @@ const submit = () => {
                             <div class="grid gap-2 mt-4 p-3 bg-gray-100 dark:bg-gray-800 rounded-lg border border-indigo-300 dark:border-indigo-700">
                                 <Label class="text-lg font-semibold text-indigo-700 dark:text-indigo-400">Referencias de Precio (Total por Cantidad)</Label>
                                 
-                                <div v-if="item.product_id && ((item.quantity_from_warehouse || 0) + (item.quantity_from_store || 0) > 0)">
-                                    <!-- 1. Precio Base en Dólares -->
-                                    <p class="text-sm font-medium text-gray-700 dark:text-gray-300">
-                                        Precio Producto (Dólares): 
-                                        <span class="font-bold text-base text-blue-600">${{ itemPriceUsd(item).toFixed(2) }}</span> 
-                                    </p>
-                                    
-                                    <!-- 2. Precio en Bolivianos (Conversión) -->
-                                    <p class="text-sm font-medium text-gray-700 dark:text-gray-300 mt-1">
-                                        Precio Base en Bolivianos: 
-                                        <span class="font-bold text-base text-green-700 dark:text-green-300">Bs. {{ itemPriceBs(item).toFixed(2) }}</span>
-                                    </p>
-
-                                    <!-- 3. Precio de Venta (Bs + 1.1%) -->
-                                    <p class="text-sm font-medium text-gray-700 dark:text-gray-300 mt-1">
-                                        Precio de Venta (Bs + 1.1%): 
-                                        <span class="font-bold text-base text-red-600">Bs. {{ itemSalePriceBs(item).toFixed(2) }}</span>
-                                    </p>
+                                <div v-if="item.product_id && ((item.quantity_from_warehouse || 0) + (item.quantity_from_store || 0) > 0)" class="flex flex-col gap-2">
+                                    <label class="flex items-center gap-2">
+                                        <input type="radio" :name="'ref-radio-' + index" value="usd" v-model="item.selected_min_type" @change="handleMinTypeChange(item, 'usd')">
+                                        <span class="text-sm font-medium text-gray-700 dark:text-gray-300">
+                                            Precio Producto (Dólares): 
+                                            <span class="font-bold text-base text-blue-600">${{ itemPriceUsd(item).toFixed(2) }}</span>
+                                        </span>
+                                    </label>
+                                    <label class="flex items-center gap-2">
+                                        <input type="radio" :name="'ref-radio-' + index" value="bs" v-model="item.selected_min_type" @change="handleMinTypeChange(item, 'bs')">
+                                        <span class="text-sm font-medium text-gray-700 dark:text-gray-300">
+                                            Precio Base en Bolivianos: 
+                                            <span class="font-bold text-base text-green-700 dark:text-green-300">Bs. {{ itemPriceBs(item).toFixed(2) }}</span>
+                                        </span>
+                                    </label>
+                                    <label class="flex items-center gap-2">
+                                        <input type="radio" :name="'ref-radio-' + index" value="bs_sale" v-model="item.selected_min_type" @change="handleMinTypeChange(item, 'bs_sale')">
+                                        <span class="text-sm font-medium text-gray-700 dark:text-gray-300">
+                                            Precio de Venta (Bs + 1.1%): 
+                                            <span class="font-bold text-base text-red-600">Bs. {{ itemSalePriceBs(item).toFixed(2) }}</span>
+                                        </span>
+                                    </label>
                                 </div>
                                 <p v-else class="text-sm text-gray-500">Seleccione un producto y cantidades para ver las referencias de precio.</p>
                             </div>
@@ -286,12 +313,13 @@ const submit = () => {
                                 <Label :for="'selected_price-' + index" class="font-bold text-lg">
                                     Precio Cobrado por ESTE producto (Bs.)
                                 </Label>
+                                <!-- Radios para elegir el mínimo -->
                                 <Input 
                                     :id="'selected_price-' + index"
                                     type="number"
                                     required
                                     placeholder="Ingrese el precio final cobrado por este ítem..."
-                                    :min="itemPriceBs(item)"
+                                    :min="getItemMinPrice(item)"
                                     step="0.01"
                                     v-model.number="item.selected_price"
                                 />

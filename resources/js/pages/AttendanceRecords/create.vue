@@ -92,7 +92,7 @@ const horaActual = now.getHours();
 const MinutosActuales = now.getMinutes();
 const attendance_date_formatted = now.toISOString().split('T')[0]; // Ejemplo: '2025-10-01'
 const check_formatted = now.toTimeString().split(' ')[0]; 
-const HoraEntradaMaxima = (10 * 60 + 0) ;
+const HoraEntradaMaxima = (19 * 60 + 0) ;
 const HoraActualMinutos = (horaActual * 60 + MinutosActuales);
 
 const acciones = computed(() => {
@@ -266,7 +266,14 @@ const marcarTarde = (usuario: User) => {
 const marcarSalida = (usuario: User) => {
     // 1. OBTENER LA HORA EXACTA DEL CLIC
     const nowOnCheckOut = new Date();
-    const check_out_formatted = nowOnCheckOut.toTimeString().split(' ')[0];
+    let check_out_formatted = nowOnCheckOut.toTimeString().split(' ')[0];
+
+    // Si la hora actual es igual o mayor a las 21:00, marcar 21:00 como hora de salida
+    const horaActualSalida = nowOnCheckOut.getHours();
+    const minutosActualSalida = nowOnCheckOut.getMinutes();
+    if (horaActualSalida > 21 || (horaActualSalida === 21 && minutosActualSalida >= 0)) {
+        check_out_formatted = '21:00:00';
+    }
 
     // Confirmación antes de marcar salida
     swal.fire({
@@ -305,7 +312,7 @@ const marcarSalida = (usuario: User) => {
     <Head title="Empleados" />  
     <AppLayout :breadcrumbs="breadcrumbs">
         <div class="flex h-full flex-1 flex-col gap-4 rounded-xl p-4 overflow-x-auto">
-            <div class="grid auto-rows-min gap-4 md:grid-cols-3">
+            <!-- <div class="grid auto-rows-min gap-4 md:grid-cols-3">
                 <div class="relative aspect-video overflow-hidden rounded-xl border border-sidebar-border/70 dark:border-sidebar-border">
                     <PlaceholderPattern />
                 </div>
@@ -315,7 +322,7 @@ const marcarSalida = (usuario: User) => {
                 <div class="relative aspect-video overflow-hidden rounded-xl border border-sidebar-border/70 dark:border-sidebar-border">
                     <PlaceholderPattern />
                 </div>
-            </div>
+            </div> -->
             <div class="relative min-h-[100vh] flex-1 rounded-xl border border-sidebar-border/70 md:min-h-min dark:border-sidebar-border">
                 <UserTable
                     :cadena="users??[]"
