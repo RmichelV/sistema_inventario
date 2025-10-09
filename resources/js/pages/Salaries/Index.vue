@@ -137,6 +137,11 @@ const accionesTabla = [
                     :agregar="false"
                     :acciones="accionesTabla"
                 />
+                <p class="mt-10">
+                    Nota: <br>
+                    <strong>Ajustes (B/D)</strong>: Es la suma de los ajustes positivos (bonos) y negativos (descuentos) aplicados al empleado a lo largo del mes <br>
+                    <strong>Salario Final</strong> : Es la suma de Salario Base + Ajustes (B/D) + el precio calculado por las horas trabajadas
+                </p>
             </div>
         </div>
     </AppLayout>

@@ -147,7 +147,7 @@ onUnmounted(() => {
     <div :class="{'flex flex-col md:flex-row justify-between items-center p-4 gap-4': searchSelectConfig, 'flex justify-end p-4': !searchSelectConfig}">
       
       <!-- Filtro Search Select -->
-      <div v-if="searchSelectConfig" class="w-full md:w-1/3">
+      <div v-if="searchSelectConfig" class="w-full md:w-1/3 border border-gray-300 dark:border-white-600 rounded-md p-2">
         <SearchSelect
           v-model="selectedValue"
           :options="searchSelectConfig.options"

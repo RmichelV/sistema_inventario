@@ -38,7 +38,11 @@ const props = defineProps<{
                 </div>
             </div> -->
             <div class="relative min-h-[100vh] flex-1 rounded-xl border border-sidebar-border/70 md:min-h-min dark:border-sidebar-border">
-            
+            <div >
+                <div>P/U $us: Precio Unitario en Dolares</div>
+                <div>P/U BS: Precio Unitario en Bolivianos</div>
+                <div>P/U BS + 1.1%: Precio Unitario en Bolivianos + 1.1% del precio</div>
+            </div>
             <ProductTable
                 :cadena="productstores??[]"
                 :cabeceras="[
@@ -71,6 +75,12 @@ const props = defineProps<{
                         iconName: 'bx-pencil',
                     }
                 ]"
+                :searchSelectConfig="{
+                options: products, 
+                valueKey: 'id',
+                labelKey: 'code',
+                placeholder: 'Buscar productos...'
+                }"
             />
             </div>
         </div>

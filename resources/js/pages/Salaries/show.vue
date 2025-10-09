@@ -70,6 +70,12 @@ onMounted(() => {
                     :agregar="false"
                     :acciones="[]"
                 />
+                 <p class="mt-10">
+                    Nota: <br>
+                    <strong>Ajustes (B/D)</strong>: Es la suma de los ajustes positivos (bonos) y negativos (descuentos) aplicados al empleado a lo largo del mes <br>
+                    <strong>Des/minutos tarde</strong>: Es la suma del precio que no se cancelo por los minutos de retrasos, permisos <br>
+                    
+                </p>
             </div>
         </div>
     </AppLayout>
