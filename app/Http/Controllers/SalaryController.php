@@ -28,7 +28,7 @@ class SalaryController extends Controller
         // --- CONSTANTE PARA CÁLCULO DE NÓMINA (MOVIMIENTO) ---
         // Definida como variable local, disponible para el closure.
         // 30 días * 8 horas/día * 60 minutos/hora = 14,400 minutos mensuales.
-        $totalMonthlyMinutes = 14400; 
+        $totalMonthlyMinutes = 18720; 
 
         $users = $nusers->map(function($user) use ($totalMonthlyMinutes) { // Usamos 'use' para pasar la variable al closure
             

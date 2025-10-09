@@ -92,7 +92,7 @@ const horaActual = now.getHours();
 const MinutosActuales = now.getMinutes();
 const attendance_date_formatted = now.toISOString().split('T')[0]; // Ejemplo: '2025-10-01'
 const check_formatted = now.toTimeString().split(' ')[0]; 
-const HoraEntradaMaxima = (19 * 60 + 0) ;
+const HoraEntradaMaxima = ( 9 * 60 + 10) ;
 const HoraActualMinutos = (horaActual * 60 + MinutosActuales);
 
 const acciones = computed(() => {
