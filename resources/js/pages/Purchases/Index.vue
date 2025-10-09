@@ -64,13 +64,13 @@ onMounted(() => {
             <ProductTable
                 :cadena="purchases??[]"
                 :cabeceras="[
-                    'Id',
+                    
                     'Producto',
                     'Cantidad comprada',
                     'Fecha de compra',
                 ]"
                 :campos="[
-                        'id',
+                        
                         'product',
                         'purchase_quantity',
                         'purchase_date',

@@ -42,7 +42,7 @@ const props = defineProps<{
             <ProductTable
                 :cadena="productstores??[]"
                 :cabeceras="[
-                    'Id',
+                   
                     'Producto',
                     'Cantidad',
                     'P/U $us.',
@@ -51,7 +51,7 @@ const props = defineProps<{
                     'Acciones'
                 ]"
                 :campos="[
-                        'id',
+                       
                         'product_id',
                         'quantity',
                         'unit_price',

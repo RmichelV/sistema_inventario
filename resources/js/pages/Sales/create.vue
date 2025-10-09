@@ -67,11 +67,15 @@ const getItemMinPrice = (item: any) => {
     }
 };
 
-// Actualiza el precio y el mínimo al cambiar el radio
+// --- MANEJO DEL CAMBIO DE TIPO MÍNIMO ---
 const handleMinTypeChange = (item: any, type: 'usd' | 'bs' | 'bs_sale') => {
     item.selected_min_type = type;
-    const minValue = getItemMinPrice(item);
-    item.selected_price = minValue;
+    // Si se selecciona USD, establecer el límite mínimo al precio en dólares
+    if (type === 'usd') {
+        item.minimum_limit = itemPriceUsd(item); // Establecer el límite mínimo al precio en dólares
+    } else {
+        item.minimum_limit = getItemMinPrice(item); // Mantener la lógica existente para otros tipos
+    }
 };
 
 const removeSaleItem = (index: number) => {
@@ -319,7 +323,7 @@ const submit = () => {
                                     type="number"
                                     required
                                     placeholder="Ingrese el precio final cobrado por este ítem..."
-                                    :min="getItemMinPrice(item)"
+                                    :min="item.selected_min_type === 'usd' ? itemPriceUsd(item) : getItemMinPrice(item)"
                                     step="0.01"
                                     v-model.number="item.selected_price"
                                 />
@@ -339,8 +343,8 @@ const submit = () => {
                         <div class="grid gap-2 p-4 border-t border-gray-200 mt-4">
         
                             <h3 class="text-lg font-semibold text-gray-700 dark:text-gray-300">
-                                Suma total: <span class="text-xl font-bold">Bs {{ totalSalePriceBs }}</span>
-                                <span class="text-sm text-gray-500 dark:text-gray-400"> (${{ totalSalePrice }})</span>
+                                Suma total: <span class="text-xl font-bold"> {{ totalSalePriceBs }}</span>
+                                
                             </h3>
                         </div>
 

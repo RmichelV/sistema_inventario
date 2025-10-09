@@ -40,8 +40,8 @@ const props = defineProps<{
             
             <UserTable
                 :cadena="salaryAdjustments??[]"
-                :cabeceras="['id','Empleado','Tipo','Monto','Descripción']"
-                :campos="['id','user_name','salary_adjustment_type','amount','description']"
+                :cabeceras="['Empleado','Tipo','Monto','Descripción']"
+                :campos="['user_name','salary_adjustment_type','amount','description']"
                 :agregar="{ 
                     href: route('rsalary_adjustments.create'), 
                     color: 'green', 

@@ -38,6 +38,12 @@ const mainNavItems: NavItem[] = [
         roles: [1], // Solo el rol 1 (Administrador)
     },
     {
+        title: 'Salarios cancelados',
+        href: '/rsalariesF',
+        icon: Banknote,
+        roles: [1], // Solo el rol 1 (Administrador)
+    },
+    {
         title: 'Registros de asistencias',
         href: '/rattendance_records',
         icon: TimerOffIcon,

@@ -40,8 +40,8 @@ const props = defineProps<{
             
             <UserTable
                 :cadena="attendanceRecords??[]"
-                :cabeceras="['id','Empleado','Estado','Fecha','Hora de ingreso','Hora de salida']"
-                :campos="['id','user','attendance_status','attendance_date','check_in_at','check_out_at']"
+                :cabeceras="['Empleado','Estado','Fecha','Hora de ingreso','Hora de salida']"
+                :campos="['user','attendance_status','attendance_date','check_in_at','check_out_at']"
                 :agregar="false"
                 :acciones="[
                 ]"
