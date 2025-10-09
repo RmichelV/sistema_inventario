@@ -23,7 +23,7 @@ const mainNavItems: NavItem[] = [
         title: 'Dashboard',
         href: '/dashboard',
         icon: LayoutGrid,
-        roles: [1, 2, 3], // Todos los roles pueden ver el Dashboard
+        roles: [1, 2, 3, 4], // Todos los roles pueden ver el Dashboard
     },
     {
         title: 'Datos de empleados',
@@ -47,7 +47,7 @@ const mainNavItems: NavItem[] = [
         title: 'Registros de asistencias',
         href: '/rattendance_records',
         icon: TimerOffIcon,
-        roles: [1, 2], // Rol 1 y 2
+        roles: [1], // Rol 1 y 2
     },
     
     {
@@ -81,14 +81,14 @@ const mainNavItems: NavItem[] = [
         title: 'Productos en la tienda',
         href: '/rproductstores',
         icon: Store,
-        roles: [1,2, 3],
+        roles: [1, 2, 3],
     },
 
     {
         title: 'Ventas',
         href: '/rsales',
         icon: ShoppingCart,
-        roles: [1,2,3],
+        roles: [1, 2, 3],
     },
 ];
 

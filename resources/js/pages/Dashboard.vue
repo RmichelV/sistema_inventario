@@ -134,7 +134,7 @@ const toBsP = (price: number | undefined | null) => {
                 <productsTable
                 :cadena="productStores30Days??[]"
                 :cabeceras="[
-                    'Id',
+                    
                     'Producto',
                     'Cantidad',
                     'P/U $us.',
@@ -143,7 +143,7 @@ const toBsP = (price: number | undefined | null) => {
                     
                 ]"
                 :campos="[
-                        'id',
+                        
                         'product_id',
                         'quantity',
                         'unit_price',
@@ -164,7 +164,7 @@ const toBsP = (price: number | undefined | null) => {
                 <productsTable
                 :cadena="productStores15Days??[]"
                 :cabeceras="[
-                    'Id',
+                    
                     'Producto',
                     'Cantidad',
                     'P/U $us.',
@@ -173,7 +173,7 @@ const toBsP = (price: number | undefined | null) => {
                   
                 ]"
                 :campos="[
-                        'id',
+                        
                         'product_id',
                         'quantity',
                         'unit_price',

@@ -98,7 +98,7 @@ Route::get('dashboard', function () {
         'productStores15Days' => $productStores15Days,
         'productStores30Days' => $productStores30Days,
     ]);
-})->middleware(['auth', 'role:1,2,3'])->name('dashboard');
+})->middleware(['auth', 'role:1,2,3,4'])->name('dashboard');
 
 require __DIR__.'/settings.php';
 require __DIR__.'/auth.php';
