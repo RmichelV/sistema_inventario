@@ -16,6 +16,7 @@ return new class extends Migration
             $table->string('name');
             $table->string('address');
             $table->string('phone');
+            $table->foreignId("branch_id")->constrained("branches");
             $table->foreignId('role_id')->constrained('roles');
             $table->integer('base_salary');
             $table->date('hire_date');

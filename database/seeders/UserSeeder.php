@@ -17,6 +17,7 @@ class UserSeeder extends Seeder
             'name'=>'Usuario1',
             'address'=>'Calle 123 #456',
             'phone'=>"78827517",
+            'branch_id'=>1,
             'role_id'=>1,
             'base_salary'=>2000,
             'hire_date'=>'2025.08.08',

@@ -1,12 +1,16 @@
 <?php
 
+// database/seeders/DatabaseSeeder.php
+
 namespace Database\Seeders;
 
-use App\Models\User;
-// use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
+// No olvides importar las clases de Seeder que usarás
+use Database\Seeders\RoleSeeder;
+use Database\Seeders\BranchSeeder;
+use Database\Seeders\UsdExchangeRateSeeder;
+use Database\Seeders\UserSeeder; // Asumiremos que creaste un UserSeeder
 
-use App\Models\Attendance_record;
 class DatabaseSeeder extends Seeder
 {
     /**
@@ -14,13 +18,22 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        // User::factory(10)->create();
+        // 1. **Define el orden de ejecución aquí** usando el método call().
 
-        User::factory()->create([
-            'name' => 'Test User',
-            'email' => 'test@example.com',
+        $this->call([
+            RoleSeeder::class,             // Primero
+            BranchSeeder::class,           // Segundo
+            UsdExchangeRateSeeder::class,  // Tercero
+            UserSeeder::class,             // Cuarto (Debe ir después de Roles y Branches si el usuario tiene claves foráneas a ellos)
+            // Aquí puedes llamar otros seeders, como AttendanceRecordSeeder si lo creas.
         ]);
 
-        Attendance_record::factory(30)->create(); 
+        // Opcional: Si necesitas crear el usuario de prueba y los registros de asistencia *después* de los seeders principales:
+        // User::factory()->create([
+        //     'name' => 'Test User',
+        //     'email' => 'test@example.com',
+        // ]);
+        // Attendance_record::factory(30)->create(); 
     }
+
 }
