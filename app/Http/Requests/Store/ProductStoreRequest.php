@@ -41,7 +41,7 @@ class ProductStoreRequest extends FormRequest
             'items.*.quantity.min' => 'La cantidad debe ser al menos 1.',
             'items.*.unit_price.required' => 'El precio unitario es obligatorio.',
             'items.*.unit_price.numeric' => 'El precio unitario debe ser un número.',
-            'items.*.unit_price.min' => 'El precio unitario debe ser al menos 1.',
+            'items.*.unit_price.min' => 'El precio unitario debe ser al menos 0.1',
         ];
     }
 }

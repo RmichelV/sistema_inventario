@@ -13,17 +13,18 @@ class UserSeeder extends Seeder
      */
     public function run(): void
     {
-        User::insert([[
-            'name'=>'Usuario1',
-            'address'=>'Calle 123 #456',
-            'phone'=>"78827517",
-            'branch_id'=>1,
-            'role_id'=>1,
-            'base_salary'=>2000,
-            'hire_date'=>'2025.08.08',
-            'email'=>'usuario1@ewtto.com',
-            'password'=>bcrypt('usuario1')
-        ]]
-        );
+        User::insert([
+            [
+                'name'=>'Usuario1',
+                'address'=>'Calle 123 #456',
+                'phone'=>"78827517",
+                'branch_id'=>1,
+                'role_id'=>1,
+                'base_salary'=>2000,
+                'hire_date'=>'2025.08.08',
+                'email'=>'usuario1@ewtto.com',
+                'password'=>bcrypt('usuario1')
+            ],
+        ]);
     }
 }
