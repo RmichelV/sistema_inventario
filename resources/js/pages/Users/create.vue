@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import InputError from '@/components/InputError.vue';
-import TextLink from '@/components/TextLink.vue';
+// TextLink no se usa aquí
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -10,8 +10,7 @@ import { LoaderCircle } from 'lucide-vue-next';
 
 import AppLayout from '@/layouts/AppLayout.vue';
 import { type BreadcrumbItem } from '@/types';
-import PlaceholderPattern from '../../components/PlaceholderPattern.vue';
-import type { Role } from '@/types'
+import type { Role, Branch } from '@/types'
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
@@ -20,8 +19,9 @@ const breadcrumbs: BreadcrumbItem[] = [
     },
 ];
 
-const props = defineProps<{
+const { roles, branches } = defineProps<{
     roles: Role[];
+    branches: Branch[];
 }>();
 
 </script>
@@ -79,6 +79,15 @@ const props = defineProps<{
                                 <option v-for="role in roles" :key="role.id" :value="role.id">{{ role.name }}</option>
                                 </select>
                                 <InputError :message="errors.role_id" />
+                            </div>
+                            
+                            <div class="grid gap-2">
+                                <Label for="branch_id">Sucursal</Label>
+                                <select id="branch_id" name="branch_id" class="px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:text-sm" required>
+                                    <option value="" disabled selected>Seleccione una sucursal</option>
+                                    <option v-for="branch in branches" :key="branch.id" :value="branch.id">{{ branch.name }}</option>
+                                </select>
+                                <InputError :message="errors.branch_id" />
                             </div>
                             
                             <div class="grid gap-2">

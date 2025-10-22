@@ -8,6 +8,7 @@ use Illuminate\Http\Request;
 //modelos 
 use App\Models\User;
 use App\Models\Role;
+use App\Models\branch as Branch;
 
 //librerias
 use Inertia\Inertia;
@@ -63,8 +64,10 @@ class UserController extends Controller
     public function create()
     {
         $roles = Role::all();
+        $branches = Branch::all();
         return Inertia::render('Users/create',[
-            'roles' => $roles
+            'roles' => $roles,
+            'branches' => $branches,
         ]);
     }
 
@@ -79,6 +82,7 @@ class UserController extends Controller
             'address' => $request->address,
             'phone' => $request->phone,
             'role_id' => $request->role_id,
+            'branch_id' => $request->branch_id ?? null,
             'base_salary' => $request->base_salary,
             'hire_date' => $request->hire_date,
             'email' => $request->email,
@@ -103,9 +107,11 @@ class UserController extends Controller
     {
         $user = User::findOrFail($id);
         $roles = Role::all();
+        $branches = Branch::all();
         return Inertia::render('Users/edit', [
             'user'=> $user,
-            'roles' => $roles
+            'roles' => $roles,
+            'branches' => $branches,
         ]);
     }
 
@@ -119,6 +125,7 @@ class UserController extends Controller
         $user->address = $request->input('address');
         $user->phone = $request->input('phone');
         $user->role_id = $request->input('role_id');
+        $user->branch_id = $request->input('branch_id');
         $user->base_salary = $request->input('base_salary');
         $user->email = $request->input('email');
         if ($request->filled('password')) {

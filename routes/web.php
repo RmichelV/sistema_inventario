@@ -17,6 +17,7 @@ use App\Http\Controllers\SaleItemController;
 use App\Http\Controllers\DevolutionController;
 use App\Http\Controllers\SalaryController;
 use App\Http\Controllers\SalaryFController;
+use App\Http\Controllers\BranchController;
 
 //modelos
 use App\Models\Usd_exchange_rate;
@@ -135,6 +136,10 @@ Route::resource('rsaleitems',SaleItemController::class)->middleware(['auth', 'ro
 Route::resource('rdevolutions', DevolutionController::class)->middleware(['auth', 'role:1,2']);
 
 Route::resource('rsalaries',SalaryController::class)->middleware(['auth', 'role:1']);
+
+
+// Rutas para Sucursales - solo rol 1
+Route::resource('rbranches', BranchController::class)->middleware(['auth', 'role:1']);
 
 
 Route::post(

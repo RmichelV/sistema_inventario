@@ -37,6 +37,7 @@ export interface User {
     address: string;
     phone: string;
     role_id: number;
+    branch_id?: number;
     hire_date: string;
     email: string;
     avatar?: string;
@@ -46,6 +47,7 @@ export interface User {
 
     // --- Relaciones ---
     role: Role; 
+    branch?: Branch;
     
     // --- Campos Base (Formateados por el Controlador) ---
     // base_salary llega formateado como string (ej: "5000.00")
@@ -89,6 +91,12 @@ export interface Attendace_records {
 export interface Role {
     id: number;
     name: string;
+}
+
+export interface Branch {
+    id: number;
+    name: string;
+    address: string;
 }
 
 

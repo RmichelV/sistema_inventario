@@ -2,64 +2,68 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\branch;
 use Illuminate\Http\Request;
+use Inertia\Inertia;
+use App\Models\branch as Branch;
 
 class BranchController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
     public function index()
     {
-        //
+        $branches = Branch::all();
+        return Inertia::render('Branches/Index', [
+            'branches' => $branches,
+        ]);
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
     public function create()
     {
-        //
+        return Inertia::render('Branches/Create');
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
     public function store(Request $request)
     {
-        //
+        $request->validate([
+            'name' => 'required|string|max:255',
+            'address' => 'required|string|max:255',
+        ]);
+
+        Branch::create([
+            'name' => $request->name,
+            'address' => $request->address,
+        ]);
+
+        return redirect()->route('rbranches.index')->with('success', 'Sucursal creada');
     }
 
-    /**
-     * Display the specified resource.
-     */
-    public function show(branch $branch)
+    public function edit($id)
     {
-        //
+        $branch = Branch::findOrFail($id);
+        return Inertia::render('Branches/Edit', [
+            'branch' => $branch,
+        ]);
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(branch $branch)
+    public function update(Request $request, $id)
     {
-        //
+        $request->validate([
+            'name' => 'required|string|max:255',
+            'address' => 'required|string|max:255',
+        ]);
+
+        $branch = Branch::findOrFail($id);
+        $branch->name = $request->name;
+        $branch->address = $request->address;
+        $branch->save();
+
+        return redirect()->route('rbranches.index')->with('success', 'Sucursal actualizada');
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, branch $branch)
+    public function destroy($id)
     {
-        //
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(branch $branch)
-    {
-        //
+        $branch = Branch::findOrFail($id);
+        $branch->delete();
+        return redirect()->route('rbranches.index')->with('success', 'Sucursal eliminada');
     }
 }
+

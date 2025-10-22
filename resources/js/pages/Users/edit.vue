@@ -21,6 +21,7 @@ const breadcrumbs: BreadcrumbItem[] = [
 const props = defineProps<{
     user: User; // <-- Cambia a `User` (singular)
     roles: Role[];
+    branches: import('@/types').Branch[];
 }>();
 
 // 1. Inicializa el formulario con los datos del usuario
@@ -29,6 +30,7 @@ const form = useForm({
     address: props.user.address,
     phone: props.user.phone,
     role_id: props.user.role_id,
+    branch_id: props.user.branch_id ?? '',
     base_salary: props.user.base_salary,
     hire_date: props.user.hire_date,
     email: props.user.email,
@@ -95,6 +97,15 @@ const submit = () => {
                                     <option v-for="role in roles" :key="role.id" :value="role.id">{{ role.name }}</option>
                                 </select>
                                 <InputError :message="form.errors.role_id" />
+                            </div>
+
+                            <div class="grid gap-2">
+                                <Label for="branch_id">Sucursal</Label>
+                                <select id="branch_id" v-model="form.branch_id" class="px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:text-sm" required>
+                                    <option value="" disabled>Seleccione una sucursal</option>
+                                    <option v-for="branch in branches" :key="branch.id" :value="branch.id">{{ branch.name }}</option>
+                                </select>
+                                <InputError :message="form.errors.branch_id" />
                             </div>
 
                             <div class="grid gap-2">
