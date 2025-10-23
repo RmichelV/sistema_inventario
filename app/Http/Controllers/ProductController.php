@@ -81,6 +81,7 @@ class ProductController extends Controller
                 "code" => $product->code,
                 "img_product" => $routeImg,
                 "quantity_in_stock" => $pb->quantity_in_stock,
+                "unit_price" => $pb->unit_price ?? 0,
                 "boxes" => $productBoxesQuantityT,
                 "units_per_box" => $pb->units_per_box,
                 "last_update" => $pb->last_update,
@@ -174,6 +175,10 @@ class ProductController extends Controller
                         if (isset($productData['units_per_box'])) {
                             $pb->units_per_box = $productData['units_per_box'];
                         }
+                        // Actualizar unit_price si viene en el request
+                        if (isset($productData['unit_price'])) {
+                            $pb->unit_price = $productData['unit_price'];
+                        }
                         $pb->last_update = now()->toDateString();
                         $pb->save();
                     } else {
@@ -183,6 +188,7 @@ class ProductController extends Controller
                                 'product_id' => $product->id,
                                 'quantity_in_stock' => $productData['quantity_in_stock'] ?? 0,
                                 'units_per_box' => $productData['units_per_box'] ?? null,
+                                'unit_price' => $productData['unit_price'] ?? 0,
                                 'last_update' => now()->toDateString(),
                             ]);
                         } catch (QueryException $qe) {

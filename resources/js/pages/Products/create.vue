@@ -26,6 +26,7 @@ const productsForm = useForm({
     img_product: null as File | null,
     quantity_in_stock: '',
     units_per_box: '',
+    unit_price: undefined as number | undefined,
     last_update: '',
     }],
 });
@@ -38,6 +39,7 @@ const addProduct = () => {
         img_product: null as File | null,
         quantity_in_stock: '',
         units_per_box: '',
+        unit_price: undefined as number | undefined,
         last_update: '',
     });
 };
@@ -138,6 +140,21 @@ const submit = () => {
                                 v-model="product.units_per_box"
                             />
                             <InputError :message="productsForm.errors[`products.${index}.units_per_box`]" />
+                        </div>
+                        <div class="grid gap-2">
+                            <Label :for="'unit_price-' + index">Precio unitario en Dólares ($us)</Label>
+                            <Input
+                                :id="'unit_price-' + index"
+                                type="number"
+                                autofocus
+                                :tabindex="1"
+                                :name="'products[' + index + '][unit_price]'"
+                                placeholder="Ej. 6.00"
+                                step="0.01"
+                                min="0"
+                                v-model.number="product.unit_price"
+                            />
+                            <InputError :message="productsForm.errors[`products.${index}.unit_price`]" />
                         </div>
                         <Button v-if="productsForm.products.length > 1" type="button" @click="removeProduct(index)" class="mt-2 bg-red-500 hover:bg-red-600">Eliminar Producto</Button>
                     </div>

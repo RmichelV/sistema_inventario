@@ -102,6 +102,7 @@ const switchBranch = (event: Event) => {
                     'Cantidad en Stock',
                     'Cantidad de cajas',
                     'unidades por caja',
+                    'Precio Unitario',
                 ]"
                 :campos="[
                         'name',
@@ -110,6 +111,7 @@ const switchBranch = (event: Event) => {
                         'quantity_in_stock',
                         'boxes',
                         'units_per_box',
+                        'unit_price',
                         ]"
                 :agregar="{
                     href: route('rproducts.create'), 

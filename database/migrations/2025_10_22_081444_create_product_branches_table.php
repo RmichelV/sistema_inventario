@@ -16,6 +16,7 @@ return new class extends Migration
             $table->foreignId("branch_id")->constrained("branches");
             $table->foreignId("product_id")->constrained("products");
             $table->integer('quantity_in_stock');
+            $table->decimal('unit_price', 10, 2)->default(0);
             $table->integer('units_per_box')->nullable();
             $table->date('last_update')->nullable();
             $table->timestamps();
