@@ -12,6 +12,8 @@ use Illuminate\Support\Facades\DB;
 
 //Modelos
 use App\Models\Product;
+use App\Models\product_branch;
+use Illuminate\Support\Facades\Auth;
 
 //Requests
 use App\Http\Requests\Store\ProductStoreRequest;
@@ -23,7 +25,15 @@ class ProductStoreController extends Controller
      */
     public function index()
     {
-        $productinStore = Product_store::with("product")->get();
+        $branchId = Auth::user()->branch_id ?? null;
+
+        // Si la columna branch_id existe en la tabla product_stores, filtramos por ella;
+        // si no existe (antes de migrar), devolvemos todos los registros para compatibilidad.
+        if (\Schema::hasColumn('product_stores', 'branch_id') && $branchId) {
+            $productinStore = Product_store::with("product")->where('branch_id', $branchId)->get();
+        } else {
+            $productinStore = Product_store::with("product")->get();
+        }
         $usd_exchange_rate = Usd_exchange_rate::find(1);
         $productStores = $productinStore->map(function ($productstore )use($usd_exchange_rate) {
              
@@ -39,7 +49,10 @@ class ProductStoreController extends Controller
                 "porcentaje"=>$porcentaje
             ];
         }); 
-        $products = Product::all();
+        // Obtener solo productos que están en la bodega de la sucursal (product_branches)
+        $productIds = product_branch::where('branch_id', $branchId)->pluck('product_id')->toArray();
+        $products = Product::whereIn('id', $productIds)->get();
+
         return Inertia::render("ProductsStore/Index", [
             "productstores"=> $productStores,
             "products"=> $products
@@ -54,7 +67,29 @@ class ProductStoreController extends Controller
      */
     public function create()
     {
-        $products = Product::all();
+        $branchId = Auth::user()->branch_id ?? null;
+        if (\Schema::hasColumn('product_branches', 'branch_id') && $branchId) {
+            // Obtener product_branches para la sucursal y devolver los productos enriquecidos
+            $productBranches = product_branch::with('product')
+                ->where('branch_id', $branchId)
+                ->get();
+
+            $products = $productBranches->map(function ($pb) {
+                $product = $pb->product;
+
+                return [
+                    'id' => $product->id,
+                    'name' => $product->name ?? null,
+                    'code' => $product->code ?? null,
+                    'img' => $product->img ?? null,
+                    'quantity_in_stock' => $pb->quantity_in_stock ?? 0,
+                    'units_per_box' => $pb->units_per_box ?? null,
+                ];
+            })->values();
+        } else {
+            $products = Product::all();
+        }
+
         return Inertia::render("ProductsStore/create", [
             "products"=> $products
         ]);
@@ -70,31 +105,36 @@ class ProductStoreController extends Controller
 
         try {
             // 2. Iterar sobre cada ítem para procesarlo individualmente
+            $branchId = Auth::user()->branch_id ?? null;
+
             foreach ($request->input('items') as $index => $itemData) {
 
-                // Buscar el producto en la bodega por su ID
-                $productInStock = Product::findOrFail($itemData['product_id']);
+                // Buscar el stock en product_branches para la sucursal
+                $productInBranch = product_branch::where('branch_id', $branchId)
+                    ->where('product_id', $itemData['product_id'])
+                    ->first();
 
-                // 3. Validar si la cantidad solicitada es mayor que el stock disponible
-                if ($itemData['quantity'] > $productInStock->quantity_in_stock) {
-                    // Si falla, revertimos la transacción
+                if (!$productInBranch || ($itemData['quantity'] > ($productInBranch->quantity_in_stock ?? 0))) {
                     DB::rollBack();
-                    // Usamos un índice dinámico para mostrar el error correctamente en el formulario
-                    return redirect()->back()->withErrors(["items.{$index}.quantity" => 'La cantidad solicitada es mayor que la cantidad disponible en bodega.'])->withInput();
+                    return redirect()->back()->withErrors(["items.{$index}.quantity" => 'La cantidad solicitada es mayor que la cantidad disponible en la bodega de esta sucursal.'])->withInput();
                 }
 
-                // 4. Buscar o crear el producto en la tabla de la tienda
-                $productInStore = Product_store::firstOrNew(['product_id' => $itemData['product_id']]);
+                // Buscar o crear el producto en la tabla de la tienda para esta sucursal
+                $productInStore = Product_store::firstOrNew([
+                    'product_id' => $itemData['product_id'],
+                    'branch_id' => $branchId,
+                ]);
 
                 // Actualizar la cantidad y precios
-                $productInStore->quantity += $itemData['quantity'];
+                $productInStore->quantity = ($productInStore->quantity ?? 0) + $itemData['quantity'];
                 $productInStore->unit_price = $itemData['unit_price'];
                 $productInStore->last_update = now()->toDateString();
+                $productInStore->branch_id = $branchId;
                 $productInStore->save();
 
-                // 5. Restar la cantidad del stock en la bodega
-                $productInStock->quantity_in_stock -= $itemData['quantity'];
-                $productInStock->save();
+                // Restar la cantidad del stock en la bodega (product_branches)
+                $productInBranch->quantity_in_stock = ($productInBranch->quantity_in_stock ?? 0) - $itemData['quantity'];
+                $productInBranch->save();
             }
 
             // Si todas las operaciones fueron exitosas, confirma la transacción
@@ -117,7 +157,6 @@ class ProductStoreController extends Controller
     {
         //
     }
-
     /**
      * Show the form for editing the specified resource.
      */

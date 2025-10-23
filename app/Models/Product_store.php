@@ -16,7 +16,8 @@ class Product_store extends Model
         "product_id",
         "quantity",
         "unit_price",
-        'last_update'
+        'last_update',
+        'branch_id',
     ];
 
     public function product(){

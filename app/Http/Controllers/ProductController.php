@@ -73,8 +73,8 @@ class ProductController extends Controller
             // }
             $product = $pb->product;
             $Imgname = $product->img_product;
-            // Obtener URL usando el disco público (storage/app/public => public/storage)
-            $routeImg = $Imgname ? Storage::disk('public')->url('product_images/' . $Imgname) : null;
+            // Usar ruta relativa dentro de public/storage para evitar depender de APP_URL
+            $routeImg = $Imgname ? '/storage/product_images/' . $Imgname : null;
             return [
                 "id"=> $product->id,
                 "name"=> $product->name,
