@@ -41,10 +41,22 @@ class PurchaseController extends Controller
         });
    
 
+        // Añadir info de sucursales y usuario actual para el selector en frontend
+        $user = Auth::user();
+        $branches = \App\Models\branch::all();
+        $currentBranch = null;
+        if ($user && $user->branch_id) {
+            $currentBranch = $branches->firstWhere('id', $user->branch_id);
+        }
+
         return Inertia::render("Purchases/Index", [
             "products" => $products,
-            "purchases" => $purchases
+            "purchases" => $purchases,
+            'branches' => $branches,
+            'currentBranch' => $currentBranch,
+            'currentUser' => $user,
         ]);
+
     }
 
     /**
@@ -61,7 +73,20 @@ class PurchaseController extends Controller
         // Solo mostrar compras de la sucursal actual (si es necesario en la vista)
         $purchases = Purchase::where('branch_id', $branchId)->get();
 
-        return Inertia::render("Purchases/create", compact("products","purchases"));
+        $user = Auth::user();
+        $branches = \App\Models\branch::all();
+        $currentBranch = null;
+        if ($user && $user->branch_id) {
+            $currentBranch = $branches->firstWhere('id', $user->branch_id);
+        }
+
+        return Inertia::render("Purchases/create", [
+            'products' => $products,
+            'purchases' => $purchases,
+            'branches' => $branches,
+            'currentBranch' => $currentBranch,
+            'currentUser' => $user,
+        ]);
     }
 
     /**

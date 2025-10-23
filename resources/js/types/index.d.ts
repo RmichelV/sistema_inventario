@@ -122,6 +122,8 @@ export interface Product{
     units_per_box:number;
     minimum_wholesale_quantity: number;
     currency_type: string;
+    // Precio por sucursal (nullable/optional) agregado para soportar product_branches.unit_price
+    unit_price?: number;
     unit_price_wholesale: number;
     unit_price_retail: number;
     product_store?: ProductStore; 

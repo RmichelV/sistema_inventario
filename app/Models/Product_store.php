@@ -16,8 +16,15 @@ class Product_store extends Model
         "product_id",
         "quantity",
         "unit_price",
+        'price_multiplier',
         'last_update',
         'branch_id',
+    ];
+
+    protected $casts = [
+        'quantity' => 'integer',
+        'unit_price' => 'decimal:2',
+        'price_multiplier' => 'decimal:4',
     ];
 
     public function product(){

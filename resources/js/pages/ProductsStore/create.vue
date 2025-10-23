@@ -31,16 +31,22 @@ const productStoresForm = useForm({
         product_id: null as number | null,
         quantity: undefined as number | undefined,
         unit_price: undefined as number | undefined,
+    // price_multiplier es ahora un factor multiplicativo (ej. 1.1 => +10%)
+    price_multiplier: 1.0 as number,
     }],
 });
 
 // Función para agregar un nuevo ítem al formulario
 const addProductStoreItem = () => {
-    productStoresForm.items.push({
+    const newItem = {
         product_id: null,
         quantity: undefined,
         unit_price: undefined,
-    });
+        price_multiplier: 1.0,
+    };
+    // Calcular precio inicial
+    updateCalculatedPrice(newItem as any);
+    productStoresForm.items.push(newItem as any);
 };
 
 // Función para eliminar un ítem del formulario
@@ -53,9 +59,19 @@ const findProductInWarehouse = (id: number | null) => {
     return props.products.find(p => p.id === id) || null;
 };
 
-// La lógica de watch ya no es necesaria, ya que los campos de precio
-// se gestionarán para cada ítem de forma independiente si es necesario,
-// o se capturarán al enviar el formulario.
+// Función para calcular el precio unitario final basado en la bodega y el multiplicador
+const computeUnitPrice = (item: { product_id: number | null; price_multiplier: number }) => {
+    const product = findProductInWarehouse(item.product_id);
+    const base = product?.unit_price ? Number(product.unit_price) : 0;
+    // Multiplicador multiplicativo: base * multiplier
+    const multiplier = item.price_multiplier ?? 1.0;
+    return Number((base * multiplier).toFixed(2));
+};
+
+// Cuando cambie el producto o el multiplicador, actualizamos el unit_price
+const updateCalculatedPrice = (item: { product_id: number | null; price_multiplier: number; unit_price?: number }) => {
+    item.unit_price = computeUnitPrice(item as any);
+};
 
 const submit = () => {
     productStoresForm.post(route('rproductstores.store'), {
@@ -80,7 +96,8 @@ const submit = () => {
                             <Label :for="'product_id-' + index">Elija un producto</Label>
                             <SelectSearch
                                 :id="'product_id-' + index"
-                                v-model="item.product_id"
+                                                        v-model="item.product_id"
+                                                        @change="updateCalculatedPrice(item)"
                                 :options="props.products"
                                 :searchKeys="['name', 'code']"
                                 placeholder="Buscar un producto por nombre o código..."
@@ -108,15 +125,33 @@ const submit = () => {
                         </div>
 
                         <div class="grid gap-2">
-                            <Label :for="'unit_price-' + index">Precio unitario en Dolares ($us) </Label>
+                            <Label>Precio unitario en Dólares ($us)</Label>
+                            <p class="py-2">
+                                <span class="font-medium">{{ findProductInWarehouse(item.product_id)?.unit_price ? Number(findProductInWarehouse(item.product_id)?.unit_price).toFixed(2) : '0.00' }}</span>
+                            </p>
+                        </div>
+                        <div class="grid gap-2">
+                            <Label :for="'price_multiplier-' + index">Multiplicador (ej. 1.1 para +10%)</Label>
                             <Input
-                                :id="'unit_price-' + index"
+                                :id="'price_multiplier-' + index"
                                 type="number"
-                                min="0"
+                                min="1"
                                 step="0.01"
-                                required
-                                v-model.number="item.unit_price"
-                                placeholder="Ej. 45.50"
+                                v-model.number="item.price_multiplier"
+                                placeholder="Ej. 1.1000"
+                                @input="updateCalculatedPrice(item)"
+                            />
+                            <InputError :message="productStoresForm.errors[`items.${index}.price_multiplier`]" />
+                        </div>
+
+                        <div class="grid gap-2">
+                            <Label :for="'calculated_price-' + index">Precio unitario calculado ($us)</Label>
+                            <Input
+                                :id="'calculated_price-' + index"
+                                type="text"
+                                readonly
+                                :value="item.unit_price !== undefined ? Number(item.unit_price).toFixed(2) : (findProductInWarehouse(item.product_id)?.unit_price ? Number(findProductInWarehouse(item.product_id)?.unit_price).toFixed(2) : '0.00')"
+                                @focus="$event.preventDefault()"
                             />
                             <InputError :message="productStoresForm.errors[`items.${index}.unit_price`]" />
                         </div>

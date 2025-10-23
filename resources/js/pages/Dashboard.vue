@@ -8,7 +8,7 @@ import { ref, computed } from 'vue';
 import { type Product, type ProductStore, type Usd_exchange_rate } from '@/types'; 
 import { SelectSearch } from '@/components/ui/SelectSearch';
 import { ActionButton } from '@/components/ui/ActionButton';
-import { Table as productsTable} from '@/components/ui/Table';
+// import { Table as productsTable} from '@/components/ui/Table';
 const breadcrumbs: BreadcrumbItem[] = [
     {
         title: 'Dashboard',
@@ -16,12 +16,12 @@ const breadcrumbs: BreadcrumbItem[] = [
     },
 ];
 
-const { usd, products, productStores, productStores15Days, productStores30Days } = defineProps<{
+const { usd, products, productStores, currentBranch, currentUser } = defineProps<{
     usd: Usd_exchange_rate;
     products: Product[];
     productStores: ProductStore[];
-    productStores15Days: ProductStore[];
-    productStores30Days: ProductStore[];
+    currentBranch: { id: number; name: string } | null;
+    currentUser: { id: number; role_id: number };
 }>();
 
 const selectedProductId = ref<number | null>(null);
@@ -82,9 +82,15 @@ const toBsP = (price: number | undefined | null) => {
 
     <AppLayout :breadcrumbs="breadcrumbs">
         <div class="flex h-full flex-1 flex-col gap-4 rounded-xl p-4 overflow-x-auto">
+            <div class="flex items-center justify-between mb-2">
+                <div class="text-sm">Sucursal: <span class="font-bold">{{ currentBranch ? currentBranch.name : 'Sin sucursal asignada' }}</span></div>
+                <div v-if="currentUser && currentUser.role_id === 1">
+                    <!-- Admin puede cambiar sucursal desde otras vistas; aquí solo mostramos el nombre -->
+                </div>
+            </div>
             <div class="grid gap-4 md:grid-cols-3 grid-cols-1">
                 <!-- Placeholder 1: Buscar Producto -->
-                <!-- <div class="relative rounded-xl border border-sidebar-border/70 dark:border-sidebar-border flex flex-col items-center justify-center p-4 min-h-[220px] h-auto w-full">
+                <div class="relative rounded-xl border border-sidebar-border/70 dark:border-sidebar-border flex flex-col items-center justify-center p-4 min-h-[220px] h-auto w-full">
                     <h1 class="text-2xl font-bold mb-4">Buscar Producto</h1>
                     <SelectSearch
                         v-model="selectedProductId"
@@ -94,10 +100,10 @@ const toBsP = (price: number | undefined | null) => {
                         labelKey="code"
                         class="w-full"
                     />
-                </div> -->
+                </div>
 
                 <!-- Placeholder 2: Detalle del Producto -->
-                <!-- <div class="relative rounded-xl border border-sidebar-border/70 dark:border-sidebar-border flex flex-col justify-center p-4 min-h-[220px] h-auto w-full">
+                <div class="relative rounded-xl border border-sidebar-border/70 dark:border-sidebar-border flex flex-col justify-center p-4 min-h-[220px] h-auto w-full">
                     <h1 class="text-xl font-bold mb-2">Detalle del Producto</h1>
                     <div v-if="currentProduct">
                         <p><strong>Nombre:</strong> {{ currentProduct.name }}</p>
@@ -111,7 +117,7 @@ const toBsP = (price: number | undefined | null) => {
                     <div v-else>
                         <p class="text-gray-500 mt-2">No hay producto seleccionado.</p>
                     </div>
-                </div> -->
+                </div>
 
                 <!-- Placeholder 3: Cambio Actual -->
                 <div class="relative rounded-xl border border-sidebar-border/70 dark:border-sidebar-border flex flex-col items-center justify-center p-4 min-h-[220px] h-auto w-full">

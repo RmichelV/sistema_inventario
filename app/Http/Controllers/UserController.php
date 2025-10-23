@@ -150,9 +150,8 @@ class UserController extends Controller
     $user = auth()->user();
     $user->branch_id = $request->input('branch_id');
     $user->save();
-
-    // Devolver una redirección para que Inertia la procese y recargue la página
-    return redirect()->route('rproducts.index')->with('success', 'Sucursal cambiada correctamente.');
+    // Devolver una redirección hacia atrás con mensaje de éxito para que Inertia procese correctamente
+    return redirect()->back()->with('success', 'Sucursal cambiada correctamente.');
     }
 
     /**

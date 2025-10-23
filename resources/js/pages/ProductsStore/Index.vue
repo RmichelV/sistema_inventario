@@ -5,6 +5,11 @@ import { Head } from '@inertiajs/vue3';
 import { Table as ProductTable} from '@/components/ui/Table';
 import type { Product, ProductStore } from '@/types'
 
+// Agregar imports y composables para swal y cambio de sucursal
+import { onMounted } from 'vue';
+import { usePage, useForm } from '@inertiajs/vue3';
+import { useSwal } from '../../composables/useSwal';
+
 const breadcrumbs: BreadcrumbItem[] = [
     {
         title: 'Lista de productos en la tienda',
@@ -12,10 +17,45 @@ const breadcrumbs: BreadcrumbItem[] = [
     },
 ];
 
-const { products, productstores } = defineProps<{
+const { products, productstores, branches, currentBranch, currentUser } = defineProps<{
     products: Product[];
-    productstores: ProductStore[]
+    productstores: ProductStore[];
+    branches: { id: number; name: string }[];
+    currentBranch: { id: number; name: string } | null;
+    currentUser: { id: number; role_id: number };
 }>();
+
+// SweetAlert2 y switchBranch
+const page = usePage();
+const swal = useSwal();
+
+onMounted(() => {
+    if (page.props.flash.success) {
+        swal.fire({
+            icon: 'success',
+            title: '¡Éxito!',
+            text: page.props.flash.success,
+        });
+    }
+});
+
+const form = useForm({ branch_id: '' });
+const switchBranch = (event: Event) => {
+    const select = event.target as HTMLSelectElement;
+    const branchId = select.value;
+
+    if (!branchId) return;
+
+    form.branch_id = branchId;
+    form.post(route('rusers.switchBranch'), {
+        onSuccess: () => {
+            window.location.reload();
+        },
+        onError: (errors: any) => {
+            console.error('Failed to switch branch', errors);
+        }
+    });
+};
 </script>
 
 <template>
@@ -36,10 +76,20 @@ const { products, productstores } = defineProps<{
                 </div>
             </div> -->
             <div class="relative min-h-[100vh] flex-1 rounded-xl border border-sidebar-border/70 md:min-h-min dark:border-sidebar-border">
-            <div >
-                <div>P/U $us: Precio Unitario en Dolares</div>
-                <div>P/U BS: Precio Unitario en Bolivianos</div>
-                <div>P/U BS + 1.1%: Precio Unitario en Bolivianos + 1.1% del precio</div>
+            <div class="flex items-center justify-between mb-4">
+                <div>
+                    <div>P/U $us: Precio Unitario en Dolares</div>
+                    <div>P/U BS: Precio Unitario en Bolivianos</div>
+                    <div>P/U BS + 1.1%: Precio Unitario en Bolivianos + 1.1% del precio</div>
+                </div>
+
+                <div>
+                    <label v-if="currentUser && currentUser.role_id === 1" class="mr-2 font-medium">Seleccionar sucursal:</label>
+                    <select v-if="currentUser && currentUser.role_id === 1" @change="switchBranch" :value="currentBranch ? currentBranch.id : ''" class="px-2 py-1 border rounded">
+                        <option value="">-- Seleccionar --</option>
+                        <option v-for="b in branches" :key="b.id" :value="b.id">{{ b.name }}</option>
+                    </select>
+                </div>
             </div>
             <ProductTable
                 :cadena="productstores??[]"

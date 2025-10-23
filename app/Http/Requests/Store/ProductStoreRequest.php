@@ -25,7 +25,8 @@ class ProductStoreRequest extends FormRequest
             'items' => ['required','array'],
             'items.*.product_id' => ['required','exists:products,id'],
             'items.*.quantity' => ['required','numeric','min:1'],
-            'items.*.unit_price' => ['required','numeric','min:0.01'],
+            'items.*.unit_price' => ['nullable','numeric','min:0.01'],
+            'items.*.price_multiplier' => ['nullable','numeric','min:0'],
         ];
     }
 
@@ -42,6 +43,8 @@ class ProductStoreRequest extends FormRequest
             'items.*.unit_price.required' => 'El precio unitario es obligatorio.',
             'items.*.unit_price.numeric' => 'El precio unitario debe ser un número.',
             'items.*.unit_price.min' => 'El precio unitario debe ser al menos 0.1',
+            'items.*.price_multiplier.numeric' => 'El multiplicador debe ser un número.',
+            'items.*.price_multiplier.min' => 'El multiplicador debe ser al menos 0.',
         ];
     }
 }

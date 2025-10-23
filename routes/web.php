@@ -94,6 +94,14 @@ Route::get('dashboard', function () {
             ];
         }); 
       
+    // Pasar también información de sucursales y usuario actual para el selector
+    $user = auth()->user();
+    $branches = \App\Models\branch::all();
+    $currentBranch = null;
+    if ($user && $user->branch_id) {
+        $currentBranch = $branches->firstWhere('id', $user->branch_id);
+    }
+
     return Inertia::render('Dashboard',[
         'usd'=>$usd,
         'products'=>$products,
@@ -102,6 +110,9 @@ Route::get('dashboard', function () {
         // Y las listas filtradas
         'productStores15Days' => $productStores15Days,
         'productStores30Days' => $productStores30Days,
+        'branches' => $branches,
+        'currentBranch' => $currentBranch,
+        'currentUser' => $user,
     ]);
 })->middleware(['auth', 'role:1,2,3,4'])->name('dashboard');
 

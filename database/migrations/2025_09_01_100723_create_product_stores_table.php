@@ -16,6 +16,8 @@ return new class extends Migration
             $table->foreignId('product_id')->constrained('products')->unique();
             $table->integer('quantity');
             $table->decimal('unit_price',10,2);
+            // Multiplicador para calcular el precio final en tienda (ej. 1.1 para +10%)
+            $table->decimal('price_multiplier', 8, 4)->default(1.0000);
             $table->date('last_update')->nullable();
             $table->timestamps();
         });

@@ -7,7 +7,7 @@ import type { Purchase } from '@/types'
 
 // Agrega las importaciones necesarias
 import { onMounted } from 'vue';
-import { usePage } from '@inertiajs/vue3';
+import { usePage, useForm } from '@inertiajs/vue3';
 import { useSwal } from '../../composables/useSwal'; // Importa el composable
 
 
@@ -18,8 +18,11 @@ const breadcrumbs: BreadcrumbItem[] = [
     },
 ];
 
-const { purchases } = defineProps<{
+const { purchases, branches, currentBranch, currentUser } = defineProps<{
     purchases: Purchase[];
+    branches: { id: number; name: string }[];
+    currentBranch: { id: number; name: string } | null;
+    currentUser: { id: number; role_id: number };
 }>();
 
 // Lógica de SweetAlert2
@@ -37,6 +40,24 @@ onMounted(() => {
         });
     }
 });
+
+const form = useForm({ branch_id: '' });
+const switchBranch = (event: Event) => {
+    const select = event.target as HTMLSelectElement;
+    const branchId = select.value;
+
+    if (!branchId) return;
+
+    form.branch_id = branchId;
+    form.post(route('rusers.switchBranch'), {
+        onSuccess: () => {
+            window.location.reload();
+        },
+        onError: (errors: any) => {
+            console.error('Failed to switch branch', errors);
+        }
+    });
+};
 </script>
 
 <template>
@@ -57,7 +78,17 @@ onMounted(() => {
                 </div>
             </div> -->
             <div class="relative min-h-[100vh] flex-1 rounded-xl border border-sidebar-border/70 md:min-h-min dark:border-sidebar-border">
-            
+                <div class="flex items-center justify-between mb-4">
+                    <div class="text-lg font-semibold">Historial de compras</div>
+                    <div>
+                        <label v-if="currentUser && currentUser.role_id === 1" class="mr-2 font-medium">Seleccionar sucursal:</label>
+                        <select v-if="currentUser && currentUser.role_id === 1" @change="switchBranch" :value="currentBranch ? currentBranch.id : ''" class="px-2 py-1 border rounded">
+                            <option value="">-- Seleccionar --</option>
+                            <option v-for="b in branches" :key="b.id" :value="b.id">{{ b.name }}</option>
+                        </select>
+                    </div>
+                </div>
+
             <ProductTable
                 :cadena="purchases??[]"
                 :cabeceras="[

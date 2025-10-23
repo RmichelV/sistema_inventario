@@ -36,26 +36,41 @@ class ProductStoreController extends Controller
         }
         $usd_exchange_rate = Usd_exchange_rate::find(1);
         $productStores = $productinStore->map(function ($productstore )use($usd_exchange_rate) {
-             
-            $unit_price_bs = 'Bs. ' . number_format(($usd_exchange_rate->exchange_rate * $productstore->unit_price),2); 
-            $porcentaje = 'Bs. ' . number_format((($usd_exchange_rate->exchange_rate * $productstore->unit_price)*1.1),2); 
-            
+            // unit_price en la tabla ya representa el precio final por unidad (dólares)
+            $storedPrice = $productstore->unit_price ?? 0;
+
+            $unit_price_bs = 'Bs. ' . number_format(($usd_exchange_rate->exchange_rate * $storedPrice),2);
+            $porcentaje = 'Bs. ' . number_format((($usd_exchange_rate->exchange_rate * $storedPrice)*1.1),2);
+
             return [
                 "id"=> $productstore->id,
                 "product_id"=> $productstore->product->code,
                 "quantity"=> $productstore->quantity,
-                "unit_price"=> $productstore->unit_price,
+                // unit_price aquí representará el precio FINAL por unidad (dólares)
+                "unit_price"=> round($storedPrice, 2),
                 "unit_price_bs"=>$unit_price_bs,
-                "porcentaje"=>$porcentaje
+                "porcentaje"=>$porcentaje,
+                "price_multiplier" => $productstore->price_multiplier ?? 1.0,
             ];
         }); 
         // Obtener solo productos que están en la bodega de la sucursal (product_branches)
         $productIds = product_branch::where('branch_id', $branchId)->pluck('product_id')->toArray();
         $products = Product::whereIn('id', $productIds)->get();
 
+        // Sucursales y usuario actual para el selector en frontend
+        $user = Auth::user();
+        $branches = \App\Models\branch::all();
+        $currentBranch = null;
+        if ($user && $user->branch_id) {
+            $currentBranch = $branches->firstWhere('id', $user->branch_id);
+        }
+
         return Inertia::render("ProductsStore/Index", [
             "productstores"=> $productStores,
-            "products"=> $products
+            "products"=> $products,
+            'branches' => $branches,
+            'currentBranch' => $currentBranch,
+            'currentUser' => $user,
         ]);
 
 
@@ -83,6 +98,7 @@ class ProductStoreController extends Controller
                     'code' => $product->code ?? null,
                     'img' => $product->img ?? null,
                     'quantity_in_stock' => $pb->quantity_in_stock ?? 0,
+                    'unit_price' => $pb->unit_price ?? 0,
                     'units_per_box' => $pb->units_per_box ?? null,
                 ];
             })->values();
@@ -90,8 +106,18 @@ class ProductStoreController extends Controller
             $products = Product::all();
         }
 
+        $user = Auth::user();
+        $branches = \App\Models\branch::all();
+        $currentBranch = null;
+        if ($user && $user->branch_id) {
+            $currentBranch = $branches->firstWhere('id', $user->branch_id);
+        }
+
         return Inertia::render("ProductsStore/create", [
-            "products"=> $products
+            "products"=> $products,
+            'branches' => $branches,
+            'currentBranch' => $currentBranch,
+            'currentUser' => $user,
         ]);
     }
 
@@ -125,9 +151,24 @@ class ProductStoreController extends Controller
                     'branch_id' => $branchId,
                 ]);
 
-                // Actualizar la cantidad y precios
+                // Actualizar la cantidad
                 $productInStore->quantity = ($productInStore->quantity ?? 0) + $itemData['quantity'];
-                $productInStore->unit_price = $itemData['unit_price'];
+
+                // Determinar el unit_price efectivo: si viene en el request, usarlo; si no, calcular desde product_branches.unit_price * price_multiplier
+                $effectiveUnitPrice = null;
+                if (isset($itemData['unit_price']) && $itemData['unit_price'] !== null) {
+                    $effectiveUnitPrice = $itemData['unit_price'];
+                } else {
+                    $base = $productInBranch->unit_price ?? 0;
+                    // price_multiplier ahora es un factor multiplicativo (ej. 1.1 para +10%)
+                    $mult = isset($itemData['price_multiplier']) ? $itemData['price_multiplier'] : ($productInStore->price_multiplier ?? 1.0);
+                    $effectiveUnitPrice = round($base * $mult, 2);
+                }
+                $productInStore->unit_price = $effectiveUnitPrice;
+                // Guardar multiplicador si viene (ej. 1.1)
+                if (isset($itemData['price_multiplier'])) {
+                    $productInStore->price_multiplier = $itemData['price_multiplier'];
+                }
                 $productInStore->last_update = now()->toDateString();
                 $productInStore->branch_id = $branchId;
                 $productInStore->save();
@@ -178,7 +219,9 @@ class ProductStoreController extends Controller
         $productStore->product_id = $request->product_id;
         $productStore->quantity = $request->quantity;
         $productStore->unit_price = $request->unit_price;
-
+        if ($request->has('price_multiplier')) {
+            $productStore->price_multiplier = $request->price_multiplier;
+        }
 
         $productStore->save();
         return redirect()->route('rproductstores.index');
