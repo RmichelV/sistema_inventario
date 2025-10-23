@@ -1,13 +1,11 @@
 <script setup lang="ts">
 import { Head, useForm } from '@inertiajs/vue3';
-import { computed } from 'vue';
 
 import InputError from '@/components/InputError.vue';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import AppLayout from '@/layouts/AppLayout.vue';
-import PlaceholderPattern from '../../components/PlaceholderPattern.vue';
 import type { BreadcrumbItem, Product } from '@/types';
 import { SelectSearch } from '@/components/ui/SelectSearch';
 import { LoaderCircle, Trash2 } from 'lucide-vue-next';
@@ -21,7 +19,7 @@ const purchaseForm = useForm({
     }],
 });
 
-const props = defineProps<{
+const { products } = defineProps<{
     products: Product[];
 }>();
 
@@ -49,11 +47,6 @@ const submit = () => {
             purchaseForm.reset();
         },
     });
-};
-
-// 💡 Helper function to find a product by ID for displaying details (optional)
-const findProduct = (id: number | null) => {
-    return props.products.find(p => p.id === id) || null;
 };
 </script>
 
@@ -83,7 +76,7 @@ const findProduct = (id: number | null) => {
                             <SelectSearch
                                 :id="'product_id-' + index"
                                 v-model="item.product_id"
-                                :options="props.products"
+                                :options="products"
                                 :searchKeys="['name', 'code']"
                                 placeholder="Buscar un producto por nombre o código..."
                                 required

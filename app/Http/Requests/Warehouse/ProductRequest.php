@@ -23,7 +23,9 @@ class ProductRequest extends FormRequest
     {
         return [
                 'products.*.name' => ['string', 'max:255', 'nullable'],
-                'products.*.code' => ['required', 'string', 'max:255', 'unique:products,code'],
+                // El código puede existir porque el producto es global; el inventario por sucursal
+                // se gestiona en la tabla product_branches. Por eso quitamos la regla unique aquí.
+                'products.*.code' => ['required', 'string', 'max:255'],
                 'products.*.img_product' => ['nullable', 'image', 'max:2048'],
                 'products.*.quantity_in_stock' => ['required', 'numeric', 'min:0'],
                 'products.*.units_per_box' => ['required', 'numeric', 'min:0'],
@@ -34,7 +36,7 @@ class ProductRequest extends FormRequest
         return [
             
             'products.*.code.required' => 'El campo :attribute es obligatorio.',
-            'products.*.code.unique' => 'El producto ya ha sido registrado.',
+            //'products.*.code.unique' => 'El producto ya ha sido registrado.',
            
         ];
     }

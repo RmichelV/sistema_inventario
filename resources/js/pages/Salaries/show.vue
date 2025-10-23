@@ -1,8 +1,7 @@
 <script setup lang="ts">
 import AppLayout from '@/layouts/AppLayout.vue';
-import { Salary, type BreadcrumbItem, type User } from '@/types'; // Se importan User y BreadcrumbItem
-import { Head, router } from '@inertiajs/vue3'; // Importar router
-import PlaceholderPattern from '../../components/PlaceholderPattern.vue';
+import { Salary, type BreadcrumbItem } from '@/types';
+import { Head } from '@inertiajs/vue3';
 
 import { Table as salaryTable} from '@/components/ui/Table';
 
@@ -13,9 +12,8 @@ const breadcrumbs: BreadcrumbItem[] = [
     },
 ];
 
-const props = defineProps<{
+const { salaries } = defineProps<{
     salaries: Salary[];
-
 }>();
 
 // Agrega las importaciones necesarias

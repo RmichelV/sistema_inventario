@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue';
+import { computed } from 'vue';
 import { Head, useForm } from '@inertiajs/vue3';
 import { LoaderCircle, Trash2 } from 'lucide-vue-next';
 
@@ -21,7 +21,7 @@ const breadcrumbs: BreadcrumbItem[] = [
     },
 ];
 
-const props = defineProps<{
+const { products, productStores, usd_exchange_rate } = defineProps<{
     products: Product[];
     productStores?: ProductStore[];
     usd_exchange_rate?: Usd_exchange_rate;
@@ -86,10 +86,10 @@ const removeSaleItem = (index: number) => {
 
 // Función para encontrar un producto de la tienda y sus precios
 const findProductInStore = (productId: number | null) => {
-    if (!productId || !props.productStores) {
+    if (!productId || !productStores) {
         return null;
     }
-    return props.productStores.find(p => p.product_id === productId) || null;
+    return productStores.find(p => p.product_id === productId) || null;
 };
 
 // Función para encontrar un producto en bodega y su stock
@@ -97,24 +97,19 @@ const findProductInWarehouse = (productId: number | null) => {
     if (!productId) {
         return null;
     }
-    return props.products.find(p => p.id === productId) || null;
+    return products.find(p => p.id === productId) || null;
 };
 
 // Propiedad computada para obtener la tasa de cambio del dólar
 const exchangeRate = computed(() => {
-    if (props.usd_exchange_rate && props.usd_exchange_rate.id === 1) {
-        return props.usd_exchange_rate.exchange_rate;
+    if (usd_exchange_rate && usd_exchange_rate.id === 1) {
+        return usd_exchange_rate.exchange_rate;
     }
     return 1; 
 });
 
 // Función para convertir a bolivianos (Bs) - Devuelve String formateado
-const toBsDisplay = (price: number | undefined | null) => {
-    if (price === undefined || price === null) {
-        return 'N/A';
-    }
-    return (price * exchangeRate.value).toFixed(2);
-};
+// toBsDisplay removed (not used anywhere)
 
 // --- LÓGICA DE CÁLCULO DE PRECIOS POR ÍTEM ---
 
@@ -149,16 +144,7 @@ const totalMinimumBs = computed(() => {
 });
 
 
-// Propiedad computada para calcular el precio total de la venta, usando el precio seleccionado de cada ítem (en USD)
-const totalSalePrice = computed(() => {
-    // Suma los selected_price (en Bs) y los convierte a USD
-    return form.items.reduce((total, item) => {
-        if (item.selected_price) {
-            return total + (item.selected_price / exchangeRate.value);
-        }
-        return total;
-    }, 0).toFixed(2); // Retorna String para display
-});
+// totalSalePrice removed (not used anywhere)
 
 // Propiedad computada para calcular el precio total de la venta, usando el precio seleccionado de cada ítem (en Bs)
 const totalSalePriceBs = computed(() => {
@@ -234,7 +220,7 @@ const submit = () => {
                                 <SelectSearch
                                     :id="'product_id-' + index"
                                     v-model="item.product_id"
-                                    :options="props.products"
+                                    :options="products"
                                     :searchKeys="['name', 'code']"
                                     placeholder="Buscar un producto por nombre o código..."
                                     required

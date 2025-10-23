@@ -7,6 +7,8 @@ use Illuminate\Http\Request;
 
 //models
 use App\Models\Product;
+use App\Models\product_branch;
+use Illuminate\Support\Facades\Auth;
 
 //librerias
 use Illuminate\Support\Facades\Validator;
@@ -22,10 +24,12 @@ class PurchaseController extends Controller
    public function index()
     {
         // 1. Ejecuta la consulta para obtener la colección de productos
+        $branchId = Auth::user()->branch_id;
+
         $products = Product::all();
 
-        // 2. Llama a la relación con el nombre correcto y en minúscula
-        $purchasesList = Purchase::with("product")->get();
+        // 2. Obtenemos solo las compras de la sucursal del usuario autenticado
+        $purchasesList = Purchase::with("product")->where('branch_id', $branchId)->get();
         // dd($purchasesList);
         $purchases = $purchasesList->map(function ($purchase) {
             return [
@@ -48,8 +52,15 @@ class PurchaseController extends Controller
      */
     public function create()
     {
-        $products = Product::all();
-        $purchases = Purchase::all();
+        $branchId = Auth::user()->branch_id;
+
+        // Solo obtener productos que existan en inventario para la sucursal actual
+        $productIds = product_branch::where('branch_id', $branchId)->pluck('product_id')->toArray();
+        $products = Product::whereIn('id', $productIds)->get();
+
+        // Solo mostrar compras de la sucursal actual (si es necesario en la vista)
+        $purchases = Purchase::where('branch_id', $branchId)->get();
+
         return Inertia::render("Purchases/create", compact("products","purchases"));
     }
 
@@ -63,22 +74,33 @@ class PurchaseController extends Controller
 
         try {
             // Itera sobre el array de ítems de compra que viene del formulario
+            $branchId = Auth::user()->branch_id;
+
             foreach ($request->input('items') as $itemData) {
-                
-                // 1. Crear el registro de la compra
+                // 1. Crear el registro de la compra con branch_id
                 Purchase::create([
                     "product_id"      => $itemData['product_id'],
                     "purchase_quantity" => $itemData['purchase_quantity'],
                     "purchase_date"   => $request->input('purchase_date'), // La fecha es la misma para todos los ítems
+                    "branch_id"       => $branchId,
                 ]);
 
-                // 2. Buscar el producto para actualizar su stock
-                $product = Product::find($itemData['product_id']);
+                // 2. Actualizar o crear el registro en product_branches (inventario por sucursal)
+                $productBranch = product_branch::where('branch_id', $branchId)
+                    ->where('product_id', $itemData['product_id'])
+                    ->first();
 
-                // 3. Actualizar la cantidad en stock
-                if ($product) {
-                    $product->quantity_in_stock += $itemData['purchase_quantity'];
-                    $product->save();
+                if ($productBranch) {
+                    $productBranch->quantity_in_stock += $itemData['purchase_quantity'];
+                    $productBranch->last_update = now();
+                    $productBranch->save();
+                } else {
+                    product_branch::create([
+                        'branch_id' => $branchId,
+                        'product_id' => $itemData['product_id'],
+                        'quantity_in_stock' => $itemData['purchase_quantity'],
+                        'last_update' => now(),
+                    ]);
                 }
             }
 

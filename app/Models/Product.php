@@ -15,13 +15,15 @@ class Product extends Model
     protected $fillable = [
         'name',
         'code',
-        'img_product',
-        'quantity_in_stock',
-        'units_per_box',
-        'last_update'
+        'img_product'
     ];
     public function productStore()
     {
         return $this->hasOne(Product_store::class);
+    }
+
+    public function productBranches()
+    {
+        return $this->hasMany(product_branch::class, 'product_id', 'id');
     }
 }

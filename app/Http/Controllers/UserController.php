@@ -76,20 +76,22 @@ class UserController extends Controller
      */
     public function store(UserRequest $request)
     {
-        // dd( $request->all());
-        $user = User::create([
-            'name' => $request->name,
-            'address' => $request->address,
-            'phone' => $request->phone,
-            'role_id' => $request->role_id,
-            'branch_id' => $request->branch_id ?? null,
-            'base_salary' => $request->base_salary,
-            'hire_date' => $request->hire_date,
-            'email' => $request->email,
-            'password' => bcrypt($request->password), // Asegúrate de hashear la contraseña
-        ]);
-        return redirect()->route('rusers.index')->with('success','!Registro Exitoso¡');
+        // Usar los datos validados para evitar accesos a propiedades mágicas que los analizadores marcan como indefinidas
+        $data = $request->validated();
 
+        $user = User::create([
+            'name' => $data['name'],
+            'address' => $data['address'],
+            'phone' => $data['phone'] ?? null,
+            'role_id' => $data['role_id'],
+            'branch_id' => $data['branch_id'] ?? null,
+            'base_salary' => $data['base_salary'],
+            'hire_date' => $data['hire_date'],
+            'email' => $data['email'],
+            'password' => bcrypt($data['password']), // Asegúrate de hashear la contraseña
+        ]);
+
+        return redirect()->route('rusers.index')->with('success','!Registro Exitoso¡');
     }
 
     /**
@@ -134,6 +136,23 @@ class UserController extends Controller
         $user->save();
 
         return redirect()->route('rusers.index')->with('success','¡Actualización Exitosa!');
+    }
+
+    /**
+     * Switch the branch of the authenticated user.
+     */
+    public function switchBranch(Request $request)
+    {
+        $request->validate([
+            'branch_id' => 'required|exists:branches,id',
+        ]);
+
+    $user = auth()->user();
+    $user->branch_id = $request->input('branch_id');
+    $user->save();
+
+    // Devolver una redirección para que Inertia la procese y recargue la página
+    return redirect()->route('rproducts.index')->with('success', 'Sucursal cambiada correctamente.');
     }
 
     /**

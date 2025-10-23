@@ -2,7 +2,6 @@
 import AppLayout from '@/layouts/AppLayout.vue';
 import { type BreadcrumbItem, type User } from '@/types'; // Se importan User y BreadcrumbItem
 import { Head, router } from '@inertiajs/vue3'; // Importar router
-import PlaceholderPattern from '../../components/PlaceholderPattern.vue';
 
 import { Table as salaryTable} from '@/components/ui/Table';
 import { useSwal } from '../../composables/useSwal';
@@ -14,7 +13,7 @@ const breadcrumbs: BreadcrumbItem[] = [
     },
 ];
 
-const props = defineProps<{
+const { users } = defineProps<{
     users: User[];
 
 }>();

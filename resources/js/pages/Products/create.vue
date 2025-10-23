@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import AppLayout from '@/layouts/AppLayout.vue';
-import type { BreadcrumbItem, Product } from '@/types';
+import type { BreadcrumbItem } from '@/types';
 import { LoaderCircle } from 'lucide-vue-next';
 
 const breadcrumbs: BreadcrumbItem[] = [
@@ -15,9 +15,7 @@ const breadcrumbs: BreadcrumbItem[] = [
     },
 ];
 
-const props = defineProps<{
-    products: Product[];
-}>();
+// No props required for this form; defineProps removed to avoid unused prop warnings
 
 
 // Creamos un array vacío para guardar los productos

@@ -1,9 +1,8 @@
 <script setup lang="ts">
 import AppLayout from '@/layouts/AppLayout.vue';
 import { type BreadcrumbItem } from '@/types';
-import PlaceholderPattern from '../../components/PlaceholderPattern.vue';
 import type { User, Role } from '@/types';
-import { useForm, Head, usePage } from '@inertiajs/vue3'; // Asegúrate de importar useForm
+import { useForm, Head } from '@inertiajs/vue3'; // Asegúrate de importar useForm
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -18,7 +17,7 @@ const breadcrumbs: BreadcrumbItem[] = [
     },
 ];
 
-const props = defineProps<{
+const { user, roles, branches } = defineProps<{
     user: User; // <-- Cambia a `User` (singular)
     roles: Role[];
     branches: import('@/types').Branch[];
@@ -26,14 +25,14 @@ const props = defineProps<{
 
 // 1. Inicializa el formulario con los datos del usuario
 const form = useForm({
-    name: props.user.name,
-    address: props.user.address,
-    phone: props.user.phone,
-    role_id: props.user.role_id,
-    branch_id: props.user.branch_id ?? '',
-    base_salary: props.user.base_salary,
-    hire_date: props.user.hire_date,
-    email: props.user.email,
+    name: user.name,
+    address: user.address,
+    phone: user.phone,
+    role_id: user.role_id,
+    branch_id: user.branch_id ?? '',
+    base_salary: user.base_salary,
+    hire_date: user.hire_date,
+    email: user.email,
     password: '',
     password_confirmation: '',
 });
@@ -41,7 +40,7 @@ const form = useForm({
 // 2. Define el método para enviar la actualización
 const submit = () => {
     // Usa form.put() para enviar una solicitud PUT y el id del usuario en la URL
-    form.put(route('rusers.update', props.user.id), {
+    form.put(route('rusers.update', user.id), {
         onSuccess: () => {
             // Opcional: limpiar la contraseña después de un envío exitoso
             form.reset('password', 'password_confirmation');

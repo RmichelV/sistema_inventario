@@ -2,9 +2,8 @@
 import AppLayout from '@/layouts/AppLayout.vue';
 import { type BreadcrumbItem } from '@/types';
 import { Head } from '@inertiajs/vue3';
-import PlaceholderPattern from '../../components/PlaceholderPattern.vue';
 import { Table as ProductTable} from '@/components/ui/Table';
-import type { Product, ProductStore, Purchase } from '@/types'
+import type { Product, ProductStore } from '@/types'
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
@@ -13,10 +12,9 @@ const breadcrumbs: BreadcrumbItem[] = [
     },
 ];
 
-const props = defineProps<{
+const { products, productstores } = defineProps<{
     products: Product[];
     productstores: ProductStore[]
-    
 }>();
 </script>
 

@@ -8,7 +8,7 @@ import type { Product } from '@/types'
 
 // Agrega las importaciones necesarias
 import { onMounted } from 'vue';
-import { usePage } from '@inertiajs/vue3';
+import { usePage, useForm } from '@inertiajs/vue3';
 import { useSwal } from '../../composables/useSwal'; // Importa el composable
 
 // Lógica de SweetAlert2
@@ -34,10 +34,32 @@ const breadcrumbs: BreadcrumbItem[] = [
     },
 ];
 
-const props = defineProps<{
+const { products, branches, currentBranch, currentUser } = defineProps<{
     products: Product[];
-    
+    branches: { id: number; name: string }[];
+    currentBranch: { id: number; name: string } | null;
+    currentUser: { id: number; role_id: number };
 }>();
+
+// Método para cambiar la branch del usuario autenticado (solo role_id === 1 lo verá)
+const form = useForm({ branch_id: '' });
+const switchBranch = (event: Event) => {
+    const select = event.target as HTMLSelectElement;
+    const branchId = select.value;
+
+    if (!branchId) return;
+
+    form.branch_id = branchId;
+    form.post(route('rusers.switchBranch'), {
+        onSuccess: () => {
+            // recargar para que el backend sirva los productos del nuevo branch
+            window.location.reload();
+        },
+        onError: (errors: any) => {
+            console.error('Failed to switch branch', errors);
+        }
+    });
+};
 </script>
 
 <template>
@@ -58,7 +80,19 @@ const props = defineProps<{
                 </div>
             </div> -->
             <div class="relative min-h-[100vh] flex-1 rounded-xl border border-sidebar-border/70 md:min-h-min dark:border-sidebar-border">
-            
+                <div class="flex items-center justify-between mb-4">
+                    <div class="text-lg font-semibold">
+                        Bodega: <span class="font-bold">{{ currentBranch ? currentBranch.name : 'Sin sucursal asignada' }}</span>
+                    </div>
+
+                    <div>
+                        <label v-if="currentUser && currentUser.role_id === 1" class="mr-2 font-medium">Seleccionar sucursal:</label>
+                        <select v-if="currentUser && currentUser.role_id === 1" @change="switchBranch" :value="currentBranch ? currentBranch.id : ''" class="px-2 py-1 border rounded">
+                            <option value="">-- Seleccionar --</option>
+                            <option v-for="b in branches" :key="b.id" :value="b.id">{{ b.name }}</option>
+                        </select>
+                    </div>
+                </div>
             <ProductTable
                 :cadena="products??[]"
                 :cabeceras="[

@@ -4,10 +4,9 @@
 import AppLayout from '@/layouts/AppLayout.vue';
 import { type BreadcrumbItem, type Sale } from '@/types';
 import { Head, router } from '@inertiajs/vue3';
-import PlaceholderPattern from '../../components/PlaceholderPattern.vue';
+// PlaceholderPattern removed (unused)
 import { Table as ProductTable } from '@/components/ui/Table';
 import { generarNotaVentaPDF } from '@/utils/notaVentaPDF';
-import jsPDF from 'jspdf';
 import { ref, computed } from 'vue';
 
 const breadcrumbs: BreadcrumbItem[] = [
@@ -18,7 +17,7 @@ const breadcrumbs: BreadcrumbItem[] = [
 ];
 
 type SaleWithPayType = Sale & { pay_type?: string };
-const props = defineProps<{
+const { sales } = defineProps<{
     sales: SaleWithPayType[]
 }>();
 
@@ -28,8 +27,8 @@ const fechaFin = ref('');
 
 // Computed para filtrar ventas por fecha
 const ventasFiltradas = computed(() => {
-    if (!fechaInicio.value && !fechaFin.value) return props.sales;
-    return props.sales.filter(sale => {
+    if (!fechaInicio.value && !fechaFin.value) return sales;
+    return sales.filter(sale => {
         const fecha = new Date(sale.sale_date as any);
         const desde = fechaInicio.value ? new Date(fechaInicio.value) : null;
         const hasta = fechaFin.value ? new Date(fechaFin.value) : null;

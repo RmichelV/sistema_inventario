@@ -2,7 +2,7 @@
 import AppLayout from '@/layouts/AppLayout.vue';
 import { type BreadcrumbItem } from '@/types';
 import PlaceholderPattern from '../../components/PlaceholderPattern.vue';
-import { useForm, Head, usePage } from '@inertiajs/vue3'; // Asegúrate de importar useForm
+import { useForm, Head } from '@inertiajs/vue3'; // Asegúrate de importar useForm
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -20,24 +20,22 @@ const breadcrumbs: BreadcrumbItem[] = [
     },
 ];
 
-const props = defineProps<{
+const { productStore, products } = defineProps<{
     productStore: ProductStore
     products: Product[]
 }>();
 
-console.log(props)
-
 // 1. Inicializa el formulario con los datos del usuario
 const form = useForm({
-    product_id: props.productStore.product_id,
-    quantity: props.productStore.quantity,
-    unit_price: props.productStore.unit_price,
+    product_id: productStore.product_id,
+    quantity: productStore.quantity,
+    unit_price: productStore.unit_price,
 });
 
 // 2. Define el método para enviar la actualización
 const submit = () => {
     // Usa form.put() para enviar una solicitud PUT y el id del usuario en la URL
-    form.put(route('rproductstores.update', props.productStore.id), {
+    form.put(route('rproductstores.update', productStore.id), {
         onSuccess: () => {
             
         },

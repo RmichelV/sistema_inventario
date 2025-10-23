@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { defineProps, ref, onMounted, computed, watchEffect } from 'vue'; // ✅ Added watchEffect
-import { Head, Form as InertiaForm, useForm } from '@inertiajs/vue3';
+import { Head, useForm } from '@inertiajs/vue3';
 import AppLayout from '@/layouts/AppLayout.vue';
 import { Product, type BreadcrumbItem, SaleItem } from '@/types';
 import { Input } from '@/components/ui/input';
@@ -17,7 +17,7 @@ const breadcrumbs: BreadcrumbItem[] = [
     },
 ];
 
-const props = defineProps<{
+const { saleItem, product } = defineProps<{
     saleItem: SaleItem;
     product: Product;
 }>();
@@ -26,8 +26,8 @@ const productName = ref('');
 const soldQuantity = ref<number | null>(null);
 
 onMounted(() => {
-    productName.value = props.product.name;
-    soldQuantity.value = props.saleItem.quantity_products;
+    productName.value = product.name;
+    soldQuantity.value = saleItem.quantity_products;
 });
 
 type DevolutionForm = {
@@ -39,26 +39,26 @@ type DevolutionForm = {
 };
 
 const form = useForm<DevolutionForm>({
-    product_id: props.saleItem.product_id,
+    product_id: saleItem.product_id,
     quantity: 0,
     reason: '',
     refund_amount: 0,
-    sale_item_id: props.saleItem.id,
+    sale_item_id: saleItem.id,
 });
 
 const calculatedRefundAmount = computed(() => {
-    if (!props.saleItem.total_price || !props.saleItem.quantity_products || !form.quantity) {
+    if (!saleItem.total_price || !saleItem.quantity_products || !form.quantity) {
         return 0;
     }
-    const unitPrice = props.saleItem.total_price / props.saleItem.quantity_products;
+    const unitPrice = saleItem.total_price / saleItem.quantity_products;
     return unitPrice * form.quantity;
 });
 
 const calculatedRefundAmountBs = computed(() => {
-    if (!props.saleItem.total_price || !props.saleItem.quantity_products || !form.quantity) {
+    if (!saleItem.total_price || !saleItem.quantity_products || !form.quantity) {
         return 0;
     }
-    const unitPrice = props.saleItem.total_price / props.saleItem.quantity_products;
+    const unitPrice = saleItem.total_price / saleItem.quantity_products;
     return unitPrice * form.quantity;
 });
 
@@ -102,7 +102,7 @@ watchEffect(() => {
                                     :value="productName" 
                                     disabled
                                 />
-                                <input type="hidden" name="product_id" :value="props.product.id" />
+                                <input type="hidden" name="product_id" :value="product.id" />
                             </div>
                             <div class="grid gap-2">
                                 <Label for="sold_quantity">Cantidad Vendida</Label>
@@ -117,14 +117,14 @@ watchEffect(() => {
                         
                         <div class="grid gap-2">
                             <Label for="quantity">Cantidad a devolver</Label>
-                            <Input 
+                                <Input 
                                 id="quantity" 
                                 type="number" 
                                 required 
                                 :tabindex="1" 
                                 placeholder="Ej. 1" 
                                 v-model.number="form.quantity"
-                                :max="props.saleItem.quantity_products"
+                                    :max="saleItem.quantity_products"
                                 min="1"
                             />
                             <InputError :message="form.errors.quantity" />
@@ -165,7 +165,7 @@ watchEffect(() => {
                                 </div>
                         </div>
                   
-                        <input type="hidden" name="sale_item_id" :value="props.saleItem.id" />
+                        <input type="hidden" name="sale_item_id" :value="saleItem.id" />
                         <input type="hidden" name="refund_amount" :value="form.refund_amount" />
                         
                         <Button type="submit" class="w-full mt-2" tabindex="3" :disabled="form.processing">

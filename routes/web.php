@@ -33,7 +33,11 @@ Route::get('/', function () {
 
 Route::get('dashboard', function () {
     $usd = Usd_exchange_rate::find(1);
-    $products = Product::all(['id','name','code','quantity_in_stock']);
+    // Aseguramos un valor por defecto si no existe el registro para evitar accesos sobre null
+    $exchangeRate = $usd?->exchange_rate ?? 1;
+    // `quantity_in_stock` fue movida a la tabla de inventarios por sucursal (Product_Store / product_branches).
+    // Aquí solo traemos los datos básicos del producto (metadata) para búsquedas en el dashboard.
+    $products = Product::all(['id','name','code']);
     
     // --- 1. PRODUCTOS EN TIENDA (RAW) - NECESARIO PARA LA FUNCIÓN DE BÚSQUEDA DEL DASHBOARD ---
     // Obtenemos todos los productos en tienda (sin el 'with("product")' para hacerlo más ligero
@@ -48,11 +52,11 @@ Route::get('dashboard', function () {
         ->where('last_update', '<', $cutoff15Days)
         ->get();
 
-    $productStores15Days = $productinStore15->map(function ($productstore )use($usd) {
+    $productStores15Days = $productinStore15->map(function ($productstore ) use ($exchangeRate) {
             // Lógica de cálculo y formato de precios
-            $unit_price_bs = 'Bs. ' . number_format(($usd->exchange_rate * $productstore->unit_price),2); 
+            $unit_price_bs = 'Bs. ' . number_format(($exchangeRate * $productstore->unit_price),2); 
             // Corregí la lógica del porcentaje para ser consistente, aunque el frontend también tiene un cálculo similar.
-            $porcentaje = 'Bs. ' . number_format((($usd->exchange_rate * $productstore->unit_price) * 1.1),2); 
+            $porcentaje = 'Bs. ' . number_format((($exchangeRate * $productstore->unit_price) * 1.1),2); 
             
             return [
                 "id"=> $productstore->id,
@@ -73,11 +77,11 @@ Route::get('dashboard', function () {
         ->where('last_update', '<', $cutoff30Days)
         ->get();
     
-    $productStores30Days = $productinStore30->map(function ($productstore )use($usd) {
+    $productStores30Days = $productinStore30->map(function ($productstore ) use ($exchangeRate) {
             // Lógica de cálculo y formato de precios (es la misma)
-            $unit_price_bs = 'Bs. ' . number_format(($usd->exchange_rate * $productstore->unit_price),2); 
+            $unit_price_bs = 'Bs. ' . number_format(($exchangeRate * $productstore->unit_price),2); 
             // Corregí la lógica del porcentaje para ser consistente
-            $porcentaje = 'Bs. ' . number_format((($usd->exchange_rate * $productstore->unit_price) * 1.011),2); 
+            $porcentaje = 'Bs. ' . number_format((($exchangeRate * $productstore->unit_price) * 1.011),2); 
             
             return [
                 "id"=> $productstore->id,
@@ -117,7 +121,7 @@ Route::resource('rattendance_records', AttendanceRecordController::class)->middl
 Route::resource('rsalary_adjustments', SalaryAdjustmentController::class)->middleware(['auth', 'role:1,2']);
 
 // Rutas de "Productos en Bodega". Los roles 1 (aa) y 4 (dd) pueden gestionarlos.
-Route::resource('rproducts', ProductController::class)->middleware(['auth', 'role:1,4']);
+Route::resource('rproducts', ProductController::class)->middleware(['auth', 'role:1,2,4']);
 
 // Rutas de "Historial de compras". Solo los roles 1 (aa) y 4 (dd) pueden ver las compras.
 Route::resource('rpurchases', PurchaseController::class)->middleware(['auth', 'role:1,4']);
@@ -140,6 +144,9 @@ Route::resource('rsalaries',SalaryController::class)->middleware(['auth', 'role:
 
 // Rutas para Sucursales - solo rol 1
 Route::resource('rbranches', BranchController::class)->middleware(['auth', 'role:1']);
+
+// Endpoint para que el usuario autenticado cambie su branch (usado por admin)
+Route::post('rusers/switch-branch', [UserController::class, 'switchBranch'])->middleware(['auth'])->name('rusers.switchBranch');
 
 
 Route::post(

@@ -2,7 +2,7 @@
 import AppLayout from '@/layouts/AppLayout.vue';
 import { type BreadcrumbItem } from '@/types';
 import { Head } from '@inertiajs/vue3';
-import PlaceholderPattern from '../../components/PlaceholderPattern.vue';
+// PlaceholderPattern eliminado porque no se usa en esta vista
 import { Table as UserTable} from '@/components/ui/Table';
 import type { Attendace_records } from '@/types'
 
@@ -13,7 +13,7 @@ const breadcrumbs: BreadcrumbItem[] = [
     },
 ];
 
-const props = defineProps<{
+const { attendanceRecords } = defineProps<{
     attendanceRecords: Attendace_records[];
 }>();
 

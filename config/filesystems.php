@@ -48,8 +48,9 @@ return [
         // ],
         'public' => [
             'driver' => 'local',
-            'root' => public_path('/public'),
-            'url' => env('APP_URL').'/public',
+            // Guardamos en storage/app/public y lo servimos vía public/storage
+            'root' => storage_path('app/public'),
+            'url' => env('APP_URL').'/storage',
             'visibility' => 'public',
             'throw' => false,
             'report' => false,

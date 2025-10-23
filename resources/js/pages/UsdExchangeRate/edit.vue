@@ -1,15 +1,14 @@
 <script setup lang="ts">
 import AppLayout from '@/layouts/AppLayout.vue';
 import { type BreadcrumbItem } from '@/types';
-import PlaceholderPattern from '../../components/PlaceholderPattern.vue';
 import type { Usd_exchange_rate } from '@/types';
-import { useForm, Head, usePage } from '@inertiajs/vue3'; // Asegúrate de importar useForm
+import { useForm, Head } from '@inertiajs/vue3'; // Asegúrate de importar useForm
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import InputError from '@/components/InputError.vue';
 import { LoaderCircle } from 'lucide-vue-next';
-import AuthBase from '@/layouts/AuthLayout.vue';
+// AuthBase removed (unused)
 const breadcrumbs: BreadcrumbItem[] = [
     {
         title: 'Lista de empleados',
@@ -17,16 +16,14 @@ const breadcrumbs: BreadcrumbItem[] = [
     },
 ];
 
-const props = defineProps<{
+const { usd } = defineProps<{
     usd: Usd_exchange_rate
 }>();
 
 // 1. Inicializa el formulario con los datos del usuario
 const form = useForm({
-    exchange_rate: props.usd.exchange_rate
+    exchange_rate: usd.exchange_rate
 });
-
-console.log(props)
 // 2. Define el método para enviar la actualización
 const submit = () => {
     // Usa form.put() para enviar una solicitud PUT y el id del usuario en la URL

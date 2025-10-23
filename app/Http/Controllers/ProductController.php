@@ -3,11 +3,14 @@
 namespace App\Http\Controllers;
 
 use App\Models\Product;
+use App\Models\product_branch as ProductBranch;
 use Illuminate\Http\Request;
 
 //mis librerias 
 use Inertia\Inertia;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Database\QueryException;
 
 //validaciones
 use App\Http\Requests\Warehouse\ProductRequest;
@@ -19,29 +22,47 @@ class ProductController extends Controller
      */
     public function index()
     {
-        $productsList = Product::all();
+        // Obtener branch_id del usuario autenticado
+        $user = auth()->user();
+        $branchId = $user->branch_id ?? null;
 
-        $products = $productsList->map(function ($product) {
-         $productsQuantity = $product->quantity_in_stock;
-        $productBoxes = $product->units_per_box;
-
-        // cuántas cajas completas caben
-        $fullBoxes = intdiv($productsQuantity, $productBoxes);
-
-        // cuántas unidades sobran
-        $remainder = $productsQuantity % $productBoxes;
-
-        if ($remainder === 0) {
-            // todas las cajas están cerradas
-            $productBoxesQuantityT = $fullBoxes;
-        } else {
-            // hay cajas completas + 1 abierta
-            if ($fullBoxes > 0) {
-                $productBoxesQuantityT = $fullBoxes . ' Y 1 abierta';
-            } else {
-                $productBoxesQuantityT = '0 pero 1 abierta';
-            }
+        // Obtener todas las sucursales para el selector (solo se mostrará a admin en frontend)
+        $branches = \App\Models\branch::all();
+        $currentBranch = null;
+        if ($branchId) {
+            $currentBranch = $branches->firstWhere('id', $branchId);
         }
+
+        // Si no hay branch asociado, devolvemos vacío
+        if (!$branchId) {
+            return Inertia::render('Products/Index', ['products' => collect([])]);
+        }
+
+        // Obtenemos los registros de inventario para la sucursal y cargamos el producto relacionado
+        $productBranches = ProductBranch::with('product')
+            ->where('branch_id', $branchId)
+            ->get();
+
+        $products = $productBranches->map(function ($pb) {
+            $productsQuantity = $pb->quantity_in_stock ?? 0;
+            $productBoxes = $pb->units_per_box ?? 0;
+
+            // cálculo seguro de cajas
+            $productBoxesQuantityT = 'N/A';
+            if ($productBoxes > 0) {
+                $fullBoxes = intdiv($productsQuantity, $productBoxes);
+                $remainder = $productsQuantity % $productBoxes;
+
+                if ($remainder === 0) {
+                    $productBoxesQuantityT = $fullBoxes;
+                } else {
+                    if ($fullBoxes > 0) {
+                        $productBoxesQuantityT = $fullBoxes . ' Y 1 abierta';
+                    } else {
+                        $productBoxesQuantityT = '0 pero 1 abierta';
+                    }
+                }
+            }
             // else{
             //     if($productBoxesQuantity < 1) {
             //         $productBoxesQuantityT = '0 pero 1 caja abierta'; 
@@ -50,21 +71,27 @@ class ProductController extends Controller
             //         $productBoxesQuantityT = 'Cantidad de cajas: ' . $productBoxesQuantity .' pero una caja abierta'; 
             //     }
             // }
+            $product = $pb->product;
             $Imgname = $product->img_product;
-            $routeImg = asset('/storage/product_images/' . $Imgname);
+            // Obtener URL usando el disco público (storage/app/public => public/storage)
+            $routeImg = $Imgname ? Storage::disk('public')->url('product_images/' . $Imgname) : null;
             return [
                 "id"=> $product->id,
                 "name"=> $product->name,
                 "code" => $product->code,
                 "img_product" => $routeImg,
-                "quantity_in_stock" => $product->quantity_in_stock,
+                "quantity_in_stock" => $pb->quantity_in_stock,
                 "boxes" => $productBoxesQuantityT,
-                "units_per_box" => $product->units_per_box,
-                "last_update" => $product->last_update,
+                "units_per_box" => $pb->units_per_box,
+                "last_update" => $pb->last_update,
             ];
         });
         return Inertia::render("Products/Index", [
-            "products"=> $products]);
+            "products"=> $products,
+            'branches' => $branches,
+            'currentBranch' => $currentBranch,
+            'currentUser' => $user,
+        ]);
 
     }
 
@@ -103,20 +130,82 @@ class ProductController extends Controller
                         $extension = $imgProduct->getClientOriginalExtension();
                         $img_name = $productData['code'] . '-' . time() . '.' . $extension;
                         
-                        // Guardar la imagen en el disco público.
-                        $imgProduct->storeAs('/product_images', $img_name,);
+                        // Guardar la imagen en el disco público (storage/app/public/product_images)
+                        $imgProduct->storeAs('product_images', $img_name, 'public');
                     }
                 }
 
-                // 2. Crear un nuevo registro de producto en la base de datos.
-                Product::create([
-                    'name' => $productData['name'],
-                    'code' => $productData['code'],
-                    'img_product' => $img_name,
-                    'quantity_in_stock' => $productData['quantity_in_stock'],
-                    'units_per_box' => $productData['units_per_box'],
-                    'last_update' => now()->toDateString(),
-                ]);
+                // 2. Reutilizar producto existente si hay uno con el mismo código, o crear nuevo.
+                $product = Product::where('code', $productData['code'])->first();
+
+                if (!$product) {
+                    $product = Product::create([
+                        'name' => $productData['name'] ?? null,
+                        'code' => $productData['code'],
+                        'img_product' => $img_name,
+                    ]);
+                } else {
+                    // Si existe y se subió una nueva imagen, actualízala
+                    $updateData = [];
+                    if (!empty($productData['name'])) {
+                        $updateData['name'] = $productData['name'];
+                    }
+                    if ($img_name) {
+                        $updateData['img_product'] = $img_name;
+                    }
+                    if (!empty($updateData)) {
+                        $product->update($updateData);
+                    }
+                }
+
+                // 3. Crear o actualizar el registro de inventario para la sucursal actual en 'product_branches'
+                $user = auth()->user();
+                $branchId = $user->branch_id ?? null;
+
+                if ($branchId) {
+                    $pb = ProductBranch::where('branch_id', $branchId)
+                        ->where('product_id', $product->id)
+                        ->first();
+
+                    if ($pb) {
+                        // Sumar la cantidad ingresada al stock existente
+                        $pb->quantity_in_stock = ($pb->quantity_in_stock ?? 0) + (int)($productData['quantity_in_stock'] ?? 0);
+                        // Actualizar unidades por caja si viene
+                        if (isset($productData['units_per_box'])) {
+                            $pb->units_per_box = $productData['units_per_box'];
+                        }
+                        $pb->last_update = now()->toDateString();
+                        $pb->save();
+                    } else {
+                        try {
+                            ProductBranch::create([
+                                'branch_id' => $branchId,
+                                'product_id' => $product->id,
+                                'quantity_in_stock' => $productData['quantity_in_stock'] ?? 0,
+                                'units_per_box' => $productData['units_per_box'] ?? null,
+                                'last_update' => now()->toDateString(),
+                            ]);
+                        } catch (QueryException $qe) {
+                            // En caso de condición de carrera donde otro proceso creó el registro,
+                            // recuperamos el registro existente y sumamos la cantidad.
+                            $existing = ProductBranch::where('branch_id', $branchId)
+                                ->where('product_id', $product->id)
+                                ->first();
+
+                            if ($existing) {
+                                $existing->quantity_in_stock = ($existing->quantity_in_stock ?? 0) + (int)($productData['quantity_in_stock'] ?? 0);
+                                if (isset($productData['units_per_box'])) {
+                                    $existing->units_per_box = $productData['units_per_box'];
+                                }
+                                $existing->last_update = now()->toDateString();
+                                $existing->save();
+                            } else {
+                                // Si no existe por alguna razón, relanzar la excepción para que sea manejada arriba
+                                throw $qe;
+                            }
+                        }
+                    }
+                }
             }
 
             // Si todas las inserciones fueron exitosas, confirma la transacción.

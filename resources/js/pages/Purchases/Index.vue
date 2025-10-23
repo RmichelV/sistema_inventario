@@ -2,9 +2,8 @@
 import AppLayout from '@/layouts/AppLayout.vue';
 import { type BreadcrumbItem } from '@/types';
 import { Head } from '@inertiajs/vue3';
-import PlaceholderPattern from '../../components/PlaceholderPattern.vue';
 import { Table as ProductTable} from '@/components/ui/Table';
-import type { Product, Purchase } from '@/types'
+import type { Purchase } from '@/types'
 
 // Agrega las importaciones necesarias
 import { onMounted } from 'vue';
@@ -19,10 +18,8 @@ const breadcrumbs: BreadcrumbItem[] = [
     },
 ];
 
-const props = defineProps<{
-    products: Product[];
+const { purchases } = defineProps<{
     purchases: Purchase[];
-    
 }>();
 
 // Lógica de SweetAlert2

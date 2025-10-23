@@ -2,7 +2,6 @@
 import AppLayout from '@/layouts/AppLayout.vue';
 import { type BreadcrumbItem } from '@/types';
 import { Head, router } from '@inertiajs/vue3';
-import PlaceholderPattern from '../../components/PlaceholderPattern.vue';
 import { Table as UserTable} from '@/components/ui/Table';
 import type { User } from '@/types'
 import { computed, onMounted, watch } from 'vue'; 
@@ -80,7 +79,7 @@ const breadcrumbs: BreadcrumbItem[] = [
     },
 ];
 
-const props = defineProps<{
+const { users } = defineProps<{
     users: User[];
 }>();
 

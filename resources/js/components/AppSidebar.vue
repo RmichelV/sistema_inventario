@@ -2,13 +2,13 @@
 import { computed } from 'vue'; // 1. Importa 'computed'
 import { usePage } from '@inertiajs/vue3'; // 2. Importa 'usePage'
 
-import NavFooter from '@/components/NavFooter.vue';
+// import NavFooter from '@/components/NavFooter.vue';
 import NavMain from '@/components/NavMain.vue';
 import NavUser from '@/components/NavUser.vue';
 import { Sidebar, SidebarContent, SidebarFooter, SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem } from '@/components/ui/sidebar';
 import { type NavItem } from '@/types';
 import { Link } from '@inertiajs/vue3';
-import { Banknote, BookOpen, BookUser, FileClock, Folder, LayoutGrid, List, ListCheck, ListChecks, PersonStanding, ShoppingCart, Store, TimerIcon, TimerOff, TimerOffIcon, Warehouse } from 'lucide-vue-next';
+import { Banknote, BookUser, FileClock, LayoutGrid, List, ShoppingCart, Store, TimerIcon, TimerOffIcon } from 'lucide-vue-next';
 import AppLogo from './AppLogo.vue';
 import { route } from 'ziggy-js'; 
 
@@ -92,19 +92,6 @@ const mainNavItems: NavItem[] = [
     },
 ];
 
-const footerNavItems: NavItem[] = [
-    {
-        title: 'Github Repo',
-        href: 'https://github.com/laravel/vue-starter-kit',
-        icon: Folder,
-    },
-    {
-        title: 'Documentation',
-        href: 'https://laravel.com/docs/starter-kits#vue',
-        icon: BookOpen,
-    },
-];
-
 // 5. Crea la propiedad computada para filtrar los ítems del menú
 const filteredNavItems = computed(() => {
     // Si no hay un usuario o no tiene un rol, devuelve un array vacío
@@ -113,9 +100,7 @@ const filteredNavItems = computed(() => {
     }
     
     // Filtra el array, manteniendo solo los ítems que contienen el role_id del usuario
-    return mainNavItems.filter(item => 
-        item.roles && item.roles.includes(user.value.role_id)
-    );
+    return mainNavItems.filter(item => item.roles && item.roles.includes(user.value.role_id));
 });
 </script>
 
