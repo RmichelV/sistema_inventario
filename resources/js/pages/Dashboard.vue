@@ -8,7 +8,7 @@ import { ref, computed } from 'vue';
 import { type Product, type ProductStore, type Usd_exchange_rate } from '@/types'; 
 import { SelectSearch } from '@/components/ui/SelectSearch';
 import { ActionButton } from '@/components/ui/ActionButton';
-// import { Table as productsTable} from '@/components/ui/Table';
+import { Table as productsTable} from '@/components/ui/Table';
 const breadcrumbs: BreadcrumbItem[] = [
     {
         title: 'Dashboard',
@@ -16,12 +16,15 @@ const breadcrumbs: BreadcrumbItem[] = [
     },
 ];
 
-const { usd, products, productStores, currentBranch, currentUser } = defineProps<{
+const { usd, products, productStores, productStores15Days, productStores30Days, currentBranch, currentUser } = defineProps<{
     usd: Usd_exchange_rate;
     products: Product[];
     productStores: ProductStore[];
+    productStores15Days: ProductStore[];
+    productStores30Days: ProductStore[];
     currentBranch: { id: number; name: string } | null;
     currentUser: { id: number; role_id: number };
+
 }>();
 
 const selectedProductId = ref<number | null>(null);
@@ -133,7 +136,7 @@ const toBsP = (price: number | undefined | null) => {
                     </div>
                 </div>
             </div>
-            <!-- <div class="relative min-h-[100vh] flex-1 rounded-xl border border-sidebar-border/70 md:min-h-min dark:border-sidebar-border">
+            <div class="relative min-h-[100vh] flex-1 rounded-xl border border-sidebar-border/70 md:min-h-min dark:border-sidebar-border">
                 <h1 class="text-center mt-10">PRODUCTOS CON 30 SIN VENDER</h1>
                 <productsTable
                 :cadena="productStores30Days??[]"
@@ -191,7 +194,7 @@ const toBsP = (price: number | undefined | null) => {
                 headerBgColor="bg-[#D1960D]"
                 headerTextColor="text-[#000000]"
                 />
-            </div> -->
+            </div>
         </div>
     </AppLayout>
 </template>

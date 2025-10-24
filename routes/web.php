@@ -39,18 +39,47 @@ Route::get('dashboard', function () {
     // Aquí solo traemos los datos básicos del producto (metadata) para búsquedas en el dashboard.
     $products = Product::all(['id','name','code']);
     
+    // Determinar usuario y sucursal actual (usado para filtrar product_stores)
+    $user = auth()->user();
+    $branchId = $user?->branch_id ?? null;
+
     // --- 1. PRODUCTOS EN TIENDA (RAW) - NECESARIO PARA LA FUNCIÓN DE BÚSQUEDA DEL DASHBOARD ---
-    // Obtenemos todos los productos en tienda (sin el 'with("product")' para hacerlo más ligero
-    // ya que el frontend solo necesita estas tres columnas para la búsqueda)
-    $productStoresRaw = Product_Store::all(['product_id', 'quantity', 'unit_price']);
+    // Obtenemos los productos en tienda (sin el 'with("product")' para hacerlo más ligero)
+    // y filtramos por branch_id si corresponde. También incluimos filas legacy (branch_id IS NULL)
+    // sólo si el producto pertenece a la sucursal según product_branches.
+    $productStoresQuery = Product_Store::query()->select(['product_id', 'quantity', 'unit_price', 'branch_id']);
+    $productIdsInBranch = [];
+    if (\Schema::hasColumn('product_stores', 'branch_id') && $branchId) {
+        $productIdsInBranch = \App\Models\product_branch::where('branch_id', $branchId)->pluck('product_id')->toArray();
+        $productStoresQuery->where(function($q) use ($branchId, $productIdsInBranch) {
+            $q->where('branch_id', $branchId)
+              ->orWhere(function($q2) use ($productIdsInBranch) {
+                    $q2->whereNull('branch_id')
+                       ->whereIn('product_id', $productIdsInBranch);
+              });
+        });
+    }
+    $productStoresRaw = $productStoresQuery->get();
     
     // --- 2. PRODUCTOS NO ACTUALIZADOS EN LOS ÚLTIMOS 15 DÍAS ---
     $cutoff15Days = Carbon::now()->subDays(15);
     
     // Consulta para productos cuya última actualización fue ANTERIOR a 15 días
-    $productinStore15 = Product_Store::with("product")
-        ->where('last_update', '<', $cutoff15Days)
-        ->get();
+    $productinStore15Query = Product_Store::with('product')->where('last_update', '<', $cutoff15Days);
+    if (\Schema::hasColumn('product_stores', 'branch_id') && $branchId) {
+        // Reutilizamos $productIdsInBranch (si no se inicializó antes, lo obtenemos aquí)
+        if (empty($productIdsInBranch)) {
+            $productIdsInBranch = \App\Models\product_branch::where('branch_id', $branchId)->pluck('product_id')->toArray();
+        }
+        $productinStore15Query->where(function($q) use ($branchId, $productIdsInBranch) {
+            $q->where('branch_id', $branchId)
+              ->orWhere(function($q2) use ($productIdsInBranch) {
+                    $q2->whereNull('branch_id')
+                       ->whereIn('product_id', $productIdsInBranch);
+              });
+        });
+    }
+    $productinStore15 = $productinStore15Query->get();
 
     $productStores15Days = $productinStore15->map(function ($productstore ) use ($exchangeRate) {
             // Lógica de cálculo y formato de precios
@@ -73,9 +102,20 @@ Route::get('dashboard', function () {
     $cutoff30Days = Carbon::now()->subDays(30);
 
     // Consulta para productos cuya última actualización fue ANTERIOR a 30 días
-    $productinStore30 = Product_Store::with("product")
-        ->where('last_update', '<', $cutoff30Days)
-        ->get();
+    $productinStore30Query = Product_Store::with('product')->where('last_update', '<', $cutoff30Days);
+    if (\Schema::hasColumn('product_stores', 'branch_id') && $branchId) {
+        if (empty($productIdsInBranch)) {
+            $productIdsInBranch = \App\Models\product_branch::where('branch_id', $branchId)->pluck('product_id')->toArray();
+        }
+        $productinStore30Query->where(function($q) use ($branchId, $productIdsInBranch) {
+            $q->where('branch_id', $branchId)
+              ->orWhere(function($q2) use ($productIdsInBranch) {
+                    $q2->whereNull('branch_id')
+                       ->whereIn('product_id', $productIdsInBranch);
+              });
+        });
+    }
+    $productinStore30 = $productinStore30Query->get();
     
     $productStores30Days = $productinStore30->map(function ($productstore ) use ($exchangeRate) {
             // Lógica de cálculo y formato de precios (es la misma)
