@@ -30,31 +30,48 @@ class UserController extends Controller
     // }
     public function index()
     {
-    // Obtiene los usuarios con la relación 'Role'
-        $users = User::with("Role")->get();
-        
+        // Usuario autenticado
+        $authUser = auth()->user();
+        $branchId = $authUser->branch_id ?? null;
+
+        // Filtrar siempre por branch_id: cada usuario pertenece a una sucursal.
+        // Si el usuario autenticado no tiene branch asignada, devolvemos colección vacía.
+        if ($branchId) {
+            $users = User::with('Role')->where('branch_id', $branchId)->get();
+        } else {
+            $users = collect([]);
+        }
+
         // Transforma la colección de usuarios para agregar el nuevo campo 'saludos'
-        $usersWithGreetings = $users->map(function ($user) {
+        $usersWithGreetings = collect($users)->map(function ($user) {
             return [
                 'id' => $user->id,
                 'name' => $user->name,
                 'address' => $user->address,
                 'phone'=> $user->phone,
-                'role' => $user->role->name, 
+                'role' => $user->role->name ?? null, 
                 'base_salary'=> $user->base_salary,
                 'hire_date' => $user->hire_date,
                 'email'=> $user->email,
-                'saludos' => 'Hola soy ' . $user->name, // Nuevo campo
+                'saludos' => 'Hola soy ' . $user->name,
             ];
         });
 
-        // También obtén los roles para pasarlos a la vista, si los necesitas
+        // También obtén los roles y sucursales para pasarlos a la vista
         $roles = Role::all();
+        $branches = Branch::all();
+        $currentBranch = null;
+        if ($authUser && $authUser->branch_id) {
+            $currentBranch = $branches->firstWhere('id', $authUser->branch_id);
+        }
 
         // Pasa las colecciones transformadas a la vista de Inertia
-        return Inertia::render("Users/Index", [
+        return Inertia::render('Users/Index', [
             'users' => $usersWithGreetings,
             'roles' => $roles,
+            'branches' => $branches,
+            'currentBranch' => $currentBranch,
+            'currentUser' => $authUser,
         ]);
     }
 

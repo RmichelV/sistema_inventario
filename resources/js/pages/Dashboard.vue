@@ -3,6 +3,7 @@ import AppLayout from '@/layouts/AppLayout.vue';
 import { type BreadcrumbItem } from '@/types';
 import { Head } from '@inertiajs/vue3';
 import { ref, computed } from 'vue';
+import { useForm } from '@inertiajs/vue3';
 
 // Importa los tipos Product y ProductStore
 import { type Product, type ProductStore, type Usd_exchange_rate } from '@/types'; 
@@ -16,18 +17,39 @@ const breadcrumbs: BreadcrumbItem[] = [
     },
 ];
 
-const { usd, products, productStores, productStores15Days, productStores30Days, currentBranch, currentUser } = defineProps<{
+const { usd, products, productStores, productStores15Days, productStores30Days, branches, currentBranch, currentUser } = defineProps<{
     usd: Usd_exchange_rate;
     products: Product[];
     productStores: ProductStore[];
     productStores15Days: ProductStore[];
     productStores30Days: ProductStore[];
+    branches: { id: number; name: string }[];
     currentBranch: { id: number; name: string } | null;
     currentUser: { id: number; role_id: number };
 
 }>();
 
 const selectedProductId = ref<number | null>(null);
+
+// Formulario para cambiar la sucursal del usuario (solo visible para admin)
+const form = useForm({ branch_id: '' });
+const switchBranch = (event: Event) => {
+    const select = event.target as HTMLSelectElement;
+    const branchId = select.value;
+
+    if (!branchId) return;
+
+    form.branch_id = branchId;
+    form.post(route('rusers.switchBranch'), {
+        onSuccess: () => {
+            // recargar para que el backend sirva los productos del nuevo branch
+            window.location.reload();
+        },
+        onError: (errors: any) => {
+            console.error('Failed to switch branch', errors);
+        }
+    });
+};
 
 // 2. Propiedad computada para encontrar y combinar los datos del producto
 const currentProduct = computed(() => {
@@ -87,8 +109,12 @@ const toBsP = (price: number | undefined | null) => {
         <div class="flex h-full flex-1 flex-col gap-4 rounded-xl p-4 overflow-x-auto">
             <div class="flex items-center justify-between mb-2">
                 <div class="text-sm">Sucursal: <span class="font-bold">{{ currentBranch ? currentBranch.name : 'Sin sucursal asignada' }}</span></div>
-                <div v-if="currentUser && currentUser.role_id === 1">
-                    <!-- Admin puede cambiar sucursal desde otras vistas; aquí solo mostramos el nombre -->
+                <div>
+                    <label v-if="currentUser && currentUser.role_id === 1" class="mr-2 font-medium">Seleccionar sucursal:</label>
+                    <select v-if="currentUser && currentUser.role_id === 1" @change="switchBranch" :value="currentBranch ? currentBranch.id : ''" class="px-2 py-1 border rounded">
+                        <option value="">-- Seleccionar --</option>
+                        <option v-for="b in branches" :key="b.id" :value="b.id">{{ b.name }}</option>
+                    </select>
                 </div>
             </div>
             <div class="grid gap-4 md:grid-cols-3 grid-cols-1">
