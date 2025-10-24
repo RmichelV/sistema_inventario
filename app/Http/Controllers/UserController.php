@@ -164,11 +164,13 @@ class UserController extends Controller
             'branch_id' => 'required|exists:branches,id',
         ]);
 
-    $user = auth()->user();
-    $user->branch_id = $request->input('branch_id');
-    $user->save();
-    // Devolver una redirección hacia atrás con mensaje de éxito para que Inertia procese correctamente
-    return redirect()->back()->with('success', 'Sucursal cambiada correctamente.');
+        $user = auth()->user();
+        $user->branch_id = $request->input('branch_id');
+        $user->save();
+
+        // No enviamos flash messages aquí para evitar que el front muestre SweetAlert
+        // al cambiar de sucursal. La UI seguirá recargando/visitando para aplicar la nueva sucursal.
+        return redirect()->back();
     }
 
     /**

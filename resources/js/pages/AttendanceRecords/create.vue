@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import AppLayout from '@/layouts/AppLayout.vue';
 import { type BreadcrumbItem } from '@/types';
-import { Head, router } from '@inertiajs/vue3';
+import { Head, router, useForm } from '@inertiajs/vue3';
 import { Table as UserTable} from '@/components/ui/Table';
 import type { User } from '@/types'
 import { computed, onMounted, watch } from 'vue'; 
@@ -79,9 +79,31 @@ const breadcrumbs: BreadcrumbItem[] = [
     },
 ];
 
-const { users } = defineProps<{
+const { users, branches, currentBranch, currentUser } = defineProps<{
     users: User[];
+    branches: { id: number; name: string }[];
+    currentBranch: { id: number; name: string } | null;
+    currentUser: { id: number; role_id: number };
 }>();
+
+// Formulario para cambiar la sucursal del usuario (solo visible para admin o si no tiene branch)
+const form = useForm({ branch_id: '' });
+const switchBranch = (event: Event) => {
+    const select = event.target as HTMLSelectElement;
+    const branchId = select.value;
+
+    if (!branchId) return;
+
+    form.branch_id = branchId;
+    form.post(route('rusers.switchBranch'), {
+        onSuccess: () => {
+            window.location.reload();
+        },
+        onError: (errors: any) => {
+            console.error('Failed to switch branch', errors);
+        }
+    });
+};
 
 // Variables estáticas que SÍ deben estar fuera de la función (o mejor, como computed)
 // **Se mantienen las variables aquí para los botones de 'Presente'/'Tarde'**
@@ -308,7 +330,7 @@ const marcarSalida = (usuario: User) => {
 </script>
 
 <template>
-    <Head title="Empleados" />  
+    <Head title="Registrar Asistencias" />  
     <AppLayout :breadcrumbs="breadcrumbs">
         <div class="flex h-full flex-1 flex-col gap-4 rounded-xl p-4 overflow-x-auto">
             <!-- <div class="grid auto-rows-min gap-4 md:grid-cols-3">
@@ -323,6 +345,20 @@ const marcarSalida = (usuario: User) => {
                 </div>
             </div> -->
             <div class="relative min-h-[100vh] flex-1 rounded-xl border border-sidebar-border/70 md:min-h-min dark:border-sidebar-border">
+                <div class="flex items-center justify-between mb-4">
+                    <div class="text-lg font-semibold">
+                        Lista de empleados: <span class="font-bold">{{ currentBranch ? currentBranch.name : 'Sin sucursal asignada' }}</span>
+                    </div>
+
+                    <div>
+                        <label v-if="currentUser && (currentUser.role_id === 1 || !currentBranch)" class="mr-2 font-medium">Seleccionar sucursal:</label>
+                        <select v-if="currentUser && (currentUser.role_id === 1 || !currentBranch)" @change="switchBranch" :value="currentBranch ? currentBranch.id : ''" class="px-2 py-1 border rounded">
+                            <option value="">-- Seleccionar --</option>
+                            <option v-for="b in branches" :key="b.id" :value="b.id">{{ b.name }}</option>
+                        </select>
+                    </div>
+                </div>
+
                 <UserTable
                     :cadena="users??[]"
                     :cabeceras="['nombre','acciones']"

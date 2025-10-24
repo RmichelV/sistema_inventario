@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import AppLayout from '@/layouts/AppLayout.vue';
 import { type BreadcrumbItem, type User } from '@/types'; // Se importan User y BreadcrumbItem
-import { Head, router } from '@inertiajs/vue3'; // Importar router
+import { Head, router, useForm } from '@inertiajs/vue3'; // Importar router y useForm
 
 import { Table as salaryTable} from '@/components/ui/Table';
 import { useSwal } from '../../composables/useSwal';
@@ -13,20 +13,34 @@ const breadcrumbs: BreadcrumbItem[] = [
     },
 ];
 
-const { users } = defineProps<{
+const { users, branches, currentBranch, currentUser } = defineProps<{
     users: User[];
+    branches: { id: number; name: string }[];
+    currentBranch: { id: number; name: string } | null;
+    currentUser: { id: number; role_id: number };
 
 }>();
 
-// ------------------------------------------
-// LÓGICA DE PAGO (Envío de valor bruto)
-// ------------------------------------------
+// Método para cambiar la branch del usuario autenticado (solo role_id === 1 lo verá)
+const form = useForm({ branch_id: '' });
+const switchBranch = (event: Event) => {
+    const select = event.target as HTMLSelectElement;
+    const branchId = select.value;
 
-/**
- * Función que toma los datos calculados de la fila del usuario y los envía al backend.
- * Envía el ajuste total sin separar, dejando que el controlador de Laravel maneje
- * el valor negativo (-300) y lo divida entre salary_adjustment y discounts.
- */
+    if (!branchId) return;
+
+    form.branch_id = branchId;
+    form.post(route('rusers.switchBranch'), {
+        onSuccess: () => {
+            // recargar para que el backend sirva los productos del nuevo branch
+            window.location.reload();
+        },
+        onError: (errors: any) => {
+            console.error('Failed to switch branch', errors);
+        }
+    });
+};
+
 const swal = useSwal();
 
 const realizarPago = (usuario: User) => {
@@ -107,7 +121,7 @@ const accionesTabla = [
 </script>
 
 <template>
-    <Head title="Dashboard" />
+    <Head title="Gestion de Salarios" />
 
     <AppLayout :breadcrumbs="breadcrumbs">
         <div class="flex h-full flex-1 flex-col gap-4 rounded-xl p-4 overflow-x-auto">
@@ -129,6 +143,20 @@ const accionesTabla = [
                 </div>
             </div> -->
             <div class="relative min-h-[100vh] flex-1 rounded-xl border border-sidebar-border/70 md:min-h-min dark:border-sidebar-border">
+                <div class="flex items-center justify-between mb-4">
+                    <div class="text-lg font-semibold">
+                        Empleados: <span class="font-bold">{{ currentBranch ? currentBranch.name : 'Sin sucursal asignada' }}</span>
+                    </div>
+
+                    <div>
+                        <label v-if="currentUser && currentUser.role_id === 1" class="mr-2 font-medium">Seleccionar sucursal:</label>
+                        <select v-if="currentUser && currentUser.role_id === 1" @change="switchBranch" :value="currentBranch ? currentBranch.id : ''" class="px-2 py-1 border rounded">
+                            <option value="">-- Seleccionar --</option>
+                            <option v-for="b in branches" :key="b.id" :value="b.id">{{ b.name }}</option>
+                        </select>
+                    </div>
+                </div>
+
                 <salaryTable
                     :cadena="users??[]"
                     :cabeceras="['nombre','Cargo','Salario Base','Ajustes (B/D)','Horas trabajadas','Salario Final','Acciones']"

@@ -21,14 +21,23 @@ class SalaryController extends Controller
      */
     public function index()
     {
-        // 1. Cargar usuarios con todas las relaciones necesarias
-        $nusers = User::with('role', 'salary_adjustments', 'attendance_records')->get();
+        // Usuario autenticado y su sucursal
+        $authUser = auth()->user();
+        $branchId = $authUser->branch_id ?? null;
+
+        // Cargar solo los usuarios de la misma sucursal (cada usuario pertenece a una sucursal)
+        if ($branchId) {
+            $nusers = User::with('role', 'salary_adjustments', 'attendance_records')->where('branch_id', $branchId)->get();
+        } else {
+            $nusers = collect([]);
+        }
         $roles = Role::all();
         
         // --- CONSTANTE PARA CÁLCULO DE NÓMINA (MOVIMIENTO) ---
         // Definida como variable local, disponible para el closure.
         // 30 días * 8 horas/día * 60 minutos/hora = 14,400 minutos mensuales.
-        $totalMonthlyMinutes = 18720; 
+        //30 dias * 12 horas/dia * 60 minutos/hora - 10 minutos de descanso = 18460 minutos mensuales.
+        $totalMonthlyMinutes = 18420; 
 
         $users = $nusers->map(function($user) use ($totalMonthlyMinutes) { // Usamos 'use' para pasar la variable al closure
             
@@ -91,8 +100,17 @@ class SalaryController extends Controller
             ];
         });
 
+        $branches = \App\Models\branch::all();
+        $currentBranch = null;
+        if ($authUser && $authUser->branch_id) {
+            $currentBranch = $branches->firstWhere('id', $authUser->branch_id);
+        }
+
         return Inertia::render('Salaries/Index', [
             'users' => $users,
+            'branches' => $branches,
+            'currentBranch' => $currentBranch,
+            'currentUser' => $authUser,
         ]);
     }
 

@@ -20,8 +20,20 @@ class SalaryAdjustmentController extends Controller
      */
     public function index()
     {
-        $salaryAdjustments = Salary_adjustment::with('User')->get();
-        $users = User::all();
+        $authUser = auth()->user();
+        $branchId = $authUser->branch_id ?? null;
+
+        if ($branchId) {
+            $salaryAdjustments = Salary_adjustment::with('User')
+                ->whereHas('user', function ($q) use ($branchId) {
+                    $q->where('branch_id', $branchId);
+                })->get();
+
+            $users = User::where('branch_id', $branchId)->get();
+        } else {
+            $salaryAdjustments = collect([]);
+            $users = collect([]);
+        }
        
         $salaryAdjustmentWithDetails = $salaryAdjustments->map(function ($adjustment) {
             return [
@@ -33,10 +45,18 @@ class SalaryAdjustmentController extends Controller
                 'date' => $adjustment->date,
             ];
         });
+        $branches = \App\Models\branch::all();
+        $currentBranch = null;
+        if ($authUser && $authUser->branch_id) {
+            $currentBranch = $branches->firstWhere('id', $authUser->branch_id);
+        }
+
         return Inertia::render('SalaryAdjustment/Index', [
             'salaryAdjustments' => $salaryAdjustmentWithDetails,
             'users' => $users,
-            
+            'branches' => $branches,
+            'currentBranch' => $currentBranch,
+            'currentUser' => $authUser,
         ]);
     }
 
@@ -45,12 +65,32 @@ class SalaryAdjustmentController extends Controller
      */
     public function create()
     {
-        $salaryAdjustment = Salary_adjustment::all();
-       
-        $users = User::all();
+        $authUser = auth()->user();
+        $branchId = $authUser->branch_id ?? null;
+
+        if ($branchId) {
+            $salaryAdjustment = Salary_adjustment::whereHas('user', function ($q) use ($branchId) {
+                $q->where('branch_id', $branchId);
+            })->get();
+
+            $users = User::where('branch_id', $branchId)->get();
+        } else {
+            $salaryAdjustment = collect([]);
+            $users = collect([]);
+        }
+
+        $branches = \App\Models\branch::all();
+        $currentBranch = null;
+        if ($authUser && $authUser->branch_id) {
+            $currentBranch = $branches->firstWhere('id', $authUser->branch_id);
+        }
+
         return Inertia::render('SalaryAdjustment/create', [
             'salaryAdjustments' => $salaryAdjustment,
             'users' => $users,
+            'branches' => $branches,
+            'currentBranch' => $currentBranch,
+            'currentUser' => $authUser,
         ]);
     }
 

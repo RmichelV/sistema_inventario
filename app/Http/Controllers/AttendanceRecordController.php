@@ -28,19 +28,40 @@ class AttendanceRecordController extends Controller
      */
     public function index()
     {
-        $attendance_records = Attendance_record::with('User')->get();
+        // Usuario autenticado y sucursal
+        $authUser = auth()->user();
+        $branchId = $authUser->branch_id ?? null;
+
+        // Si no hay sucursal asignada, devolver colección vacía
+        if (!$branchId) {
+            $attendance_records = collect([]);
+        } else {
+            // Filtrar registros por la sucursal del usuario (mediante la relación user)
+            $attendance_records = Attendance_record::with('User')
+                ->whereHas('user', function ($q) use ($branchId) {
+                    $q->where('branch_id', $branchId);
+                })->get();
+        }
+
         $attendance_recordsList = $attendance_records->map(function ($attendance_record) {
             return [
                 'id' => $attendance_record->id,
-                'user' => $attendance_record->user->name,
+                'user' => $attendance_record->user->name ?? null,
                 'attendance_status' => $attendance_record->attendance_status,
                 'attendance_date' => $attendance_record->attendance_date,
                 'check_in_at' => $attendance_record->check_in_at,
                 'check_out_at' => $attendance_record->check_out_at,
-                'minutes_late' => $attendance_record->late_minutes, 
+                'minutes_late' => $attendance_record->late_minutes ?? null, 
             ];
         });
-        return inertia('AttendanceRecords/Index', ['attendanceRecords'=> $attendance_recordsList]);
+
+        $branches = \App\Models\branch::all();
+        $currentBranch = null;
+        if ($authUser && $authUser->branch_id) {
+            $currentBranch = $branches->firstWhere('id', $authUser->branch_id);
+        }
+
+        return inertia('AttendanceRecords/Index', ['attendanceRecords'=> $attendance_recordsList, 'branches' => $branches, 'currentBranch' => $currentBranch, 'currentUser' => $authUser]);
     }
 
     /**
@@ -48,25 +69,40 @@ class AttendanceRecordController extends Controller
      */
     public function create()
     {
-// Obtiene los usuarios con la relación 'Role'
-        $users = User::with("Role")->get();
-        
-        // Transforma la colección de usuarios para agregar el nuevo campo 'saludos'
+        // Usuario autenticado y su sucursal
+        $authUser = auth()->user();
+        $branchId = $authUser->branch_id ?? null;
+
+        // Si no hay sucursal asignada devolvemos colección vacía (se podrá asignar mediante el selector)
+        if ($branchId) {
+            $users = User::with('Role')->where('branch_id', $branchId)->get();
+        } else {
+            $users = collect([]);
+        }
+
+        // Transforma la colección de usuarios para la vista
         $userList = $users->map(function ($user) {
             return [
                 'id' => $user->id,
                 'name' => $user->name,
-                'asistencia_registrada'=>false
+                'asistencia_registrada' => false,
             ];
         });
 
-        // También obtén los roles para pasarlos a la vista, si los necesitas
-        $roles = Role::all();
+    // Obtener sucursales y currentBranch para el selector en frontend
+    $branches = \App\Models\branch::all();
+        $currentBranch = null;
+        if ($authUser && $authUser->branch_id) {
+            $currentBranch = $branches->firstWhere('id', $authUser->branch_id);
+        }
 
         // Pasa las colecciones transformadas a la vista de Inertia
-        return Inertia::render("AttendanceRecords/create", [
+        return Inertia::render('AttendanceRecords/create', [
             'users' => $userList,
-            'roles' => $roles,
+            'roles' => Role::all(),
+            'branches' => $branches,
+            'currentBranch' => $currentBranch,
+            'currentUser' => $authUser,
         ]);
     }
 
