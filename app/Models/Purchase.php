@@ -17,6 +17,14 @@ class Purchase extends Model
         "purchase_quantity",
         "purchase_date",
         "branch_id",
+        "unit_price",
+        "total_price",
+    ];
+
+    protected $casts = [
+        'purchase_quantity' => 'integer',
+        'unit_price' => 'decimal:2',
+        'total_price' => 'decimal:2',
     ];
 
     public function product(){

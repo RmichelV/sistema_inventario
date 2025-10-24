@@ -26,6 +26,8 @@ class PurchaseRequest extends FormRequest
             'items' => ['required', 'array', 'min:1'],
             'items.*.product_id' => ['required', 'exists:products,id'],
             'items.*.purchase_quantity' => ['required', 'numeric', 'min:1'],
+            'items.*.unit_price' => ['nullable', 'numeric', 'min:0'],
+            'items.*.total_price' => ['nullable', 'numeric', 'min:0'],
         ];
     }
     public function messages(): array

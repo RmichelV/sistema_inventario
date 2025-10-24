@@ -67,8 +67,23 @@ class PurchaseController extends Controller
         $branchId = Auth::user()->branch_id;
 
         // Solo obtener productos que existan en inventario para la sucursal actual
-        $productIds = product_branch::where('branch_id', $branchId)->pluck('product_id')->toArray();
-        $products = Product::whereIn('id', $productIds)->get();
+        // y enriquecerlos con información de product_branches (precio por sucursal, stock)
+        $productBranches = product_branch::with('product')
+            ->where('branch_id', $branchId)
+            ->get();
+
+        $products = $productBranches->map(function ($pb) {
+            $product = $pb->product;
+            return [
+                'id' => $product->id,
+                'name' => $product->name ?? null,
+                'code' => $product->code ?? null,
+                'img' => $product->img ?? null,
+                'quantity_in_stock' => $pb->quantity_in_stock ?? 0,
+                'unit_price' => $pb->unit_price ?? 0,
+                'units_per_box' => $pb->units_per_box ?? null,
+            ];
+        })->values();
 
         // Solo mostrar compras de la sucursal actual (si es necesario en la vista)
         $purchases = Purchase::where('branch_id', $branchId)->get();
@@ -103,12 +118,21 @@ class PurchaseController extends Controller
 
             foreach ($request->input('items') as $itemData) {
                 // 1. Crear el registro de la compra con branch_id
-                Purchase::create([
+                $purchasePayload = [
                     "product_id"      => $itemData['product_id'],
                     "purchase_quantity" => $itemData['purchase_quantity'],
                     "purchase_date"   => $request->input('purchase_date'), // La fecha es la misma para todos los ítems
                     "branch_id"       => $branchId,
-                ]);
+                ];
+
+                if (isset($itemData['unit_price'])) {
+                    $purchasePayload['unit_price'] = $itemData['unit_price'];
+                }
+                if (isset($itemData['total_price'])) {
+                    $purchasePayload['total_price'] = $itemData['total_price'];
+                }
+
+                Purchase::create($purchasePayload);
 
                 // 2. Actualizar o crear el registro en product_branches (inventario por sucursal)
                 $productBranch = product_branch::where('branch_id', $branchId)
@@ -117,6 +141,10 @@ class PurchaseController extends Controller
 
                 if ($productBranch) {
                     $productBranch->quantity_in_stock += $itemData['purchase_quantity'];
+                    // Si el formulario envía unit_price, actualizar el precio en la bodega
+                    if (isset($itemData['unit_price'])) {
+                        $productBranch->unit_price = $itemData['unit_price'];
+                    }
                     $productBranch->last_update = now();
                     $productBranch->save();
                 } else {
@@ -124,6 +152,7 @@ class PurchaseController extends Controller
                         'branch_id' => $branchId,
                         'product_id' => $itemData['product_id'],
                         'quantity_in_stock' => $itemData['purchase_quantity'],
+                        'unit_price' => $itemData['unit_price'] ?? 0,
                         'last_update' => now(),
                     ]);
                 }

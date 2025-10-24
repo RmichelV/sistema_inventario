@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { Head, useForm } from '@inertiajs/vue3';
+import { watch } from 'vue';
 
 import InputError from '@/components/InputError.vue';
 import { Button } from '@/components/ui/button';
@@ -11,17 +12,66 @@ import { SelectSearch } from '@/components/ui/SelectSearch';
 import { LoaderCircle, Trash2 } from 'lucide-vue-next';
 
 // This is the purchase form, now using useForm to manage a list of items.
-const purchaseForm = useForm({
+type PurchaseItem = {
+    product_id: number | null;
+    purchase_quantity: number;
+    unit_price?: number;
+    total_price?: number;
+};
+
+const purchaseForm = useForm<{ purchase_date: string; items: PurchaseItem[] }>({
     purchase_date: new Date().toISOString().slice(0, 10),
     items: [{
         product_id: null,
-        purchase_quantity: '',
+        purchase_quantity: 0,
+        unit_price: 0,
+        total_price: 0,
     }],
 });
 
-const { products } = defineProps<{
+const { products, currentBranch } = defineProps<{
     products: Product[];
+    // currentBranch viene desde el controlador (suficiente { id: number })
+    currentBranch?: { id: number };
 }>();
+
+// Buscar producto en la lista (enriquecida desde el controlador con unit_price)
+const findProductInWarehouse = (id: number | null) => {
+    return products.find(p => p.id === id) || null;
+};
+
+const onProductChange = (item: PurchaseItem) => {
+    const prod = findProductInWarehouse(item.product_id);
+    if (prod) {
+        // Intento obtener el unit_price desde product_branches que coincida con la sucursal actual
+        const branchId = (currentBranch && (currentBranch as any).id) || null;
+        // prod.product_branches puede venir del backend; usamos optional chaining y any para seguridad en TS
+        const branchEntry = branchId && (prod as any).product_branches
+            ? (prod as any).product_branches.find((pb: any) => pb.branch_id === branchId)
+            : null;
+
+        const priceFromBranch = branchEntry?.unit_price ?? (prod as any).unit_price ?? 0;
+        item.unit_price = Number(priceFromBranch || 0);
+        item.total_price = Number((Number(item.unit_price || 0) * Number(item.purchase_quantity || 0)).toFixed(2));
+    } else {
+        item.unit_price = 0;
+        item.total_price = 0;
+    }
+};
+
+// Vigilar cambios en product_id de los items para autocompletar el precio
+watch(
+    () => purchaseForm.items.map(i => i.product_id),
+    (newIds, oldIds) => {
+        newIds.forEach((id, idx) => {
+            if (id !== oldIds[idx]) {
+                const item = purchaseForm.items[idx];
+                // Solo ejecutar si existe el item
+                if (item) onProductChange(item);
+            }
+        });
+    }
+);
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
@@ -33,7 +83,9 @@ const breadcrumbs: BreadcrumbItem[] = [
 const addPurchaseItem = () => {
     purchaseForm.items.push({
         product_id: null,
-        purchase_quantity: '',
+        purchase_quantity: 0,
+        unit_price: 0,
+        total_price: 0,
     });
 };
 
@@ -76,6 +128,7 @@ const submit = () => {
                             <SelectSearch
                                 :id="'product_id-' + index"
                                 v-model="item.product_id"
+                                @change="onProductChange(item)"
                                 :options="products"
                                 :searchKeys="['name', 'code']"
                                 placeholder="Buscar un producto por nombre o código..."
@@ -93,11 +146,40 @@ const submit = () => {
                                 required
                                 placeholder="Ej. 500" 
                                 min="0"
-                                v-model="item.purchase_quantity"
+                                v-model.number="item.purchase_quantity"
+                                @input="item.total_price = Number((Number(item.unit_price || 0) * Number(item.purchase_quantity || 0)).toFixed(2))"
                             />
                             <InputError :message="purchaseForm.errors[`items.${index}.purchase_quantity`]"/>
                         </div>
-                        
+
+                        <div class="grid gap-2">
+                            <Label :for="'unit_price-' + index">Precio unitario ($us)</Label>
+                            <Input
+                                :id="'unit_price-' + index"
+                                type="number"
+                                step="0.01"
+                                min="0"
+                                v-model.number="item.unit_price"
+                                @input="item.total_price = Number((Number(item.unit_price || 0) * Number(item.purchase_quantity || 0)).toFixed(2))"
+                                placeholder="Ej. 2.50"
+                            />
+                            <InputError :message="purchaseForm.errors[`items.${index}.unit_price`]" />
+                        </div>
+
+
+                        <!-- Ahora mostramos inputs editables: unit_price y total_price -->
+                        <div class="grid gap-2">
+                            <Label :for="'total_price-' + index">Precio total ($us)</Label>
+                            <Input
+                                :id="'total_price-' + index"
+                                type="number"
+                                step="0.01"
+                                min="0"
+                                v-model.number="item.total_price"
+                                placeholder="Ej. 1250.00"
+                            />
+                            <InputError :message="purchaseForm.errors[`items.${index}.total_price`]" />
+                        </div>
                         <Button v-if="purchaseForm.items.length > 1" type="button" @click="removePurchaseItem(index)" variant="destructive">
                             <Trash2 class="w-4 h-4 mr-2" />
                             Eliminar producto
