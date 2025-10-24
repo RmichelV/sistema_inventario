@@ -8,6 +8,7 @@ use Illuminate\Http\Request;
 //models
 use App\Models\Product;
 use App\Models\product_branch;
+use App\Models\Product_store;
 use Illuminate\Support\Facades\Auth;
 
 //librerias
@@ -155,6 +156,40 @@ class PurchaseController extends Controller
                         'unit_price' => $itemData['unit_price'] ?? 0,
                         'last_update' => now(),
                     ]);
+                }
+
+                // --- Actualizar o crear product_store para la sucursal, aplicando el multiplicador existente ---
+                // Esto asegura que cuando registramos una compra, el precio en product_store se actualice
+                // usando la lógica: precio_final_en_store = base_price_from_purchase_or_branch * price_multiplier
+                try {
+                    $productStore = Product_store::firstOrNew([
+                        'product_id' => $itemData['product_id'],
+                        'branch_id' => $branchId,
+                    ]);
+
+                    // Si viene price_multiplier en el request, podemos actualizarlo (opcional)
+                    if (isset($itemData['price_multiplier'])) {
+                        $productStore->price_multiplier = $itemData['price_multiplier'];
+                    }
+
+                    $mult = $productStore->price_multiplier ?? 1.0;
+
+                    // Determinar la base: preferimos el unit_price enviado en la compra, si existe
+                    if (isset($itemData['unit_price'])) {
+                        $basePrice = $itemData['unit_price'];
+                    } else {
+                        // si no vino desde la compra, usamos el precio de la bodega (product_branch)
+                        $basePrice = $productBranch->unit_price ?? 0;
+                    }
+
+                    $productStore->unit_price = round(($basePrice * $mult), 2);
+                    // No modificamos quantity aquí (las compras afectan product_branches), solo actualizamos precio
+                    $productStore->last_update = now();
+                    $productStore->branch_id = $branchId;
+                    $productStore->save();
+                } catch (\Throwable $e) {
+                    // No detener todo el proceso por un error de sincronización de precios; registrar y continuar
+                    // puedes loggear $e->getMessage() si quieres depurar
                 }
             }
 

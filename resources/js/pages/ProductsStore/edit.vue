@@ -1,21 +1,19 @@
 <script setup lang="ts">
 import AppLayout from '@/layouts/AppLayout.vue';
 import { type BreadcrumbItem } from '@/types';
-import PlaceholderPattern from '../../components/PlaceholderPattern.vue';
 import { useForm, Head } from '@inertiajs/vue3'; // Asegúrate de importar useForm
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import InputError from '@/components/InputError.vue';
 import { LoaderCircle } from 'lucide-vue-next';
-import AuthBase from '@/layouts/AuthLayout.vue';
 
 
 import type {  Product,ProductStore } from '@/types';
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
-        title: 'Lista de empleados',
+        title: 'Editar Producto en tienda',
         href: '/rusers',
     },
 ];
@@ -48,20 +46,8 @@ const submit = () => {
 
     <AppLayout :breadcrumbs="breadcrumbs">
        <div class="flex h-full flex-1 flex-col gap-4 rounded-xl p-4 overflow-x-auto">
-            <div class="grid auto-rows-min gap-4 md:grid-cols-3">
-                <div class="relative aspect-video overflow-hidden rounded-xl border border-sidebar-border/70 dark:border-sidebar-border">
-                    <PlaceholderPattern />
-                </div>
-                <div class="relative aspect-video overflow-hidden rounded-xl border border-sidebar-border/70 dark:border-sidebar-border">
-                    <PlaceholderPattern />
-                </div>
-                <div class="relative aspect-video overflow-hidden rounded-xl border border-sidebar-border/70 dark:border-sidebar-border">
-                    <PlaceholderPattern />
-                </div>
-            </div>
+            
             <div class="relative min-h-[100vh] flex-1 rounded-xl border border-sidebar-border/70 md:min-h-min dark:border-sidebar-border">
-                <AuthBase title="Editar empleado" >
-                    <Head title="Registro" />
 
                     <form @submit.prevent="submit" class="flex flex-col gap-6">
                         <div class="grid gap-6">
@@ -76,7 +62,7 @@ const submit = () => {
                                     disabled
                                 >
                                     <option value="" disabled>Seleccione un Producto</option>
-                                    <option v-for="product in products" :key="product.id" :value="product.id">{{ product.name }}</option>
+                                    <option v-for="product in products" :key="product.id" :value="product.id">{{ product.code }}</option>
                                 </select>
                                 <InputError :message="form.errors.product_id" />
                             </div>
@@ -99,7 +85,6 @@ const submit = () => {
                             </Button>
                         </div>
                     </form>
-                </AuthBase>
             </div>
         </div>
     </AppLayout>
