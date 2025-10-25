@@ -5,7 +5,9 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import AuthBase from '@/layouts/AuthLayout.vue';
-import { Form, Head } from '@inertiajs/vue3';
+import { Form, Head, usePage } from '@inertiajs/vue3';
+import { onMounted, watch } from 'vue';
+import { useSwal } from '@/composables/useSwal';
 import { LoaderCircle } from 'lucide-vue-next';
 
 import AppLayout from '@/layouts/AppLayout.vue';
@@ -23,6 +25,22 @@ const { roles, branches } = defineProps<{
     roles: Role[];
     branches: Branch[];
 }>();
+
+// Mostrar mensajes flash (error/success) usando SweetAlert para feedback inmediato
+const page = usePage();
+const swal = useSwal();
+
+const handleFlash = () => {
+    if (page.props.flash?.error) {
+        swal.fire({ icon: 'error', title: 'Error', text: page.props.flash.error });
+    }
+    if (page.props.flash?.success) {
+        swal.fire({ icon: 'success', title: 'Éxito', text: page.props.flash.success });
+    }
+};
+
+onMounted(() => handleFlash());
+watch(() => page.props, handleFlash, { deep: true });
 
 </script>
 

@@ -95,20 +95,24 @@ class UserController extends Controller
     {
         // Usar los datos validados para evitar accesos a propiedades mágicas que los analizadores marcan como indefinidas
         $data = $request->validated();
+        try {
+            $user = User::create([
+                'name' => $data['name'],
+                'address' => $data['address'],
+                'phone' => $data['phone'] ?? null,
+                'role_id' => $data['role_id'],
+                'branch_id' => $data['branch_id'] ?? null,
+                'base_salary' => $data['base_salary'],
+                'hire_date' => $data['hire_date'],
+                'email' => $data['email'],
+                'password' => bcrypt($data['password']), // Asegúrate de hashear la contraseña
+            ]);
 
-        $user = User::create([
-            'name' => $data['name'],
-            'address' => $data['address'],
-            'phone' => $data['phone'] ?? null,
-            'role_id' => $data['role_id'],
-            'branch_id' => $data['branch_id'] ?? null,
-            'base_salary' => $data['base_salary'],
-            'hire_date' => $data['hire_date'],
-            'email' => $data['email'],
-            'password' => bcrypt($data['password']), // Asegúrate de hashear la contraseña
-        ]);
-
-        return redirect()->route('rusers.index')->with('success','!Registro Exitoso¡');
+            return redirect()->route('rusers.index')->with('success','!Registro Exitoso¡');
+        } catch (\Exception $e) {
+            // Devolver mensaje de error para que el frontend (Inertia) lo muestre en flash
+            return redirect()->back()->withInput()->with('error', 'Error al crear usuario: ' . $e->getMessage());
+        }
     }
 
     /**
@@ -178,6 +182,23 @@ class UserController extends Controller
      */
     public function destroy(string $id)
     {
-        //
+        // Buscar y eliminar el usuario
+        $user = User::find($id);
+        if (!$user) {
+            return redirect()->back()->with('error', 'Usuario no encontrado.');
+        }
+
+        // Evitar que un administrador se elimine a sí mismo accidentalmente
+        $authUser = auth()->user();
+        if ($authUser && $authUser->id == $user->id) {
+            return redirect()->back()->with('error', 'No puedes eliminar tu propio usuario.');
+        }
+
+        try {
+            $user->delete();
+            return redirect()->route('rusers.index')->with('success', 'Usuario eliminado.');
+        } catch (\Exception $e) {
+            return redirect()->back()->with('error', 'Error al eliminar el usuario.');
+        }
     }
 }

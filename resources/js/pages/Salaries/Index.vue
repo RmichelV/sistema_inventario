@@ -161,7 +161,11 @@ const accionesTabla = [
                     :cadena="users??[]"
                     :cabeceras="['nombre','Cargo','Salario Base','Ajustes (B/D)','Horas trabajadas','Salario Final','Acciones']"
                     :campos="['name','role','base_salary','total_adjustment','total_time_formatted','final_salary']"
-                    :agregar="false"
+                    :agregar="{ 
+                        href: '/rsalariesF', 
+                        color: 'green', 
+                        name: 'Salarios Cancelados',
+                        iconName: 'bx-receipt' }"
                     :acciones="accionesTabla"
                 />
                 <p class="mt-10">

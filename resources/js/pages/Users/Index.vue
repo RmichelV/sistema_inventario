@@ -1,8 +1,9 @@
 <script setup lang="ts">
 import AppLayout from '@/layouts/AppLayout.vue';
 import { type BreadcrumbItem } from '@/types';
-import { Head } from '@inertiajs/vue3';
+import { Head, router } from '@inertiajs/vue3';
 import { useForm } from '@inertiajs/vue3';
+import { useSwal } from '@/composables/useSwal';
 // PlaceholderPattern removed (unused)
 import { Table as UserTable} from '@/components/ui/Table';
 import type { User } from '@/types'
@@ -40,6 +41,57 @@ const switchBranch = (event: Event) => {
         }
     });
 };
+const swal = useSwal();
+
+function makeAcciones() {
+    const baseActions: any[] = [
+        {
+            href: (item: any) => route('rusers.edit' , item.id),
+            color: 'blue',
+            name: 'Editar',
+            iconName: 'bx-pencil',
+        },
+    ];
+
+    // Solo admin puede eliminar
+    if (currentUser && currentUser.role_id === 1) {
+        baseActions.push({
+            color: 'red',
+            name: 'Eliminar',
+            iconName: 'bx-trash',
+            onClick: (item: any) => {
+                swal.fire({
+                    title: '¿Eliminar empleado?',
+                    text: `El empleado "${item.name}" será eliminado. Esta acción no se puede deshacer.`,
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonText: 'Sí, eliminar',
+                    cancelButtonText: 'Cancelar',
+                }).then(async (result: any) => {
+                    if (result.isConfirmed) {
+                        // Usar Inertia router.delete para manejar CSRF y respuestas correctamente
+                        router.delete(route('rusers.destroy', item.id), {
+                            onSuccess: () => {
+                                swal.fire('Eliminado', 'El empleado fue eliminado.', 'success').then(() => {
+                                    // Recargar para mantener consistencia (podemos actualizar localmente si prefieres)
+                                    window.location.reload();
+                                });
+                            },
+                            onError: (errors: any) => {
+                                console.error('Delete error', errors);
+                                swal.fire('Error', 'Ocurrió un error al eliminar el empleado.', 'error');
+                            }
+                        });
+                    }
+                });
+            }
+        });
+    }
+
+    return baseActions;
+}
+
+const acciones = makeAcciones();
 </script>
 
 <template>
@@ -83,14 +135,7 @@ const switchBranch = (event: Event) => {
                     color: 'green', 
                     name: 'Agregar Empleado',
                     iconName: 'bx-plus' }"
-                :acciones="[
-                    {
-                        href: (item) => route('rusers.edit' , item.id),
-                        color: 'blue',
-                        name: 'Editar',
-                        iconName: 'bx-pencil',
-                    }
-                ]"
+                :acciones="acciones"
             />
             </div>
         </div>

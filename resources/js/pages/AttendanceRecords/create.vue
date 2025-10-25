@@ -358,12 +358,11 @@ const marcarSalida = (usuario: User) => {
                         </select>
                     </div>
                 </div>
-
                 <UserTable
                     :cadena="users??[]"
                     :cabeceras="['nombre','acciones']"
                     :campos="['name']"
-                    :agregar="false"
+                    :agregar="currentUser && currentUser.role_id === 1 ? { href: '/rattendance_records', color: 'green', name: 'Registros de asistencias', iconName: 'bx-receipt' } : false"
                     :acciones="acciones"
                 />
             </div>

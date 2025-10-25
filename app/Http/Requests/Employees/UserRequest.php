@@ -30,11 +30,13 @@ class UserRequest extends FormRequest
             // La dirección debe ser requerida, string y permite letras, números, espacios, etc.
             'address' => ['required', 'string', 'max:255', 'regex:/^[\pL\s\d.,#-]+$/u'],
             
-            // // El teléfono es requerido, debe ser numérico y tener entre 8 y 15 dígitos.
-            // 'phone' => ['required', 'numeric', 'digits_between:8,15'],
+            // El teléfono es requerido, debe ser numérico y tener entre 8 y 15 dígitos.
+            'phone' => ['required', 'numeric', 'digits_between:8,15'],
             
-            // // role_id debe ser un entero y existir en la tabla 'roles'.
+            // role_id debe ser un entero y existir en la tabla 'roles'.
             'role_id' => ['required', 'integer', 'exists:roles,id'],
+            // branch_id debe ser un entero y existir en la tabla 'branches'.
+            'branch_id' => ['required', 'integer', 'exists:branches,id'],
             
             // // El salario base es requerido, debe ser numérico y puede ser un decimal.
             'base_salary' => ['required', 'numeric','min:500'],

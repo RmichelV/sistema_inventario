@@ -8,7 +8,7 @@ import NavUser from '@/components/NavUser.vue';
 import { Sidebar, SidebarContent, SidebarFooter, SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem } from '@/components/ui/sidebar';
 import { type NavItem } from '@/types';
 import { Link } from '@inertiajs/vue3';
-import { Banknote, BookUser, FileClock, LayoutGrid, List, ShoppingCart, Store, TimerIcon, TimerOffIcon } from 'lucide-vue-next';
+import { Banknote, BookUser, FileClock, LayoutGrid, List, ShoppingCart, Store, TimerIcon} from 'lucide-vue-next';
 import AppLogo from './AppLogo.vue';
 import { route } from 'ziggy-js'; 
 
@@ -37,19 +37,6 @@ const mainNavItems: NavItem[] = [
         icon: Banknote,
         roles: [1], // Solo el rol 1 (Administrador)
     },
-    {
-        title: 'Salarios cancelados',
-        href: '/rsalariesF',
-        icon: Banknote,
-        roles: [1], // Solo el rol 1 (Administrador)
-    },
-    {
-        title: 'Registros de asistencias',
-        href: '/rattendance_records',
-        icon: TimerOffIcon,
-        roles: [1], // Rol 1 y 2
-    },
-    
     {
         title: 'Registrar asistencia',
         href: route('rattendance_records.create'),
