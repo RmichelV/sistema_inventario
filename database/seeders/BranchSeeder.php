@@ -13,19 +13,15 @@ class BranchSeeder extends Seeder
      */
     public function run(): void
     {
-        branch::insert([[
-
+        branch::insert([
+            [
             "name"=>"sucursal A",
             "address"=>"dir B"
-        ],[
-
+             ],
+            [
             "name"=>"sucursal B",
             "address"=>"dir B"
-        ],[
-
-            "name"=>"sucursal C",
-            "address"=>"dir C"
-        ],
+            ],
         ]);
     }
 }

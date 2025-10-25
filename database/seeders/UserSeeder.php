@@ -36,28 +36,7 @@ class UserSeeder extends Seeder
                 'email'=>'usuario2@ewtto.com',
                 'password'=>bcrypt('usuario2')
             ],
-            [
-                'name'=>'Usuario3',
-                'address'=>'Calle 123 #456',
-                'phone'=>"78827517",
-                'branch_id'=>2,
-                'role_id'=>2,
-                'base_salary'=>2000,
-                'hire_date'=>'2025.08.08',
-                'email'=>'usuario3@ewtto.com',
-                'password'=>bcrypt('usuario3')
-            ],
-            [
-                'name'=>'Usuario4',
-                'address'=>'Calle 123 #456',
-                'phone'=>"78827517",
-                'branch_id'=>3,
-                'role_id'=>2,
-                'base_salary'=>2000,
-                'hire_date'=>'2025.08.08',
-                'email'=>'usuario4@ewtto.com',
-                'password'=>bcrypt('usuario4')
-            ],
+            
         ]);
     }
 }
