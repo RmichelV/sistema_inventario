@@ -8,7 +8,7 @@ import type { Product } from '@/types'
 
 // Agrega las importaciones necesarias
 import { onMounted } from 'vue';
-import { usePage, useForm } from '@inertiajs/vue3';
+import { usePage, useForm, router } from '@inertiajs/vue3';
 import { useSwal } from '../../composables/useSwal'; // Importa el composable
 
 // Lógica de SweetAlert2
@@ -119,6 +119,36 @@ const switchBranch = (event: Event) => {
                     name: 'Agregar Productos a la bodega',
                     iconName: 'bx-plus' }"
                 :acciones="[
+                    {
+                        color: 'red',
+                        name: 'Eliminar registro',
+                        iconName: 'bx-trash',
+                        onClick: (item: any) => {
+                            const swal = useSwal();
+                            swal.fire({
+                                title: '¿Eliminar registro de inventario?',
+                                text: `Se eliminará el registro de bodega para el producto ${item.name}. Esta acción no se puede deshacer.`,
+                                icon: 'warning',
+                                showCancelButton: true,
+                                confirmButtonText: 'Sí, eliminar',
+                                cancelButtonText: 'Cancelar',
+                            }).then((result: any) => {
+                                if (result.isConfirmed) {
+                                    // Usar Inertia para DELETE
+                                    router.delete(route('rproductbranches.destroy', item.id), {
+                                        onSuccess: () => {
+                                            swal.fire('Eliminado', 'Registro de inventario eliminado.', 'success').then(() => {
+                                                router.visit(route('rproducts.index'));
+                                            });
+                                        },
+                                        onError: () => {
+                                            swal.fire('Error', 'Ocurrió un error al eliminar.', 'error');
+                                        }
+                                    });
+                                }
+                            });
+                        }
+                    }
                 ]"
                 :searchSelectConfig="{
                 options: products, 

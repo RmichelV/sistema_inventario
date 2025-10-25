@@ -181,6 +181,11 @@ Route::resource('rsalary_adjustments', SalaryAdjustmentController::class)->middl
 // Rutas de "Productos en Bodega". Los roles 1 (aa) y 4 (dd) pueden gestionarlos.
 Route::resource('rproducts', ProductController::class)->middleware(['auth', 'role:1,2,4']);
 
+// Eliminar registro de inventario en product_branches para la sucursal actual
+Route::delete('rproductbranches/{product}', [ProductController::class, 'destroyBranch'])
+    ->middleware(['auth', 'role:1,2,4'])
+    ->name('rproductbranches.destroy');
+
 // Rutas de "Historial de compras". Solo los roles 1 (aa) y 4 (dd) pueden ver las compras.
 Route::resource('rpurchases', PurchaseController::class)->middleware(['auth', 'role:1,4']);
 

@@ -257,4 +257,33 @@ class ProductController extends Controller
     {
         //
     }
+
+    /**
+     * Delete the product_branch record for the authenticated user's branch.
+     * The {product} route parameter is the product id.
+     */
+    public function destroyBranch($productId)
+    {
+        $user = auth()->user();
+        $branchId = $user->branch_id ?? null;
+
+        if (!$branchId) {
+            return redirect()->back()->with('error', 'Usuario sin sucursal asignada.');
+        }
+
+        $pb = ProductBranch::where('product_id', $productId)
+            ->where('branch_id', $branchId)
+            ->first();
+
+        if (!$pb) {
+            return redirect()->back()->with('error', 'Registro de inventario no encontrado para este producto en la sucursal.');
+        }
+
+        try {
+            $pb->delete();
+            return redirect()->back()->with('success', 'Registro de inventario eliminado.');
+        } catch (\Exception $e) {
+            return redirect()->back()->with('error', 'Error al eliminar el registro de inventario.');
+        }
+    }
 }
