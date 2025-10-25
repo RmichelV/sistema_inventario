@@ -106,7 +106,7 @@ onMounted(() => {
     />
     <div
       v-if="isOpen"
-      class="absolute bg-white border border-gray-300 w-full shadow-md mt-1 rounded-md max-h-40 overflow-y-auto z-10"
+      class="absolute bg-white border border-gray-300 w-full shadow-md mt-1 rounded-md max-h-40 overflow-y-auto z-10 force-light-dropdown"
       >
       <div
         v-for="(option, index) in filteredOptions"
@@ -122,3 +122,20 @@ onMounted(() => {
     </div>
   </div>
 </template>
+
+<style scoped>
+/* Forzar fondo blanco y texto negro en el dropdown independientemente del tema */
+.force-light-dropdown {
+  background-color: #ffffff !important;
+  color: #000000 !important;
+}
+.force-light-dropdown .p-2 {
+  color: #000000 !important;
+}
+.force-light-dropdown .p-2:hover {
+  background-color: #f3f4f6 !important; /* ligero gris para hover */
+}
+.force-light-dropdown .text-gray-500 {
+  color: #6b7280 !important; /* mantener estilo del texto secundario en lista vacía */
+}
+</style>

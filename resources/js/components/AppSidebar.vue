@@ -32,6 +32,12 @@ const mainNavItems: NavItem[] = [
         roles: [1], // Solo el rol 1 (Administrador)
     },
     {
+        title: 'Sucursales',
+        href: '/rbranches',
+        icon: BookUser,
+        roles: [1], // Solo el rol 1 (Administrador)
+    },
+    {
         title: 'Gestion de salarios',
         href: '/rsalaries',
         icon: Banknote,

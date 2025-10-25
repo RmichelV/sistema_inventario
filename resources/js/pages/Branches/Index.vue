@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import AppLayout from '@/layouts/AppLayout.vue';
 import { type BreadcrumbItem, Branch } from '@/types';
-import { Head, usePage } from '@inertiajs/vue3';
+import { Head} from '@inertiajs/vue3';
 import { Table as BranchTable } from '@/components/ui/Table';
 import Swal from 'sweetalert2';
 
@@ -42,26 +42,39 @@ function makeAcciones() {
                     }).then(async (result) => {
                         if (result.isConfirmed) {
                             try {
-                                                const token = String(usePage().props.csrf_token || '');
+                                // Obtener token CSRF desde la meta tag (fuente fiable)
+                                const meta = document.querySelector('meta[name="csrf-token"]');
+                                const token = meta ? String(meta.getAttribute('content') || '') : '';
+                                // Usar DELETE directo y solicitar JSON de respuesta
                                 const response = await fetch(route('rbranches.destroy', item.id), {
-                                    method: 'POST',
+                                    method: 'DELETE',
                                     headers: {
                                         'Content-Type': 'application/json',
-                                                        'X-CSRF-TOKEN': token,
+                                        'Accept': 'application/json',
+                                        'X-CSRF-TOKEN': token,
                                     },
-                                    body: JSON.stringify({ _method: 'DELETE' }),
                                 });
 
+                                let payload = null;
+                                try {
+                                    payload = await response.json();
+                                } catch {
+                                    // ignore json parse error
+                                }
+
                                 if (response.ok) {
-                                    Swal.fire('Eliminada', 'La sucursal fue eliminada.', 'success').then(() => {
+                                    const msg = (payload && payload.message) ? payload.message : 'La sucursal fue eliminada.';
+                                    Swal.fire('Eliminada', msg, 'success').then(() => {
                                         window.location.reload();
                                     });
                                 } else {
-                                    Swal.fire('Error', 'Ocurrió un error al eliminar la sucursal.', 'error');
+                                    const errMsg = (payload && payload.message) ? payload.message : 'Ocurrió un error al eliminar la sucursal.';
+                                    Swal.fire('Error', errMsg, 'error');
                                 }
-                                                    } catch {
-                                                        Swal.fire('Error', 'Ocurrió un error al eliminar la sucursal.', 'error');
-                                                    }
+                            } catch (err) {
+                                console.error(err);
+                                Swal.fire('Error', 'Ocurrió un error al eliminar la sucursal.', 'error');
+                            }
                         }
                     });
                 }
