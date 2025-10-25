@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref, watch } from 'vue';
+import { computed, watch } from 'vue';
 import { Head, useForm } from '@inertiajs/vue3';
 import { LoaderCircle, Trash2 } from 'lucide-vue-next';
 
