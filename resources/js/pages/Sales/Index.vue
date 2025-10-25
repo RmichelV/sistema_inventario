@@ -3,7 +3,7 @@
 
 import AppLayout from '@/layouts/AppLayout.vue';
 import { type BreadcrumbItem, type Sale } from '@/types';
-import { Head, router } from '@inertiajs/vue3';
+import { Head, router, useForm } from '@inertiajs/vue3';
 // PlaceholderPattern removed (unused)
 import { Table as ProductTable } from '@/components/ui/Table';
 import { generarNotaVentaPDF } from '@/utils/notaVentaPDF';
@@ -17,9 +17,31 @@ const breadcrumbs: BreadcrumbItem[] = [
 ];
 
 type SaleWithPayType = Sale & { pay_type?: string };
-const { sales } = defineProps<{
-    sales: SaleWithPayType[]
+const { sales, branches, currentBranch, currentUser } = defineProps<{
+    sales: SaleWithPayType[],
+    branches: { id: number; name: string }[],
+    currentBranch: { id: number; name: string } | null,
+    currentUser: { id: number; role_id: number }
 }>();
+
+// Formulario para cambiar la sucursal del usuario (solo visible para admin)
+const form = useForm({ branch_id: '' });
+const switchBranch = (event: Event) => {
+    const select = event.target as HTMLSelectElement;
+    const branchId = select.value;
+
+    if (!branchId) return;
+
+    form.branch_id = branchId;
+    form.post(route('rusers.switchBranch'), {
+        onSuccess: () => {
+            window.location.reload();
+        },
+        onError: (errors: any) => {
+            console.error('Failed to switch branch', errors);
+        }
+    });
+};
 
 // Estado para el filtro de fechas
 const fechaInicio = ref('');
@@ -114,7 +136,20 @@ async function handleDescargarNotaVenta(sale: Sale) {
 
     <AppLayout :breadcrumbs="breadcrumbs">
         <div class="flex h-full flex-1 flex-col gap-4 rounded-xl p-4 overflow-x-auto">
-            
+
+            <div class="flex items-center justify-between mb-2">
+                <div class="text-sm">
+                    Sucursal: <span class="font-bold">{{ currentBranch ? currentBranch.name : 'Sin sucursal asignada' }}</span>
+                </div>
+                <div>
+                    <label v-if="currentUser && currentUser.role_id === 1" class="mr-2 font-medium">Cambiar sucursal:</label>
+                    <select v-if="currentUser && currentUser.role_id === 1" @change="switchBranch" :value="currentBranch ? currentBranch.id : ''" class="px-2 py-1 border rounded">
+                        <option value="">-- Seleccionar --</option>
+                        <option v-for="b in branches" :key="b.id" :value="b.id">{{ b.name }}</option>
+                    </select>
+                </div>
+            </div>
+
             <div class="grid auto-rows-min gap-4 md:grid-cols-4">
                 <!-- Filtro de fechas -->
                 <div class="relative aspect-video overflow-hidden rounded-xl border border-sidebar-border/70 dark:border-sidebar-border flex flex-col items-center justify-center gap-2 p-4">

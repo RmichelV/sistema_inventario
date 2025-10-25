@@ -16,7 +16,8 @@ class Sale extends Model
         'sale_date',
         'pay_type',
         'final_price',
-        'exchange_rate'
+        'exchange_rate',
+        'branch_id'
     ];
 
     public function saleItems(){

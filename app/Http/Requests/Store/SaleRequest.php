@@ -3,8 +3,9 @@
 namespace App\Http\Requests\Store;
 
 use Illuminate\Foundation\Http\FormRequest;
-use App\Models\Product; // Modelo para Bodega
+use App\Models\Product; // Modelo para Bodega (legacy)
 use App\Models\Product_Store; // Modelo para Tienda (Nombre corregido: Product_Store)
+use App\Models\product_branch as ProductBranch; // Inventario por sucursal
 
 class SaleRequest extends FormRequest
 {
@@ -46,9 +47,24 @@ class SaleRequest extends FormRequest
                     $productId = $this->input("items.{$index}.product_id");
 
                     if ($productId) {
-                        $product = Product::find($productId);
-                        $availableStock = $product ? $product->quantity_in_stock : 0;
-                        
+                        // Primero intentamos obtener el stock en product_branches para la sucursal del usuario
+                        $authUser = auth()->user();
+                        $branchId = $authUser->branch_id ?? null;
+
+                        $availableStock = 0;
+                        if ($branchId) {
+                            $pb = ProductBranch::where('branch_id', $branchId)
+                                ->where('product_id', $productId)
+                                ->first();
+                            $availableStock = $pb ? ($pb->quantity_in_stock ?? 0) : 0;
+                        }
+
+                        // Fallback: si no existe registro en product_branches (deploy intermedio), usamos Product.quantity_in_stock
+                        if ($availableStock === 0) {
+                            $product = Product::find($productId);
+                            $availableStock = $product ? $product->quantity_in_stock : 0;
+                        }
+
                         if ($value > $availableStock) {
                             $fail("Stock insuficiente en Bodega para el ítem #".($index + 1).". Disponible: {$availableStock} unidades.");
                         }
@@ -70,10 +86,17 @@ class SaleRequest extends FormRequest
                     $productId = $this->input("items.{$index}.product_id");
 
                     if ($productId) {
-                        // CORREGIDO: Usando 'product_id' como nombre de columna
-                        $productStore = Product_Store::where('product_id', $productId)->first(); 
+                        // Validamos stock en tienda por sucursal si aplica
+                        $authUser = auth()->user();
+                        $branchId = $authUser->branch_id ?? null;
+
+                        $productStoreQuery = Product_Store::where('product_id', $productId);
+                        if ($branchId && \Schema::hasColumn('product_stores', 'branch_id')) {
+                            $productStoreQuery->where('branch_id', $branchId);
+                        }
+                        $productStore = $productStoreQuery->first();
                         $availableStock = $productStore ? $productStore->quantity : 0;
-                        
+
                         // Si la cantidad solicitada excede el stock
                         if ($value > $availableStock) {
                             $fail("Stock insuficiente en Tienda para el producto #".($index + 1).". Disponible: {$availableStock} unidades.");

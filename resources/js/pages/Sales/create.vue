@@ -21,10 +21,12 @@ const breadcrumbs: BreadcrumbItem[] = [
     },
 ];
 
-const { products, productStores, usd_exchange_rate } = defineProps<{
+const { products, productStores, usd_exchange_rate, productBranches } = defineProps<{
     products: Product[];
     productStores?: ProductStore[];
     usd_exchange_rate?: Usd_exchange_rate;
+    // opcional: colección de product_branches (stock por sucursal)
+    productBranches?: Array<any>;
 }>();
 
 // Estado del formulario con un array 'items' para múltiples productos
@@ -92,11 +94,30 @@ const findProductInStore = (productId: number | null) => {
     return productStores.find(p => p.product_id === productId) || null;
 };
 
-// Función para encontrar un producto en bodega y su stock
+// Función para encontrar un producto en bodega y su stock (preferir productBranches)
 const findProductInWarehouse = (productId: number | null) => {
-    if (!productId) {
-        return null;
+    if (!productId) return null;
+
+    // Si el backend envía productBranches (product_branches por sucursal), lo usamos
+    if (typeof productBranches !== 'undefined' && productBranches && productBranches.length > 0) {
+        const pb = productBranches.find((b: any) => {
+            return b.product_id === productId || (b.product && b.product.id === productId) || b.id === productId;
+        });
+        if (pb) {
+            return {
+                id: pb.product_id ?? pb.id ?? (pb.product ? pb.product.id : null),
+                name: pb.product?.name ?? pb.name ?? null,
+                code: pb.product?.code ?? pb.code ?? null,
+                img_product: pb.product?.img_product ?? pb.img_product ?? null,
+                quantity_in_stock: pb.quantity_in_stock ?? 0,
+                unit_price: pb.unit_price ?? 0,
+                units_per_box: pb.units_per_box ?? null,
+                last_update: pb.last_update ?? null,
+            };
+        }
     }
+
+    // Fallback a products si no existe productBranches
     return products.find(p => p.id === productId) || null;
 };
 
@@ -248,6 +269,7 @@ const submit = () => {
                                     required
                                     placeholder="Ej. 100"
                                     min="0"
+                                    :max="findProductInWarehouse(item.product_id)?.quantity_in_stock ?? 0"
                                     defaultValue="0"
                                     v-model.number="item.quantity_from_warehouse"
                                 />
@@ -262,6 +284,7 @@ const submit = () => {
                                     required
                                     placeholder="Ej. 20"
                                     min="0"
+                                    :max="findProductInStore(item.product_id)?.quantity ?? 0"
                                     defaultValue="0"
                                     v-model.number="item.quantity_from_store"
                                 />

@@ -35,22 +35,29 @@ Route::get('dashboard', function () {
     $usd = Usd_exchange_rate::find(1);
     // Aseguramos un valor por defecto si no existe el registro para evitar accesos sobre null
     $exchangeRate = $usd?->exchange_rate ?? 1;
-    // `quantity_in_stock` fue movida a la tabla de inventarios por sucursal (Product_Store / product_branches).
-    // Aquí solo traemos los datos básicos del producto (metadata) para búsquedas en el dashboard.
-    $products = Product::all(['id','name','code']);
-    
+    // `quantity_in_stock` fue movida a la tabla de inventarios por sucursal (product_branches).
     // Determinar usuario y sucursal actual (usado para filtrar product_stores)
     $user = auth()->user();
     $branchId = $user?->branch_id ?? null;
+
+    // Si el usuario tiene sucursal, limitamos los productos a los que existen en product_branches
+    $productIdsInBranch = [];
+    if (\Schema::hasColumn('product_branches', 'branch_id') && $branchId) {
+        $productIdsInBranch = \App\Models\product_branch::where('branch_id', $branchId)->pluck('product_id')->toArray();
+        // Traer solo metadata de productos que pertenecen a la sucursal
+        $products = Product::whereIn('id', $productIdsInBranch)->get(['id','name','code']);
+    } else {
+        // Si no hay branch o en despliegues intermedios, mantener la lista completa
+        $products = Product::all(['id','name','code']);
+    }
 
     // --- 1. PRODUCTOS EN TIENDA (RAW) - NECESARIO PARA LA FUNCIÓN DE BÚSQUEDA DEL DASHBOARD ---
     // Obtenemos los productos en tienda (sin el 'with("product")' para hacerlo más ligero)
     // y filtramos por branch_id si corresponde. También incluimos filas legacy (branch_id IS NULL)
     // sólo si el producto pertenece a la sucursal según product_branches.
     $productStoresQuery = Product_Store::query()->select(['product_id', 'quantity', 'unit_price', 'branch_id']);
-    $productIdsInBranch = [];
     if (\Schema::hasColumn('product_stores', 'branch_id') && $branchId) {
-        $productIdsInBranch = \App\Models\product_branch::where('branch_id', $branchId)->pluck('product_id')->toArray();
+        // $productIdsInBranch ya fue inicializado arriba cuando corresponde
         $productStoresQuery->where(function($q) use ($branchId, $productIdsInBranch) {
             $q->where('branch_id', $branchId)
               ->orWhere(function($q2) use ($productIdsInBranch) {

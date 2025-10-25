@@ -23,8 +23,8 @@ class BranchSeeder extends Seeder
             "address"=>"dir B"
         ],[
 
-            "name"=>"sucursal B",
-            "address"=>"dir B"
+            "name"=>"sucursal C",
+            "address"=>"dir C"
         ],
         ]);
     }
