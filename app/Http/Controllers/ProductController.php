@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Product;
 use App\Models\product_branch as ProductBranch;
+use App\Models\Product_store;
 use Illuminate\Http\Request;
 
 //mis librerias 
@@ -279,10 +280,21 @@ class ProductController extends Controller
             return redirect()->back()->with('error', 'Registro de inventario no encontrado para este producto en la sucursal.');
         }
 
+        // Usar transacción para mantener consistencia: borrar product_stores y product_branches
+        DB::beginTransaction();
         try {
+            // Eliminamos registros en product_stores correspondientes a este producto y sucursal
+            Product_store::where('product_id', $productId)
+                ->where('branch_id', $branchId)
+                ->delete();
+
+            // Luego eliminamos el registro de product_branches
             $pb->delete();
+
+            DB::commit();
             return redirect()->back()->with('success', 'Registro de inventario eliminado.');
         } catch (\Exception $e) {
+            DB::rollBack();
             return redirect()->back()->with('error', 'Error al eliminar el registro de inventario.');
         }
     }
