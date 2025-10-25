@@ -260,10 +260,22 @@ class AttendanceRecordController extends Controller
             $checkIn = Carbon::parse($record->attendance_date . ' ' . $record->check_in_at);
             $checkOut = Carbon::parse($data['attendance_date'] . ' ' . $data['check_out_at']);
 
-            // 6. Calcular minutos trabajados
-            $minutesWorked = ($checkOut->diffInMinutes($checkIn)*-1);
-            
-            // 7. Actualizar el registro
+            // 6. Calcular minutos trabajados normalmente
+            $minutesWorked = $checkOut->diffInMinutes($checkIn);
+
+            // 7. Regla especial: si el empleado entró antes o a 09:10 y salió entre 20:50 y 21:00
+            // entonces consideramos jornada completa = 720 minutos (12 horas)
+            $thresholdCheckIn = Carbon::parse($record->attendance_date . ' 09:10:00');
+            $checkoutWindowStart = Carbon::parse($data['attendance_date'] . ' 20:50:00');
+            $checkoutWindowEnd = Carbon::parse($data['attendance_date'] . ' 21:00:00');
+
+            if ($checkIn->lessThanOrEqualTo($thresholdCheckIn)
+                && $checkOut->greaterThanOrEqualTo($checkoutWindowStart)
+                && $checkOut->lessThanOrEqualTo($checkoutWindowEnd)) {
+                $minutesWorked = 720; // fuerza 12 horas
+            }
+
+            // 8. Actualizar el registro
             $record->update([
                 'check_out_at' => $data['check_out_at'],
                 'minutes_worked' => $minutesWorked,
@@ -317,11 +329,21 @@ class AttendanceRecordController extends Controller
             $checkIn = Carbon::parse($record->attendance_date . ' ' . $record->check_in_at);
             $checkOut = Carbon::parse($data['attendance_date'] . ' ' . $data['check_out_at']);
 
-            // 6. Calcular minutos trabajados
-            // Usamos diffInMinutes() para obtener la diferencia total
+            // 6. Calcular minutos trabajados normalmente
             $minutesWorked = $checkOut->diffInMinutes($checkIn);
-            
-            // 7. Actualizar el registro
+
+            // 7. Regla especial: jornada completa
+            $thresholdCheckIn = Carbon::parse($record->attendance_date . ' 09:10:00');
+            $checkoutWindowStart = Carbon::parse($data['attendance_date'] . ' 20:50:00');
+            $checkoutWindowEnd = Carbon::parse($data['attendance_date'] . ' 21:00:00');
+
+            if ($checkIn->lessThanOrEqualTo($thresholdCheckIn)
+                && $checkOut->greaterThanOrEqualTo($checkoutWindowStart)
+                && $checkOut->lessThanOrEqualTo($checkoutWindowEnd)) {
+                $minutesWorked = 720; // fuerza 12 horas
+            }
+
+            // 8. Actualizar el registro
             $record->update([
                 'check_out_at' => $data['check_out_at'],
                 'minutes_worked' => $minutesWorked,
