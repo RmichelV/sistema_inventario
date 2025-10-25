@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed } from 'vue';
+import { computed, ref, watch } from 'vue';
 import { Head, useForm } from '@inertiajs/vue3';
 import { LoaderCircle, Trash2 } from 'lucide-vue-next';
 
@@ -40,7 +40,7 @@ const form = useForm({
         quantity_from_warehouse: undefined as number | undefined,
         quantity_from_store: undefined as number | undefined,
         selected_price: undefined as number | undefined,
-        selected_min_type: 'bs' as 'usd' | 'bs' | 'bs_sale', // Nuevo campo para radio
+        selected_min_type: 'bs_sale' as 'usd' | 'bs' | 'bs_sale', // Por defecto: opción 3
     }],
 });
 
@@ -51,7 +51,7 @@ const addSaleItem = () => {
         quantity_from_warehouse: undefined,
         quantity_from_store: undefined,
         selected_price: undefined,
-        selected_min_type: 'bs',
+        selected_min_type: 'bs_sale',
     });
 };
 // Calcula el mínimo según el radio seleccionado
@@ -70,15 +70,41 @@ const getItemMinPrice = (item: any) => {
 };
 
 // --- MANEJO DEL CAMBIO DE TIPO MÍNIMO ---
+// Regla: habilitar la opción 'bs' solo si la suma de cantidades (bodega+tienda) es > 3.
+const allowBs = (item: any) => {
+    const total = (item.quantity_from_warehouse || 0) + (item.quantity_from_store || 0);
+    return total > 3;
+};
+
 const handleMinTypeChange = (item: any, type: 'usd' | 'bs' | 'bs_sale') => {
+    // Si intentan seleccionar 'bs' pero no cumple la condición, forzamos 'bs_sale'
+    if (type === 'bs' && !allowBs(item)) {
+        item.selected_min_type = 'bs_sale';
+        item.minimum_limit = getItemMinPrice(item);
+        return;
+    }
+
     item.selected_min_type = type;
-    // Si se selecciona USD, establecer el límite mínimo al precio en dólares
     if (type === 'usd') {
-        item.minimum_limit = itemPriceUsd(item); // Establecer el límite mínimo al precio en dólares
+        item.minimum_limit = itemPriceUsd(item);
     } else {
-        item.minimum_limit = getItemMinPrice(item); // Mantener la lógica existente para otros tipos
+        item.minimum_limit = getItemMinPrice(item);
     }
 };
+
+// Watch para corregir automáticamente selecciones inválidas cuando las cantidades cambien
+watch(
+    () => form.items.map((it: any) => ({ q: (it.quantity_from_warehouse || 0) + (it.quantity_from_store || 0), sel: it.selected_min_type })),
+    () => {
+        form.items.forEach((it: any) => {
+            if (it.selected_min_type === 'bs' && !allowBs(it)) {
+                it.selected_min_type = 'bs_sale';
+                it.minimum_limit = getItemMinPrice(it);
+            }
+        });
+    },
+    { deep: true }
+);
 
 const removeSaleItem = (index: number) => {
     if (form.items.length > 1) {
@@ -304,7 +330,7 @@ const submit = () => {
                                         </span>
                                     </label>
                                     <label class="flex items-center gap-2">
-                                        <input type="radio" :name="'ref-radio-' + index" value="bs" v-model="item.selected_min_type" @change="handleMinTypeChange(item, 'bs')">
+                                        <input type="radio" :name="'ref-radio-' + index" value="bs" v-model="item.selected_min_type" @change="handleMinTypeChange(item, 'bs')" :disabled="!allowBs(item)">
                                         <span class="text-sm font-medium text-gray-700 dark:text-gray-300">
                                             Precio Base en Bolivianos: 
                                             <span class="font-bold text-base text-green-700 dark:text-green-300">Bs. {{ itemPriceBs(item).toFixed(2) }}</span>
