@@ -213,10 +213,13 @@ class SaleController extends Controller
         $sale_items = Sale_item::where('sale_id', $sale->id)->get();
         $product_ids = $sale_items->pluck('product_id')->toArray();
         $products = Product::whereIn('id', $product_ids)->get();
+        $authUser = auth()->user();
+
         return Inertia::render('Sales/show', [
             'sale' => $sale,
             'sale_items' => $sale_items,
             'products' => $products,
+            'currentUser' => $authUser,
         ]);
     }
 

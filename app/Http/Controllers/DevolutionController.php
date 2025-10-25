@@ -13,6 +13,7 @@ use App\Models\Product;
 use App\Models\Sale;
 use App\Models\Sale_item;
 use App\Models\Product_store;
+use App\Models\product_branch;
 
 //Validaciones 
 use App\Http\Requests\Devolution\DevolutionRequest;
@@ -68,6 +69,32 @@ class DevolutionController extends Controller
                 $productStore->quantity += $quantity_to_return;
                 $productStore->save();
             }
+                // Return the product to the branch warehouse (product_branches) using the
+                // authenticated user's branch_id as the target branch.
+                $branchId = auth()->user()->branch_id ?? null;
+
+                if (!$branchId) {
+                    throw new \Exception('El usuario no tiene sucursal asignada.');
+                }
+
+                $productBranch = product_branch::where('product_id', $request->product_id)
+                    ->where('branch_id', $branchId)
+                    ->first();
+
+                if ($productBranch) {
+                    // Increment existing branch stock
+                    $productBranch->quantity_in_stock += $quantity_to_return;
+                    $productBranch->last_update = now();
+                    $productBranch->save();
+                } else {
+                    // If no branch record exists yet, create it with the returned quantity
+                    product_branch::create([
+                        'branch_id' => $branchId,
+                        'product_id' => $request->product_id,
+                        'quantity_in_stock' => $quantity_to_return,
+                        'last_update' => now(),
+                    ]);
+                }
 
             // Update or delete the sale item based on the returned quantity
             if ($new_quantity_sold == 0) {

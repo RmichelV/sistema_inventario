@@ -14,10 +14,11 @@ const breadcrumbs: BreadcrumbItem[] = [
     },
 ];
 
-const { sale, products, sale_items } = defineProps<{
+const { sale, products, sale_items, currentUser } = defineProps<{
     sale: Sale;
     products: Product[]; // Corregido: 'products' es un array
     sale_items: SaleItem[];
+    currentUser?: { id: number; role_id: number } | null;
 }>();
 
 // Función para encontrar el producto asociado a un ítem de venta
@@ -39,6 +40,21 @@ const tableItems = computed(() => {
             subtotal: subtotal.toFixed(2), // Agrega el subtotal
         };
     });
+});
+
+// Acciones para cada fila: el botón "Devolver" solo para administradores (role_id === 1)
+const acciones = computed(() => {
+    if (currentUser && currentUser.role_id === 1) {
+        return [
+            {
+                href: (item: any) => route('rsaleitems.edit', item.id),
+                color: 'red',
+                name: 'Devolver',
+                iconName: 'bx-pencil',
+            },
+        ];
+    }
+    return [];
 });
 
 // totalItemsPrice removed (not used)
@@ -74,14 +90,7 @@ const tableItems = computed(() => {
                         :cabeceras="['Producto','Cantidad','Precio $us','T/C en ese momento','Acciones']"
                         :campos="['product_name','quantity_products','total_price','exchange_rate']"
                         :agregar="false"
-                        :acciones="[
-                            {
-                                href: (item) => route('rsaleitems.edit' , item.id),
-                                color: 'red',
-                                name: 'Devolver',
-                                iconName: 'bx-pencil',
-                            }
-                        ]"
+                        :acciones="acciones"
                     />
                 </div>
 
