@@ -6,6 +6,7 @@ use Inertia\Inertia;
 
 //controladores
 use App\Http\Controllers\UserController;
+use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\AttendanceRecordController;
 use App\Http\Controllers\SalaryAdjustmentController;
 use App\Http\Controllers\ProductController;
@@ -171,6 +172,9 @@ require __DIR__.'/auth.php';
 
 // Rutas para "Datos de empleados". Solo el rol 1 (aa) puede administrar usuarios.
 Route::resource('rusers', UserController::class)->middleware(['auth', 'role:1']);
+
+// Rutas para "Clientes". Solo el rol 1 (aa) puede administrar clientes.
+Route::resource('rcustomers', CustomerController::class)->middleware(['auth', 'role:1']);
 
 // Rutas de "Asistencias". Los roles 1 (aa) y 2 (bb) pueden ver los registros.
 Route::resource('rattendance_records', AttendanceRecordController::class)->middleware(['auth', 'role:1,2']);
