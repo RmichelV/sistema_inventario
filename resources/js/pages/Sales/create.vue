@@ -350,16 +350,13 @@ const submit = () => {
                             <!-- Campo de Input para el Precio Final Cobrado por este Ítem -->
                             <div class="grid gap-2 mt-2">
                                 <Label :for="'selected_price-' + index" class="font-bold text-lg">
-                                    Precio Cobrado por ESTE producto (Bs.)
+                                    Precio Cobrado por ESTE producto (Bs.) - Mínimo: <span class="text-blue-600">{{ (item.selected_min_type === 'usd' ? itemPriceUsd(item) : getItemMinPrice(item)).toFixed(2) }}</span>
                                 </Label>
-                                <!-- Radios para elegir el mínimo -->
                                 <Input 
                                     :id="'selected_price-' + index"
                                     type="number"
                                     required
                                     placeholder="Ingrese el precio final cobrado por este ítem..."
-                                    :min="item.selected_min_type === 'usd' ? itemPriceUsd(item) : getItemMinPrice(item)"
-                                    step="0.01"
                                     v-model.number="item.selected_price"
                                 />
                                 <InputError :message="form.errors[`items.${index}.selected_price`]" />
