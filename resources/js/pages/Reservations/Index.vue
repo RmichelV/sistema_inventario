@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import AppLayout from '@/layouts/AppLayout.vue';
 import { type BreadcrumbItem } from '@/types';
-import { Head, router } from '@inertiajs/vue3';
+import { Head, router, useForm } from '@inertiajs/vue3';
 import { useSwal } from '@/composables/useSwal';
 import { Table as ReservationTable } from '@/components/ui/Table';
 
@@ -12,12 +12,34 @@ const breadcrumbs: BreadcrumbItem[] = [
     },
 ];
 
-const { reservations, currentUser } = defineProps<{
+const { reservations, currentUser, branches, currentBranch } = defineProps<{
     reservations: any[];
     currentUser: { id: number; role_id: number };
+    branches?: { id: number; name: string }[];
+    currentBranch?: { id: number; name: string } | null;
 }>();
 
 const swal = useSwal();
+
+// Método para cambiar la branch del usuario autenticado (solo role_id === 1 lo verá)
+const form = useForm({ branch_id: '' });
+const switchBranch = (event: Event) => {
+    const select = event.target as HTMLSelectElement;
+    const branchId = select.value;
+
+    if (!branchId) return;
+
+    form.branch_id = branchId;
+    form.post(route('rusers.switchBranch'), {
+        onSuccess: () => {
+            // recargar para que el backend sirva las reservaciones del nuevo branch
+            window.location.reload();
+        },
+        onError: (errors: any) => {
+            console.error('Failed to switch branch', errors);
+        }
+    });
+};
 
 function makeAcciones() {
     const baseActions: any[] = [
@@ -76,7 +98,15 @@ const acciones = makeAcciones();
             <div class="relative min-h-[100vh] flex-1 rounded-xl border border-sidebar-border/70 md:min-h-min dark:border-sidebar-border">
                 <div class="flex items-center justify-between mb-4">
                     <div class="text-lg font-semibold">
-                        Lista de Reservaciones
+                        Sucursal: <span class="font-bold">{{ currentBranch ? currentBranch.name : 'Sin sucursal asignada' }}</span>
+                    </div>
+
+                    <div>
+                        <label v-if="currentUser && currentUser.role_id === 1" class="mr-2 font-medium">Seleccionar sucursal:</label>
+                        <select v-if="currentUser && currentUser.role_id === 1" @change="switchBranch" :value="currentBranch ? currentBranch.id : ''" class="px-2 py-1 border rounded">
+                            <option value="">-- Seleccionar --</option>
+                            <option v-for="b in branches" :key="b.id" :value="b.id">{{ b.name }}</option>
+                        </select>
                     </div>
                 </div>
 
