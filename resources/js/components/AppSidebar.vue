@@ -83,6 +83,18 @@ const mainNavItems: NavItem[] = [
         icon: ShoppingCart,
         roles: [1, 2, 3],
     },
+    {
+        title: 'Reservaciones',
+        href: '/rreservations',
+        icon: ShoppingCart,
+        roles: [1, 2, 3],
+    },
+    {
+        title: 'clientes',
+        href: '/rcustomers',
+        icon: ShoppingCart,
+        roles: [1, 2, 3],
+    },
 ];
 
 // 5. Crea la propiedad computada para filtrar los ítems del menú

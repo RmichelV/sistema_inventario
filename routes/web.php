@@ -7,6 +7,8 @@ use Inertia\Inertia;
 //controladores
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\CustomerController;
+use App\Http\Controllers\ReservationController;
+use App\Http\Controllers\ReservationItemController;
 use App\Http\Controllers\AttendanceRecordController;
 use App\Http\Controllers\SalaryAdjustmentController;
 use App\Http\Controllers\ProductController;
@@ -198,6 +200,10 @@ Route::resource('rproductstores', ProductStoreController::class)->middleware(['a
 
 // Rutas para "Ventas". Los roles 1 (aa) y 3 (cc) pueden ver y registrar ventas.
 Route::resource('rsales', SaleController::class)->middleware(['auth', 'role:1,2,3']);
+
+// Rutas para "Reservaciones". Los roles 1 (aa) y 3 (cc) pueden ver y registrar reservaciones.
+Route::resource('rreservations', ReservationController::class)->middleware(['auth', 'role:1,2,3']);
+Route::resource('rreservation_items', ReservationItemController::class)->middleware(['auth', 'role:1,2,3']);
 
 // Rutas de ajuste de tipo de cambio. Solo el rol 1 (aa) puede hacerlo.
 Route::resource('rusdexchangerates', UsdExchangeRateController::class)->middleware(['auth', 'role:1,2']);
