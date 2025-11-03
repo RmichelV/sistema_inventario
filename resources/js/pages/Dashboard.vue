@@ -17,7 +17,7 @@ const breadcrumbs: BreadcrumbItem[] = [
     },
 ];
 
-const { usd, products, productStores, productStores15Days, productStores30Days, branches, currentBranch, currentUser } = defineProps<{
+const { usd, products, productStores, productStores15Days, productStores30Days, branches, currentBranch, currentUser, productBranches } = defineProps<{
     usd: Usd_exchange_rate;
     products: Product[];
     productStores: ProductStore[];
@@ -26,7 +26,7 @@ const { usd, products, productStores, productStores15Days, productStores30Days, 
     branches: { id: number; name: string }[];
     currentBranch: { id: number; name: string } | null;
     currentUser: { id: number; role_id: number };
-
+    productBranches?: Array<any>;
 }>();
 
 const selectedProductId = ref<number | null>(null);
@@ -63,19 +63,20 @@ const currentProduct = computed(() => {
     // Busca el producto en la tienda (tabla 'product_stores')
     const productInStore = productStores.find(p => p.product_id === selectedProductId.value);
     
-    // Si no hay producto en bodega, no hay nada que mostrar.
+    // Busca el producto en bodega por sucursal (tabla 'product_branches')
+    const productInBranch = productBranches?.find((pb: any) => pb.product_id === selectedProductId.value);
+    
+    // Si no hay producto, no hay nada que mostrar.
     if (!product) {
         return null;
     }
 
-    // Combina los datos de ambas tablas en un solo objeto.
+    // Combina los datos de todas las tablas en un solo objeto.
     return {
         ...product,
+        quantity_in_stock: productInBranch?.quantity_in_stock ?? 0,
         quantity_in_store: productInStore ? productInStore.quantity : 0,
         unit_price: productInStore ? productInStore.unit_price : 0,
-        
-        // unit_price_retail: productInStore ? productInStore.unit_price_retail : 0,
-        // saleprice: productInStore ? productInStore.saleprice : 0,
     };
 });
 

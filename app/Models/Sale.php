@@ -17,6 +17,7 @@ class Sale extends Model
         'pay_type',
         'final_price',
         'exchange_rate',
+        'notes',
         'branch_id'
     ];
 

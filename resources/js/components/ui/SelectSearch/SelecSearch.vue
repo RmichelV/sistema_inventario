@@ -94,7 +94,7 @@ onMounted(() => {
       type="text"
       v-model="searchTerm"
       :placeholder="placeholder"
-      class="border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm w-full p-2 cursor-text"
+      class="border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm w-full p-2 cursor-text bg-white text-black"
       @focus="isOpen = true"
       @input="isOpen = true"
     />
@@ -112,11 +112,11 @@ onMounted(() => {
         v-for="(option, index) in filteredOptions"
         :key="index"
         @click="selectOption(option)"
-        class="p-2 text-gray-900 hover:bg-gray-100 cursor-pointer"
+        class="p-2 text-black hover:bg-gray-200 cursor-pointer bg-white"
         >
         {{ (option as any)[labelKey] }}
       </div>
-      <div v-if="filteredOptions.length === 0" class="p-2 text-gray-500">
+      <div v-if="filteredOptions.length === 0" class="p-2 text-gray-600 bg-white">
         No se encontraron resultados
       </div>
     </div>
@@ -124,18 +124,39 @@ onMounted(() => {
 </template>
 
 <style scoped>
-/* Forzar fondo blanco y texto negro en el dropdown independientemente del tema */
+/* Forzar fondo blanco y texto negro en el input y dropdown independientemente del tema */
 .force-light-dropdown {
   background-color: #ffffff !important;
   color: #000000 !important;
 }
-.force-light-dropdown .p-2 {
+
+.force-light-dropdown > div {
+  background-color: #ffffff !important;
   color: #000000 !important;
 }
-.force-light-dropdown .p-2:hover {
-  background-color: #f3f4f6 !important; /* ligero gris para hover */
+
+.force-light-dropdown .p-2 {
+  color: #000000 !important;
+  background-color: #ffffff !important;
 }
-.force-light-dropdown .text-gray-500 {
-  color: #6b7280 !important; /* mantener estilo del texto secundario en lista vacía */
+
+.force-light-dropdown .p-2:hover {
+  background-color: #e5e7eb !important;
+  color: #000000 !important;
+}
+
+.force-light-dropdown .text-gray-600 {
+  color: #4b5563 !important;
+  background-color: #ffffff !important;
+}
+
+/* Asegurar que el input siempre sea blanco con texto negro */
+input[type="text"] {
+  background-color: #ffffff !important;
+  color: #000000 !important;
+}
+
+input[type="text"]::placeholder {
+  color: #999999 !important;
 }
 </style>

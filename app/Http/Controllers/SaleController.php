@@ -131,6 +131,7 @@ class SaleController extends Controller
                 'pay_type' => $request->pay_type,
                 'final_price' => $request->final_price,
                 'exchange_rate' => $exchange_rate->exchange_rate,
+                'notes' => $request->notes ?? null,
                 'branch_id' => $authUser->branch_id ?? null,
             ]);
 

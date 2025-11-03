@@ -34,7 +34,8 @@ const form = useForm({
     sale_date: new Date().toISOString().slice(0, 10),
     customer_name: '' as string,
     pay_type: '' as string,
-    final_price: undefined as number | undefined, 
+    final_price: undefined as number | undefined,
+    notes: '' as string,
     items: [{
         product_id: null as number | null,
         quantity_from_warehouse: undefined as number | undefined,
@@ -230,6 +231,38 @@ const minimumFinalPrice = computed<number>(() => { // <- Tipo explícito para as
     return 0; 
 });
 
+// Validar que todos los items están en la MISMA MONEDA
+// Bolivianos y Venta son compatibles (ambos en Bs)
+// Dólares solo debe estar solo
+const allItemsHaveSameCurrency = computed(() => {
+    if (form.items.length === 0) return true;
+    
+    // Agrupar items por moneda
+    const hasUsd = form.items.some((item: any) => item.selected_min_type === 'usd');
+    const hasBs = form.items.some((item: any) => item.selected_min_type === 'bs' || item.selected_min_type === 'bs_sale');
+    
+    // No se puede mezclar USD con Bs/Venta
+    if (hasUsd && hasBs) {
+        return false;
+    }
+    
+    return true;
+});
+
+// Validar si todos los items tienen precios válidos y la misma moneda
+const areAllItemsValid = computed(() => {
+    // Primero verificar que todos los items estén en la misma moneda
+    if (!allItemsHaveSameCurrency.value) {
+        return false;
+    }
+    
+    return form.items.every((item: any) => {
+        const totalQuantity = (item.quantity_from_warehouse || 0) + (item.quantity_from_store || 0);
+        if (!item.product_id || totalQuantity === 0 || !item.selected_price) return false;
+        return true;
+    });
+});
+
 
 const submit = () => {
     form.post(route('rsales.store'), {
@@ -380,16 +413,26 @@ const submit = () => {
                             </h3>
                         </div>
 
+                        <!-- Validación: Todos los items deben estar en la MISMA MONEDA -->
+                        <div v-if="form.items.length > 0 && !allItemsHaveSameCurrency" class="p-4 bg-red-100 dark:bg-red-900 border-2 border-red-400 dark:border-red-600 rounded-lg">
+                            <p class="text-sm font-semibold text-red-700 dark:text-red-300">
+                                🚫 NO se puede mezclar Dólares con Bolivianos/Venta
+                            </p>
+                            <p class="text-xs text-red-600 dark:text-red-400 mt-1">
+                                Usa TODOS en Dólares, O todos en Bolivianos/Venta
+                            </p>
+                        </div>
+
                          <div class="grid gap-2">
                             <Label for="pay_type">Método de pago</Label>
                             <select
                                 id="pay_type"
                                 name="pay_type"
                                 v-model="form.pay_type"
-                                class="px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:text-sm"
+                                class="px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:text-sm bg-white text-black"
                                 required
                             >
-                                <option value="" disabled selected>Seleccione un método de pago</option>
+                                <option value="">-- Seleccione un método de pago --</option>
                                 <option value="Dolares">Dólares</option>
                                 <option value="Bolivianos">Bolivianos</option>
                                 <option value="Qr">QR</option>
@@ -431,7 +474,20 @@ const submit = () => {
                             <InputError :message="form.errors.customer_name" />
                         </div>
 
-                        <Button type="submit" class="w-full mt-2" tabindex="5" :disabled="form.processing">
+                        <div class="grid gap-2">
+                            <Label for="notes">Notas (Opcional)</Label>
+                            <textarea
+                                id="notes"
+                                name="notes"
+                                placeholder="Ej: Pago en dos cuotas, pago en QR después, etc."
+                                v-model="form.notes"
+                                class="px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:text-sm"
+                                rows="3"
+                            />
+                            <InputError :message="form.errors.notes" />
+                        </div>
+
+                        <Button type="submit" class="w-full mt-2" tabindex="5" :disabled="form.processing || !form.customer_name || !form.pay_type || form.items.some(i => !i.product_id) || !areAllItemsValid">
                             <LoaderCircle v-if="form.processing" class="w-4 h-4 animate-spin" />
                             Registrar venta
                         </Button>

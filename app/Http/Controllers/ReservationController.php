@@ -101,10 +101,10 @@ class ReservationController extends Controller
     {
         $validated = $request->validate([
             'customer_id' => 'required|exists:customers,id',
-            'pay_type' => 'required|in:Efectivo,Qr,Dolares',
+            'pay_type' => 'required|in:Efectivo,Qr,Dolares,Bolivianos',
             'advance_amount' => 'required|numeric|min:0',
             'items' => 'required|array|min:1',
-            'items.*.product_id' => 'required|exists:product_stores,id',
+            'items.*.product_id' => 'required|exists:products,id',
             'items.*.quantity_from_warehouse' => 'nullable|numeric|min:0',
             'items.*.quantity_from_store' => 'nullable|numeric|min:0',
             'items.*.selected_price' => 'required|numeric|min:0',
@@ -117,15 +117,37 @@ class ReservationController extends Controller
 
         // Validar que cada precio sea mayor o igual al mínimo según su tipo
         foreach ($request->items as $index => $item) {
-            $productStore = Product_store::findOrFail($item['product_id']);
+            // Obtener product_store por product_id y branch_id
+            $authUser = auth()->user();
+            $branchId = $authUser->branch_id ?? null;
+            
+            $productStore = Product_store::where('product_id', $item['product_id'])
+                ->where('branch_id', $branchId)
+                ->first();
+            
+            if (!$productStore) {
+                return redirect()->back()->withErrors([
+                    "items.$index.product_id" => "El producto no se encuentra disponible en tu sucursal."
+                ])->withInput();
+            }
+            
             $quantityWarehouse = floatval($item['quantity_from_warehouse'] ?? 0);
             $quantityStore = floatval($item['quantity_from_store'] ?? 0);
             $quantity = $quantityWarehouse + $quantityStore;
             $selectedPrice = floatval($item['selected_price']);
             $selectedType = $item['selected_min_type'];
+            
+            $unitPrice = $productStore->unit_price; // Fallback a product_stores
+            if ($branchId && $productStore->product_id) {
+                $productInBranch = ProductBranch::where('branch_id', $branchId)
+                    ->where('product_id', $productStore->product_id)
+                    ->first();
+                if ($productInBranch && $productInBranch->unit_price) {
+                    $unitPrice = $productInBranch->unit_price;
+                }
+            }
 
             // Calcular mínimo según el tipo seleccionado
-            $unitPrice = $productStore->unit_price;
             $totalPriceUsd = $unitPrice * $quantity;
             $totalPriceBs = $totalPriceUsd * $exchangeRateValue;
             $totalPriceSale = $totalPriceBs * 1.1;
@@ -155,7 +177,17 @@ class ReservationController extends Controller
             $branchId = $authUser->branch_id ?? null;
 
             foreach ($request->items as $item) {
-                $productStore = Product_store::findOrFail($item['product_id']);
+                $authUser = auth()->user();
+                $branchId = $authUser->branch_id ?? null;
+                
+                $productStore = Product_store::where('product_id', $item['product_id'])
+                    ->where('branch_id', $branchId)
+                    ->first();
+                
+                if (!$productStore) {
+                    throw new \Exception("Producto no encontrado en la sucursal.");
+                }
+                
                 $quantityWarehouse = floatval($item['quantity_from_warehouse'] ?? 0);
                 $quantityStore = floatval($item['quantity_from_store'] ?? 0);
                 $quantity = $quantityWarehouse + $quantityStore;
@@ -201,6 +233,12 @@ class ReservationController extends Controller
                 $quantityWarehouse = $itemData['quantity_from_warehouse'];
                 $quantityStore = $itemData['quantity_from_store'];
                 
+                file_put_contents('/tmp/debug.log', "=== DEBUG ===\n", FILE_APPEND);
+                file_put_contents('/tmp/debug.log', "ProductID: $productId\n", FILE_APPEND);
+                file_put_contents('/tmp/debug.log', "BranchID: $branchId\n", FILE_APPEND);
+                file_put_contents('/tmp/debug.log', "QuantityWarehouse: $quantityWarehouse\n", FILE_APPEND);
+                file_put_contents('/tmp/debug.log', "QuantityStore: $quantityStore\n", FILE_APPEND);
+                
                 // Obtener el stock en bodega por sucursal (product_branches)
                 $productInBranch = ProductBranch::where('branch_id', $branchId)
                     ->where('product_id', $productId)
@@ -211,24 +249,44 @@ class ReservationController extends Controller
                     ->where('branch_id', $branchId)
                     ->first();
 
+                file_put_contents('/tmp/debug.log', "ProductInBranch found: " . ($productInBranch ? 'YES' : 'NO') . "\n", FILE_APPEND);
+                file_put_contents('/tmp/debug.log', "ProductInStore found: " . ($productInStore ? 'YES' : 'NO') . "\n", FILE_APPEND);
+
                 // Actualizar stock en bodega (product_branches)
                 if ($quantityWarehouse > 0 && $productInBranch) {
-                    $productInBranch->decrement('quantity_in_stock', $quantityWarehouse);
-                    $productInBranch->update(['last_update' => $currentDate]);
+                    file_put_contents('/tmp/debug.log', "Actualizando bodega...\n", FILE_APPEND);
+                    ProductBranch::where('id', $productInBranch->id)
+                        ->update([
+                            'quantity_in_stock' => \DB::raw('quantity_in_stock - ' . $quantityWarehouse),
+                            'last_update' => $currentDate
+                        ]);
+                    file_put_contents('/tmp/debug.log', "Bodega actualizada!\n", FILE_APPEND);
+                } else {
+                    file_put_contents('/tmp/debug.log', "NO actualiza bodega - Warehouse: $quantityWarehouse, ProductInBranch: " . ($productInBranch ? 'YES' : 'NO') . "\n", FILE_APPEND);
                 }
 
                 // Actualizar stock en tienda (product_stores)
                 if ($quantityStore > 0 && $productInStore) {
-                    $productInStore->decrement('quantity', $quantityStore);
-                    $productInStore->update(['last_update' => $currentDate]);
+                    file_put_contents('/tmp/debug.log', "Actualizando tienda...\n", FILE_APPEND);
+                    Product_store::where('id', $productInStore->id)
+                        ->update([
+                            'quantity' => \DB::raw('quantity - ' . $quantityStore),
+                            'last_update' => $currentDate
+                        ]);
+                    file_put_contents('/tmp/debug.log', "Tienda actualizada!\n", FILE_APPEND);
+                } else {
+                    file_put_contents('/tmp/debug.log', "NO actualiza tienda - Store: $quantityStore, ProductInStore: " . ($productInStore ? 'YES' : 'NO') . "\n", FILE_APPEND);
                 }
             }
 
+            file_put_contents('/tmp/debug.log', "Antes de commit\n", FILE_APPEND);
             \Illuminate\Support\Facades\DB::commit();
+            file_put_contents('/tmp/debug.log', "Después de commit\n", FILE_APPEND);
 
             return redirect()->route('rreservations.index')->with('success', 'Reservación registrada exitosamente.');
 
         } catch (\Exception $e) {
+            file_put_contents('/tmp/debug.log', "EXCEPCIÓN CAPTURADA: " . $e->getMessage() . "\n", FILE_APPEND);
             \Illuminate\Support\Facades\DB::rollBack();
             return redirect()->back()->with('error', 'Ocurrió un error al registrar la reservación. Por favor, inténtelo de nuevo.')->withInput();
         }

@@ -38,7 +38,7 @@ const exchangeRate = computed(() => {
 // Estado del formulario
 const form = useForm({
     customer_id: null as number | null,
-    pay_type: 'Efectivo' as string,
+    pay_type: '' as string,
     advance_amount: 0 as number,
     items: [{
         product_id: null as number | null,
@@ -75,27 +75,28 @@ const findProductInStore = (productId: number | null) => {
     return productStores.find((p: any) => p.product_id === productId) || null;
 };
 
-// Función para encontrar un producto en bodega y su stock (preferir productBranches)
+// Función para encontrar un producto en bodega y su stock (productBranches)
 const findProductInWarehouse = (productId: number | null) => {
     if (!productId) return null;
 
-    // Si el backend envía productBranches (product_branches por sucursal), lo usamos
-    if (typeof productBranches !== 'undefined' && productBranches && productBranches.length > 0) {
-        const pb = productBranches.find((b: any) => {
-            return b.product_id === productId || (b.product && b.product.id === productId) || b.id === productId;
-        });
-        if (pb) {
-            return {
-                id: pb.product_id ?? pb.id ?? (pb.product ? pb.product.id : null),
-                name: pb.product?.name ?? pb.name ?? null,
-                code: pb.product?.code ?? pb.code ?? null,
-                img_product: pb.product?.img_product ?? pb.img_product ?? null,
-                quantity_in_stock: pb.quantity_in_stock ?? 0,
-                unit_price: pb.unit_price ?? 0,
-                units_per_box: pb.units_per_box ?? null,
-                last_update: pb.last_update ?? null,
-            };
-        }
+    if (!productBranches || productBranches.length === 0) {
+        return null;
+    }
+
+    // Buscar en productBranches por product_id (match exacto)
+    const pb = productBranches.find((b: any) => {
+        return parseInt(b.product_id) === parseInt(productId as any);
+    });
+    
+    if (pb) {
+        return {
+            id: pb.id,
+            product_id: pb.product_id,
+            name: pb.product?.name ?? null,
+            code: pb.product?.code ?? null,
+            quantity_in_stock: pb.quantity_in_stock ?? 0,
+            unit_price: pb.unit_price ?? 0,
+        };
     }
 
     return null;
@@ -193,18 +194,28 @@ const isItemPriceValid = (item: any) => {
     return price >= minPrice;
 };
 
-// Validar que todos los items tienen el MISMO tipo de precio
-const allItemsHaveSamePriceType = computed(() => {
-    if (form.items.length === 0) return false;
+// Validar que todos los items están en la MISMA MONEDA
+// Bolivianos y Venta son compatibles (ambos en Bs)
+// Dólares solo debe estar solo
+const allItemsHaveSameCurrency = computed(() => {
+    if (form.items.length === 0) return true;
     
-    const firstType = form.items[0].selected_min_type;
-    return form.items.every((item: any) => item.selected_min_type === firstType);
+    // Agrupar items por moneda
+    const hasUsd = form.items.some((item: any) => item.selected_min_type === 'usd');
+    const hasBs = form.items.some((item: any) => item.selected_min_type === 'bs' || item.selected_min_type === 'bs_sale');
+    
+    // No se puede mezclar USD con Bs/Venta
+    if (hasUsd && hasBs) {
+        return false;
+    }
+    
+    return true;
 });
 
-// Validar si todos los items tienen precios válidos y el mismo tipo
+// Validar si todos los items tienen precios válidos y la misma moneda
 const areAllItemsValid = computed(() => {
-    // Primero verificar que todos los items tengan el mismo tipo de precio
-    if (!allItemsHaveSamePriceType.value) {
+    // Primero verificar que todos los items estén en la misma moneda
+    if (!allItemsHaveSameCurrency.value) {
         return false;
     }
     
@@ -227,6 +238,24 @@ const submit = () => {
     });
 };
 </script>
+
+<style scoped>
+/* Forzar visibilidad del select en todos los temas */
+select {
+    background-color: #ffffff !important;
+    color: #000000 !important;
+}
+
+select option {
+    background-color: #ffffff !important;
+    color: #000000 !important;
+}
+
+select option:disabled {
+    background-color: #f3f4f6 !important;
+    color: #6b7280 !important;
+}
+</style>
 
 <template>
     <Head title="Nueva Reservación" />
@@ -257,10 +286,10 @@ const submit = () => {
                                 id="pay_type"
                                 name="pay_type"
                                 v-model="form.pay_type"
-                                class="px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:text-sm"
+                                class="px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:text-sm bg-white text-black"
                                 required
                             >
-                                <option value="" disabled selected>Seleccione un método de pago</option>
+                                <option value="">-- Seleccione un método de pago --</option>
                                 <option value="Dolares">Dólares</option>
                                 <option value="Bolivianos">Bolivianos</option>
                                 <option value="Qr">QR</option>
@@ -294,6 +323,7 @@ const submit = () => {
                                     placeholder="Buscar un producto por nombre o código..."
                                     required
                                     labelKey="product_code"
+                                    valueKey="product_id"
                                     :autofocus="index === 0"
                                 />
                                 <InputError :message="form.errors[`items.${index}.product_id`]" />
@@ -405,10 +435,13 @@ const submit = () => {
                         <div class="grid gap-4 p-4 bg-indigo-50 dark:bg-indigo-900 rounded-lg border border-indigo-200 dark:border-indigo-700">
                             <h3 class="text-lg font-semibold text-indigo-900 dark:text-indigo-100">Resumen de Reservación</h3>
                             
-                            <!-- Validación: Todos los items deben tener el mismo tipo de precio -->
-                            <div v-if="form.items.length > 0 && !allItemsHaveSamePriceType" class="p-3 bg-red-100 dark:bg-red-900 border border-red-400 dark:border-red-600 rounded-lg">
+                            <!-- Validación: Todos los items deben estar en la MISMA MONEDA -->
+                            <div v-if="form.items.length > 0 && !allItemsHaveSameCurrency" class="p-3 bg-red-100 dark:bg-red-900 border border-red-400 dark:border-red-600 rounded-lg">
                                 <p class="text-sm font-semibold text-red-700 dark:text-red-300">
-                                    ⚠️ Todos los items deben tener el MISMO tipo de precio (USD, Bs o Venta)
+                                    🚫 NO se puede mezclar Dólares con Bolivianos/Venta
+                                </p>
+                                <p class="text-xs text-red-600 dark:text-red-400 mt-1">
+                                    Usa TODOS en Dólares, O todos en Bolivianos/Venta
                                 </p>
                             </div>
                             

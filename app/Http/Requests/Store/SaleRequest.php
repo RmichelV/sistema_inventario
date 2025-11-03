@@ -31,6 +31,7 @@ class SaleRequest extends FormRequest
             'pay_type' => ['required', 'string'],
             'final_price' => ['required', 'numeric', 'min:0'],
             'customer_name' => ['required', 'string', 'max:255'],
+            'notes' => ['nullable', 'string', 'max:1000'],
             'items' => ['required', 'array', 'min:1'],
             'items.*.product_id' => ['required', 'exists:products,id'],
             'items.*.selected_price' => [

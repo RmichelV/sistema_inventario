@@ -19,6 +19,7 @@ return new class extends Migration
             $table->string('pay_type');
             $table->decimal('final_price');
             $table->decimal('exchange_rate');
+            $table->text('notes')->nullable();
             $table->foreignId('branch_id')->constrained('branches');
             $table->timestamps();
         });

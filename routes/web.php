@@ -54,6 +54,12 @@ Route::get('dashboard', function () {
         $products = Product::all(['id','name','code']);
     }
 
+    // --- OBTENER STOCK EN BODEGA (PRODUCT_BRANCHES) ---
+    $productBranches = [];
+    if (\Schema::hasTable('product_branches') && $branchId) {
+        $productBranches = \App\Models\product_branch::where('branch_id', $branchId)->get(['id', 'product_id', 'quantity_in_stock', 'unit_price']);
+    }
+
     // --- 1. PRODUCTOS EN TIENDA (RAW) - NECESARIO PARA LA FUNCIÓN DE BÚSQUEDA DEL DASHBOARD ---
     // Obtenemos los productos en tienda (sin el 'with("product")' para hacerlo más ligero)
     // y filtramos por branch_id si corresponde. También incluimos filas legacy (branch_id IS NULL)
@@ -160,6 +166,8 @@ Route::get('dashboard', function () {
         // Y las listas filtradas
         'productStores15Days' => $productStores15Days,
         'productStores30Days' => $productStores30Days,
+        // AGREGAR PRODUCT_BRANCHES PARA STOCK EN BODEGA
+        'productBranches' => $productBranches,
         'branches' => $branches,
         'currentBranch' => $currentBranch,
         'currentUser' => $user,
