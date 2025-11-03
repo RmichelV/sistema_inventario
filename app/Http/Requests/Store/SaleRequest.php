@@ -6,6 +6,8 @@ use Illuminate\Foundation\Http\FormRequest;
 use App\Models\Product; // Modelo para Bodega (legacy)
 use App\Models\Product_Store; // Modelo para Tienda (Nombre corregido: Product_Store)
 use App\Models\product_branch as ProductBranch; // Inventario por sucursal
+use App\Models\Usd_exchange_rate;
+use App\Models\Product_store as ProductStore;
 
 class SaleRequest extends FormRequest
 {
@@ -31,7 +33,66 @@ class SaleRequest extends FormRequest
             'customer_name' => ['required', 'string', 'max:255'],
             'items' => ['required', 'array', 'min:1'],
             'items.*.product_id' => ['required', 'exists:products,id'],
-            'items.*.selected_price' => ['required', 'numeric', 'min:0'],
+            'items.*.selected_price' => [
+                'required', 
+                'numeric', 
+                'min:0',
+                function ($attribute, $value, $fail) {
+                    $value = (float) $value;
+                    $index = explode('.', $attribute)[1];
+                    
+                    $productId = $this->input("items.{$index}.product_id");
+                    $quantityWarehouse = (float) ($this->input("items.{$index}.quantity_from_warehouse") ?? 0);
+                    $quantityStore = (float) ($this->input("items.{$index}.quantity_from_store") ?? 0);
+                    $selectedMinType = $this->input("items.{$index}.selected_min_type") ?? 'bs_sale';
+                    
+                    if (!$productId) return;
+                    
+                    $totalQuantity = $quantityWarehouse + $quantityStore;
+                    if ($totalQuantity <= 0) return;
+                    
+                    // Obtener el precio del producto en tienda
+                    $authUser = auth()->user();
+                    $branchId = $authUser->branch_id ?? null;
+                    
+                    $productStore = ProductStore::where('product_id', $productId)
+                        ->where('branch_id', $branchId)
+                        ->first();
+                    
+                    if (!$productStore) return;
+                    
+                    $unitPriceUsd = $productStore->unit_price ?? 0;
+                    $exchangeRate = Usd_exchange_rate::find(1);
+                    $exchangeRateValue = $exchangeRate ? $exchangeRate->exchange_rate : 1;
+                    
+                    // Calcular precios según el tipo seleccionado
+                    $priceUsd = $unitPriceUsd * $totalQuantity;
+                    $priceBs = $priceUsd * $exchangeRateValue;
+                    $salePriceBs = $priceBs * 1.1;
+                    
+                    // Determinar el mínimo según el tipo
+                    $minimumPrice = 0;
+                    switch ($selectedMinType) {
+                        case 'usd':
+                            $minimumPrice = $priceUsd;
+                            break;
+                        case 'bs':
+                            $minimumPrice = $priceBs;
+                            break;
+                        case 'bs_sale':
+                            $minimumPrice = $salePriceBs;
+                            break;
+                        default:
+                            $minimumPrice = $priceBs;
+                    }
+                    
+                    // Validar que el precio ingresado sea >= al mínimo
+                    if ($value < $minimumPrice) {
+                        $minimumFormatted = number_format($minimumPrice, 2, '.', ',');
+                        $fail("El precio cobrado para el producto #" . ($index + 1) . " no puede ser menor a {$minimumFormatted}");
+                    }
+                }
+            ],
 
             // VALIDACIÓN DE STOCK EN BODEGA (Modelo Product)
             'items.*.quantity_from_warehouse' => [
