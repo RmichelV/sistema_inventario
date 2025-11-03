@@ -17,6 +17,7 @@ class Reservation extends Model
         'rest_amount',
         'exchange_rate',
         'pay_type',
+        'branch_id',
     ];
 
     public function customer()

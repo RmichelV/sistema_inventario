@@ -27,12 +27,6 @@ function makeAcciones() {
             name: 'Detalles',
             iconName: 'bx-detail',
         },
-        {
-            href: (item: any) => route('rreservations.edit', item.id),
-            color: 'yellow',
-            name: 'Editar',
-            iconName: 'bx-pencil',
-        },
     ];
 
     // Solo admin puede eliminar
@@ -58,7 +52,7 @@ function makeAcciones() {
                                 });
                             },
                             onError: (errors: any) => {
-                                console.error('Delete error', errors);
+                                console.error('Delete error:', errors);
                                 swal.fire('Error', 'Ocurrió un error al eliminar la reservación.', 'error');
                             }
                         });

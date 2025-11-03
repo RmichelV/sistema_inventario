@@ -21,10 +21,11 @@ const breadcrumbs: BreadcrumbItem[] = [
     },
 ];
 
-const { customers, productStores, usd_exchange_rate } = defineProps<{
+const { customers, productStores, usd_exchange_rate, productBranches } = defineProps<{
     customers: any[];
     productStores: any[];
     usd_exchange_rate: any;
+    productBranches?: Array<any>;
 }>();
 
 const exchangeRate = computed(() => {
@@ -41,7 +42,8 @@ const form = useForm({
     advance_amount: 0 as number,
     items: [{
         product_id: null as number | null,
-        quantity_products: undefined as number | undefined,
+        quantity_from_warehouse: undefined as number | undefined,
+        quantity_from_store: undefined as number | undefined,
         unit_price_usd: 0 as number,
         selected_price: '' as string | number,
         selected_min_type: 'bs_sale' as 'usd' | 'bs' | 'bs_sale',
@@ -51,7 +53,8 @@ const form = useForm({
 const addReservationItem = () => {
     form.items.push({
         product_id: null,
-        quantity_products: undefined,
+        quantity_from_warehouse: undefined,
+        quantity_from_store: undefined,
         unit_price_usd: 0,
         selected_price: '',
         selected_min_type: 'bs_sale',
@@ -72,11 +75,37 @@ const findProductInStore = (productId: number | null) => {
     return productStores.find((p: any) => p.product_id === productId) || null;
 };
 
+// Función para encontrar un producto en bodega y su stock (preferir productBranches)
+const findProductInWarehouse = (productId: number | null) => {
+    if (!productId) return null;
+
+    // Si el backend envía productBranches (product_branches por sucursal), lo usamos
+    if (typeof productBranches !== 'undefined' && productBranches && productBranches.length > 0) {
+        const pb = productBranches.find((b: any) => {
+            return b.product_id === productId || (b.product && b.product.id === productId) || b.id === productId;
+        });
+        if (pb) {
+            return {
+                id: pb.product_id ?? pb.id ?? (pb.product ? pb.product.id : null),
+                name: pb.product?.name ?? pb.name ?? null,
+                code: pb.product?.code ?? pb.code ?? null,
+                img_product: pb.product?.img_product ?? pb.img_product ?? null,
+                quantity_in_stock: pb.quantity_in_stock ?? 0,
+                unit_price: pb.unit_price ?? 0,
+                units_per_box: pb.units_per_box ?? null,
+                last_update: pb.last_update ?? null,
+            };
+        }
+    }
+
+    return null;
+};
+
 // Calcular precio total en USD por item
 const itemPriceUsd = (item: any) => {
     const productInStore = findProductInStore(item.product_id);
-    const quantity = item.quantity_products || 0;
-    return productInStore && quantity > 0 ? productInStore.unit_price * quantity : 0;
+    const totalQuantity = (item.quantity_from_warehouse || 0) + (item.quantity_from_store || 0);
+    return productInStore && totalQuantity > 0 ? productInStore.unit_price * totalQuantity : 0;
 };
 
 // Calcular precio total en Bs por item
@@ -96,7 +125,7 @@ const getItemMinPrice = (item: any) => {
     if (!item.product_id) return 0;
     switch (item.selected_min_type) {
         case 'usd':
-            return itemPriceUsd(item) * exchangeRate.value;
+            return itemPriceUsd(item);
         case 'bs':
             return itemPriceBs(item);
         case 'bs_sale':
@@ -109,7 +138,7 @@ const getItemMinPrice = (item: any) => {
 // --- MANEJO DEL CAMBIO DE TIPO MÍNIMO ---
 // Regla: habilitar la opción 'bs' solo si la cantidad es > 3.
 const allowBs = (item: any) => {
-    const total = item.quantity_products || 0;
+    const total = (item.quantity_from_warehouse || 0) + (item.quantity_from_store || 0);
     return total > 3;
 };
 
@@ -131,7 +160,7 @@ const handleMinTypeChange = (item: any, type: 'usd' | 'bs' | 'bs_sale') => {
 
 // Watch para corregir automáticamente selecciones inválidas cuando la cantidad cambie
 watch(
-    () => form.items.map((it: any) => ({ q: it.quantity_products || 0, sel: it.selected_min_type })),
+    () => form.items.map((it: any) => ({ q: (it.quantity_from_warehouse || 0) + (it.quantity_from_store || 0), sel: it.selected_min_type })),
     () => {
         form.items.forEach((it: any) => {
             if (it.selected_min_type === 'bs' && !allowBs(it)) {
@@ -143,8 +172,9 @@ watch(
     { deep: true }
 );
 
-// Calcular total de la reservación usando selected_price
-const totalAmountBs = computed(() => {
+// Calcular total de la reservación sin conversiones
+// Solo suma los precios tal como están ingresados
+const totalAmountInSelectedCurrency = computed(() => {
     return form.items.reduce((total, item) => {
         const price = parseFloat(item.selected_price as any) || 0;
         return total + price;
@@ -153,7 +183,7 @@ const totalAmountBs = computed(() => {
 
 // Calcular saldo restante
 const restAmount = computed(() => {
-    return totalAmountBs.value - (form.advance_amount || 0);
+    return totalAmountInSelectedCurrency.value - (form.advance_amount || 0);
 });
 
 // Validar si un item tiene precio válido (mayor o igual al mínimo)
@@ -163,15 +193,33 @@ const isItemPriceValid = (item: any) => {
     return price >= minPrice;
 };
 
-// Validar si todos los items tienen precios válidos
+// Validar que todos los items tienen el MISMO tipo de precio
+const allItemsHaveSamePriceType = computed(() => {
+    if (form.items.length === 0) return false;
+    
+    const firstType = form.items[0].selected_min_type;
+    return form.items.every((item: any) => item.selected_min_type === firstType);
+});
+
+// Validar si todos los items tienen precios válidos y el mismo tipo
 const areAllItemsValid = computed(() => {
+    // Primero verificar que todos los items tengan el mismo tipo de precio
+    if (!allItemsHaveSamePriceType.value) {
+        return false;
+    }
+    
     return form.items.every((item: any) => {
-        if (!item.product_id || !item.quantity_products) return false;
+        const totalQuantity = (item.quantity_from_warehouse || 0) + (item.quantity_from_store || 0);
+        if (!item.product_id || totalQuantity === 0) return false;
         return isItemPriceValid(item);
     });
 });
 
 const submit = () => {
+    // Solo enviar tal como está
+    // El backend sabrá si es USD o Bs según el selected_min_type
+    // NO convertimos nada aquí
+    
     form.post(route('rreservations.store'), {
         onSuccess: () => {
             form.reset();
@@ -203,13 +251,19 @@ const submit = () => {
                             <InputError :message="form.errors.customer_id" />
                         </div>
 
-                        <!-- Tipo de Pago -->
-                        <div class="grid gap-2">
-                            <Label for="pay_type">Tipo de Pago</Label>
-                            <select id="pay_type" v-model="form.pay_type" class="px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:text-sm" required>
-                                <option value="Efectivo">Efectivo</option>
-                                <option value="Qr">QR</option>
+                         <div class="grid gap-2">
+                            <Label for="pay_type">Método de pago</Label>
+                            <select
+                                id="pay_type"
+                                name="pay_type"
+                                v-model="form.pay_type"
+                                class="px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:text-sm"
+                                required
+                            >
+                                <option value="" disabled selected>Seleccione un método de pago</option>
                                 <option value="Dolares">Dólares</option>
+                                <option value="Bolivianos">Bolivianos</option>
+                                <option value="Qr">QR</option>
                             </select>
                             <InputError :message="form.errors.pay_type" />
                         </div>
@@ -247,30 +301,49 @@ const submit = () => {
 
                             <!-- Display de Stock -->
                             <div class="grid gap-2">
+                                <p v-if="findProductInWarehouse(item.product_id)" class="text-base text-blue-700 dark:text-blue-300">
+                                    Stock en bodega: <span class="font-extrabold text-lg">{{ findProductInWarehouse(item.product_id)?.quantity_in_stock }}</span> unidades
+                                </p>
                                 <p v-if="findProductInStore(item.product_id)" class="text-base text-green-700 dark:text-green-300">
-                                    Stock disponible: <span class="font-extrabold text-lg">{{ findProductInStore(item.product_id)?.quantity }}</span> unidades
+                                    Stock en tienda: <span class="font-extrabold text-lg">{{ findProductInStore(item.product_id)?.quantity }}</span> unidades
                                 </p>
                             </div>
 
                             <div class="grid gap-2">
-                                <Label :for="'quantity-' + index">Cantidad</Label>
+                                <Label :for="'quantity_from_warehouse-' + index">Cantidad desde Bodega</Label>
                                 <Input 
-                                    :id="'quantity-' + index"
+                                    :id="'quantity_from_warehouse-' + index"
                                     type="number"
                                     required
-                                    placeholder="Ej. 10"
-                                    min="1"
-                                    :max="findProductInStore(item.product_id)?.quantity ?? 999"
-                                    v-model.number="item.quantity_products"
+                                    placeholder="Ej. 5"
+                                    min="0"
+                                    :max="findProductInWarehouse(item.product_id)?.quantity_in_stock ?? 0"
+                                    defaultValue="0"
+                                    v-model.number="item.quantity_from_warehouse"
                                 />
-                                <InputError :message="form.errors[`items.${index}.quantity_products`]" />
+                                <InputError :message="form.errors[`items.${index}.quantity_from_warehouse`]" />
+                            </div>
+
+                            <div class="grid gap-2">
+                                <Label :for="'quantity_from_store-' + index">Cantidad desde Tienda</Label>
+                                <Input 
+                                    :id="'quantity_from_store-' + index"
+                                    type="number"
+                                    required
+                                    placeholder="Ej. 5"
+                                    min="0"
+                                    :max="findProductInStore(item.product_id)?.quantity ?? 0"
+                                    defaultValue="0"
+                                    v-model.number="item.quantity_from_store"
+                                />
+                                <InputError :message="form.errors[`items.${index}.quantity_from_store`]" />
                             </div>
 
                             <!-- BLOQUE DE PRECIOS DE REFERENCIA CON LOS 3 VALORES -->
                             <div class="grid gap-2 mt-4 p-3 bg-gray-100 dark:bg-gray-800 rounded-lg border border-indigo-300 dark:border-indigo-700">
                                 <Label class="text-lg font-semibold text-indigo-700 dark:text-indigo-400">Referencias de Precio (Total por Cantidad)</Label>
                                 
-                                <div v-if="item.product_id && ((item.quantity_products || 0) > 0)" class="flex flex-col gap-2">
+                                <div v-if="item.product_id && ((item.quantity_from_warehouse || 0) + (item.quantity_from_store || 0) > 0)" class="flex flex-col gap-2">
                                     <label class="flex items-center gap-2">
                                         <input type="radio" :name="'ref-radio-' + index" value="usd" v-model="item.selected_min_type" @change="handleMinTypeChange(item, 'usd')">
                                         <span class="text-sm font-medium text-gray-700 dark:text-gray-300">
@@ -300,20 +373,20 @@ const submit = () => {
                             <!-- Campo de Input para el Precio Final Cobrado por este Ítem -->
                             <div class="grid gap-2 mt-2">
                                 <Label :for="'selected_price-' + index" class="font-bold text-lg">
-                                    Precio de Reservación por este producto (Bs.)
+                                    Precio de Reservación por este producto ({{ item.selected_min_type === 'usd' ? '$' : 'Bs.' }})
                                 </Label>
                                 <div class="flex gap-2 items-center">
                                     <Input 
                                         :id="'selected_price-' + index"
                                         type="text"
                                         required
-                                        placeholder="Ingrese el precio de reservación por este ítem..."
+                                        :placeholder="item.selected_min_type === 'usd' ? 'Ingrese el precio en dólares...' : 'Ingrese el precio en bolivianos...'"
                                         v-model="item.selected_price"
                                         :class="item.selected_price && !isItemPriceValid(item) ? 'border-red-500' : ''"
                                     />
-                                    <span class="text-xs text-gray-500 whitespace-nowrap">Mín: Bs. {{ getItemMinPrice(item).toFixed(2) }}</span>
+                                    <span class="text-xs text-gray-500 whitespace-nowrap">Mín: {{ item.selected_min_type === 'usd' ? '$' : 'Bs. ' }}{{ getItemMinPrice(item).toFixed(2) }}</span>
                                 </div>
-                                <InputError v-if="item.selected_price && !isItemPriceValid(item)" :message="`El precio debe ser mayor o igual a Bs. ${getItemMinPrice(item).toFixed(2)}`" />
+                                <InputError v-if="item.selected_price && !isItemPriceValid(item)" :message="`El precio debe ser mayor o igual a ${item.selected_min_type === 'usd' ? '$' : 'Bs. '}${getItemMinPrice(item).toFixed(2)}`" />
                                 <InputError :message="form.errors[`items.${index}.selected_price`]" />
                             </div>
                         </div>
@@ -332,20 +405,27 @@ const submit = () => {
                         <div class="grid gap-4 p-4 bg-indigo-50 dark:bg-indigo-900 rounded-lg border border-indigo-200 dark:border-indigo-700">
                             <h3 class="text-lg font-semibold text-indigo-900 dark:text-indigo-100">Resumen de Reservación</h3>
                             
+                            <!-- Validación: Todos los items deben tener el mismo tipo de precio -->
+                            <div v-if="form.items.length > 0 && !allItemsHaveSamePriceType" class="p-3 bg-red-100 dark:bg-red-900 border border-red-400 dark:border-red-600 rounded-lg">
+                                <p class="text-sm font-semibold text-red-700 dark:text-red-300">
+                                    ⚠️ Todos los items deben tener el MISMO tipo de precio (USD, Bs o Venta)
+                                </p>
+                            </div>
+                            
                             <div class="grid gap-2">
                                 <div class="flex justify-between text-base">
-                                    <span>Monto Total (Bs.):</span>
-                                    <span class="font-bold text-lg text-green-700 dark:text-green-300">Bs. {{ totalAmountBs.toFixed(2) }}</span>
+                                    <span>Monto Total ({{ form.pay_type === 'Dolares' ? '$' : 'Bs.' }}):</span>
+                                    <span class="font-bold text-lg text-green-700 dark:text-green-300">{{ form.pay_type === 'Dolares' ? '$' : 'Bs. ' }}{{ totalAmountInSelectedCurrency.toFixed(2) }}</span>
                                 </div>
                                 
                                 <div class="grid gap-2">
-                                    <Label for="advance_amount">Anticipo (Bs.)</Label>
+                                    <Label for="advance_amount">Anticipo ({{ form.pay_type === 'Dolares' ? '$' : 'Bs.' }})</Label>
                                     <Input 
                                         id="advance_amount"
                                         type="number"
-                                        placeholder="0.00"
+                                        :placeholder="form.pay_type === 'Dolares' ? '0.00 USD' : '0.00 Bs.'"
                                         min="0"
-                                        :max="totalAmountBs"
+                                        :max="totalAmountInSelectedCurrency"
                                         step="0.01"
                                         v-model.number="form.advance_amount"
                                     />
@@ -353,8 +433,8 @@ const submit = () => {
                                 </div>
 
                                 <div class="flex justify-between text-base">
-                                    <span>Saldo Restante (Bs.):</span>
-                                    <span class="font-bold text-lg text-red-700 dark:text-red-300">Bs. {{ restAmount.toFixed(2) }}</span>
+                                    <span>Saldo Restante ({{ form.pay_type === 'Dolares' ? '$' : 'Bs.' }}):</span>
+                                    <span class="font-bold text-lg text-red-700 dark:text-red-300">{{ form.pay_type === 'Dolares' ? '$' : 'Bs. ' }}{{ restAmount.toFixed(2) }}</span>
                                 </div>
                             </div>
                         </div>

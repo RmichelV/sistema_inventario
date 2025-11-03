@@ -19,6 +19,7 @@ return new class extends Migration
             $table->decimal('rest_amount', 10, 2);
             $table->decimal('exchange_rate');
             $table->string('pay_type');
+            $table->foreignId('branch_id')->constrained('branches');
             $table->timestamps();
         });
     }

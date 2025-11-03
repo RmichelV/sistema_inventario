@@ -14,6 +14,8 @@ class Reservation_item extends Model
         'reservation_id',
         'product_id',
         'quantity_products',
+        'quantity_from_warehouse',
+        'quantity_from_store',
         'total_price',
         'exchange_rate',
     ];
