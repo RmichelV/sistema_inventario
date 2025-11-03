@@ -49,6 +49,12 @@ function makeAcciones() {
             name: 'Detalles',
             iconName: 'bx-detail',
         },
+        {
+            href: (item: any) => route('rreservations.payment', item.id),
+            color: 'green',
+            name: 'Pagar',
+            iconName: 'bx-credit-card',
+        },
     ];
 
     // Solo admin puede eliminar

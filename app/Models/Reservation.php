@@ -20,6 +20,13 @@ class Reservation extends Model
         'branch_id',
     ];
 
+    protected $casts = [
+        'total_amount' => 'float',
+        'advance_amount' => 'float',
+        'rest_amount' => 'float',
+        'exchange_rate' => 'float',
+    ];
+
     public function customer()
     {
         return $this->belongsTo(Customer::class, 'customer_id', 'id');

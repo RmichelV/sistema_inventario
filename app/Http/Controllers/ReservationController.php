@@ -11,6 +11,7 @@ use App\Models\Usd_exchange_rate;
 use App\Models\product_branch as ProductBranch;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
+use Illuminate\Support\Facades\DB;
 
 class ReservationController extends Controller
 {
@@ -390,6 +391,114 @@ class ReservationController extends Controller
         } catch (\Exception $e) {
             \Log::error('Error al eliminar reservación: ' . $e->getMessage());
             return back()->with('error', 'Ocurrió un error al eliminar la reservación.');
+        }
+    }
+
+    /**
+     * Show the payment form for a reservation
+     */
+    public function payment($id)
+    {
+        $reservation = Reservation::with('customer')->findOrFail($id);
+        $items = Reservation_item::where('reservation_id', $reservation->id)
+            ->with('product')
+            ->get();
+
+        $itemsFormatted = collect($items)->map(function ($item) {
+            $product = Product::find($item->product_id);
+            return [
+                'id' => $item->id,
+                'product_id' => $item->product_id,
+                'product_code' => $product?->code ?? 'N/A',
+                'quantity_products' => $item->quantity_products,
+                'total_price' => floatval($item->total_price),
+                'exchange_rate' => floatval($item->exchange_rate),
+            ];
+        });
+
+        $authUser = auth()->user();
+
+        $reservationData = [
+            'id' => $reservation->id,
+            'customer' => [
+                'id' => $reservation->customer->id,
+                'name' => $reservation->customer->name,
+                'phone' => $reservation->customer->phone ?? null,
+                'email' => $reservation->customer->email ?? null,
+            ],
+            'total_amount' => floatval($reservation->total_amount),
+            'advance_amount' => floatval($reservation->advance_amount),
+            'rest_amount' => floatval($reservation->rest_amount),
+            'exchange_rate' => floatval($reservation->exchange_rate),
+            'pay_type' => $reservation->pay_type,
+            'branch_id' => $reservation->branch_id,
+            'created_at' => $reservation->created_at,
+        ];
+
+        return Inertia::render('Reservations/payment', [
+            'reservation' => $reservationData,
+            'items' => $itemsFormatted,
+            'currentUser' => $authUser,
+        ]);
+    }
+
+    /**
+     * Store payment and create sale from reservation
+     */
+    public function storePayment(Request $request, $id)
+    {
+        $request->validate([
+            'pay_type' => 'required|string',
+            'notes' => 'nullable|string',
+        ]);
+
+        $authUser = auth()->user();
+        $branchId = $authUser->branch_id ?? null;
+
+        DB::beginTransaction();
+
+        try {
+            $reservation = Reservation::findOrFail($id);
+            $exchange_rate = Usd_exchange_rate::find(1);
+
+            // 1. Get all reservation items
+            $reservationItems = Reservation_item::where('reservation_id', $reservation->id)->get();
+
+            // 2. Create the sale using reservation data
+            $sale = \App\Models\Sale::create([
+                'sale_code' => 'EWTTO-' . \Illuminate\Support\Str::random(8),
+                'customer_name' => $reservation->customer->name,
+                'sale_date' => now()->toDateString(),
+                'pay_type' => $request->pay_type,
+                'final_price' => $reservation->total_amount,
+                'exchange_rate' => $reservation->exchange_rate,
+                'notes' => $request->notes ?? null,
+                'branch_id' => $branchId,
+            ]);
+
+            // 3. Create sale items from reservation items
+            foreach ($reservationItems as $item) {
+                \App\Models\Sale_item::create([
+                    'sale_id' => $sale->id,
+                    'product_id' => $item->product_id,
+                    'quantity_products' => $item->quantity_products,
+                    'total_price' => $item->total_price,
+                    'exchange_rate' => $item->exchange_rate,
+                ]);
+            }
+
+            // 4. Delete the reservation (items will be deleted via cascade)
+            $reservation->delete();
+
+            DB::commit();
+
+            return redirect()->route('rsales.index')
+                ->with('success', 'Venta registrada exitosamente. Reservación completada.');
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            \Log::error('Error al procesar pago de reservación: ' . $e->getMessage());
+            return back()->with('error', 'Ocurrió un error al procesar el pago: ' . $e->getMessage());
         }
     }
 }

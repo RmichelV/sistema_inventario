@@ -213,6 +213,14 @@ Route::resource('rsales', SaleController::class)->middleware(['auth', 'role:1,2,
 Route::resource('rreservations', ReservationController::class)->middleware(['auth', 'role:1,2,3']);
 Route::resource('rreservation_items', ReservationItemController::class)->middleware(['auth', 'role:1,2,3']);
 
+// Rutas adicionales para pagos de reservaciones
+Route::get('rreservations/{id}/payment', [ReservationController::class, 'payment'])
+    ->middleware(['auth', 'role:1,2,3'])
+    ->name('rreservations.payment');
+Route::post('rreservations/{id}/payment', [ReservationController::class, 'storePayment'])
+    ->middleware(['auth', 'role:1,2,3'])
+    ->name('rreservations.storePayment');
+
 // Rutas de ajuste de tipo de cambio. Solo el rol 1 (aa) puede hacerlo.
 Route::resource('rusdexchangerates', UsdExchangeRateController::class)->middleware(['auth', 'role:1,2']);
 
