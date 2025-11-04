@@ -68,8 +68,9 @@ class CustomerController extends Controller
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit(Customer $customer)
+    public function edit(string $id)
     {
+        $customer = Customer::findOrFail($id);
         return Inertia::render('Customers/edit', [
             'customer' => $customer,
         ]);
@@ -78,8 +79,9 @@ class CustomerController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(UpdateCustomerRequest $request, Customer $customer)
+    public function update(UpdateCustomerRequest $request, string $id)
     {
+        $customer = Customer::findOrFail($id);
         $validated = $request->validated();
 
         try {
@@ -93,13 +95,10 @@ class CustomerController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(Customer $customer)
+    public function destroy(string $id)
     {
-        try {
-            $customer->delete();
-            return redirect()->route('rcustomers.index')->with('success', 'Cliente eliminado exitosamente.');
-        } catch (\Exception $e) {
-            return redirect()->back()->with('error', 'Error al eliminar cliente.');
-        }
+        $customer = Customer::findOrFail($id);
+        $customer->delete();
+        return redirect()->route('rcustomers.index')->with('success', 'Cliente eliminado exitosamente.');
     }
 }

@@ -3,6 +3,7 @@
 namespace App\Http\Requests\Customers;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class UpdateCustomerRequest extends FormRequest
 {
@@ -21,9 +22,11 @@ class UpdateCustomerRequest extends FormRequest
      */
     public function rules(): array
     {
+        $customerId = $this->route('rcustomer'); // El parámetro es rcustomer (singular)
+        
         return [
             'name' => ['required', 'string', 'max:255', 'regex:/^[\pL\s.,-]+$/u'],
-            'email' => ['required', 'email', 'unique:customers,email,' . $this->customer->id],
+            'email' => ['required', 'email', Rule::unique('customers', 'email')->ignore($customerId)],
             'phone' => ['nullable', 'string', 'max:20', 'regex:/^[0-9+\-\s()]+$/'],
             'address' => ['nullable', 'string', 'max:255'],
             'notes' => ['nullable', 'string'],
